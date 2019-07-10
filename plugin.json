@@ -14,7 +14,7 @@
 			"slug": "Rainbow" ,
 			"name": "Rainbow",
 			"description": "A multiband band-pass resonant filter",
-			"tags": ["Physical modeling"]
+			"tags": ["Physical modeling", "VCF"]
 		}
 	]
 }
