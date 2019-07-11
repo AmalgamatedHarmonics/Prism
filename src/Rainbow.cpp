@@ -539,7 +539,7 @@ void Rainbow::process(const ProcessArgs &args) {
 	if (outputBuffer.empty()) {
 
 		{
-			inputSrc.setRates(args.sampleRate, 48000);
+			inputSrc.setRates(args.sampleRate, 96000);
 			dsp::Frame<2> inputFrames[NUM_SAMPLES];
 			int inLen = inputBuffer.size();
 			int outLen = NUM_SAMPLES;
@@ -562,7 +562,7 @@ void Rainbow::process(const ProcessArgs &args) {
 				outputFrames[i].samples[1] = out[i * 2 + 1] / inMax;
 			}
 
-			outputSrc.setRates(48000, args.sampleRate);
+			outputSrc.setRates(96000, args.sampleRate);
 			int inLen = NUM_SAMPLES;
 			int outLen = outputBuffer.capacity();
 			outputSrc.process(outputFrames, &inLen, outputBuffer.endData(), &outLen);
