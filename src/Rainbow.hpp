@@ -249,8 +249,8 @@ struct Filter {
 
     void update_slider_leds(void);
 
-    void audio_convert_2x16_to_stereo24(uint16_t sz, int32_t *src, int32_t *ldst, int32_t *rdst);
-    void audio_convert_stereo24_to_2x16(uint16_t sz, int32_t *lsrc, int32_t *rsrc, int32_t *dst);
+    void audio_split(uint16_t sz, int32_t *src, int32_t *ldst, int32_t *rdst);
+    void audio_merge(uint16_t sz, int32_t *lsrc, int32_t *rsrc, int32_t *dst);
 
 };
 

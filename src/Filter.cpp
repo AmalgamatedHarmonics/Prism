@@ -587,8 +587,8 @@ void Filter::process_audio_block(int32_t *src, int32_t *dst) {
         filter_type = new_filter_type;
     }
 
-	// Convert 16-bit pairs to 24-bits stuffed into 32-bit integers: 1.6us
-	audio_convert_2x16_to_stereo24(NUM_SAMPLES, src, left_buffer, right_buffer);
+	// Split 32-bit pairs
+	audio_split(NUM_SAMPLES, src, left_buffer, right_buffer);
 
 	// Populate the filter coefficients
 	process_scale_bank();
@@ -651,13 +651,13 @@ void Filter::process_audio_block(int32_t *src, int32_t *dst) {
 		}
 	}
 	
-	audio_convert_stereo24_to_2x16(NUM_SAMPLES, filtered_buffer, filtered_bufferR, dst); //1.5us
+	audio_merge(NUM_SAMPLES, filtered_buffer, filtered_bufferR, dst); //1.5us
 
 	// Processed filter
 	filter_type_changed = false;
 }
 
-void Filter::audio_convert_2x16_to_stereo24(uint16_t size, int32_t *src, int32_t *ldst, int32_t *rdst) {
+void Filter::audio_split(uint16_t size, int32_t *src, int32_t *ldst, int32_t *rdst) {
 
 	for (int i = 0; i < size; i++) {
 		ldst[i] = src[i * 2];
@@ -677,7 +677,7 @@ void Filter::audio_convert_2x16_to_stereo24(uint16_t size, int32_t *src, int32_t
 	}
 }
 
-void Filter::audio_convert_stereo24_to_2x16(uint16_t size, int32_t *lsrc, int32_t *rsrc, int32_t *dst) {
+void Filter::audio_merge(uint16_t size, int32_t *lsrc, int32_t *rsrc, int32_t *dst) {
 	for (int i = 0; i < size; i++) {
 		dst[i * 2]     = *lsrc;
 		dst[i * 2 + 1] = *rsrc;
