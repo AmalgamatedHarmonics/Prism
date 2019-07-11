@@ -244,13 +244,13 @@ struct Filter {
     void filter_bpre(void);
 
     void change_filter_type(FilterTypes newtype);
-    void process_audio_block(int16_t *src, int16_t *dst);
+    void process_audio_block(int32_t *src, int32_t *dst);
     void set_default_user_scalebank();
 
     void update_slider_leds(void);
 
-    void audio_convert_2x16_to_stereo24(uint16_t sz, int16_t *src, int32_t *ldst, int32_t *rdst);
-    void audio_convert_stereo24_to_2x16(uint16_t sz, int32_t *lsrc, int32_t *rsrc, int16_t *dst);
+    void audio_convert_2x16_to_stereo24(uint16_t sz, int32_t *src, int32_t *ldst, int32_t *rdst);
+    void audio_convert_stereo24_to_2x16(uint16_t sz, int32_t *lsrc, int32_t *rsrc, int32_t *dst);
 
 };
 
@@ -307,7 +307,7 @@ struct IO {
     std::bitset<20> FREQ_BLOCK;
 
     // Audio
-    int16_t     *in;
+    int32_t     *in;
 
     // OUTPUTS
     float env_out[NUM_CHANNELS];
@@ -330,7 +330,7 @@ struct IO {
 
     bool    FORCE_RING_UPDATE = true; // TODO force update first time through
 
-    int16_t     *out;
+    int32_t     *out;
 
     float DEBUG[16];
 

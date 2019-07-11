@@ -144,8 +144,8 @@ struct Rainbow : core::PrismModule {
 	int currBank = 0; // TODO Move to State
 	int nextBank = 0;
 
-	int16_t in[BUFFER_SIZE] = {};  	// 16 stereo sample pairs
-	int16_t out[BUFFER_SIZE] = {};
+	int32_t in[BUFFER_SIZE] = {};  	// 16 stereo sample pairs
+	int32_t out[BUFFER_SIZE] = {};
 
 	dsp::SampleRateConverter<2> inputSrc;
 	dsp::SampleRateConverter<2> outputSrc;
@@ -352,6 +352,9 @@ void Rainbow::process(const ProcessArgs &args) {
 	
 	PrismModule::step();
 
+	float inMin = -2147483648.0f;
+	float inMax = 2147483647.0f;
+
 	if (rotCWTrigger.process(inputs[ROTCW_INPUT].getVoltage())) {
 		main.io->ROTUP_TRIGGER = true;
 	} else {
@@ -536,7 +539,7 @@ void Rainbow::process(const ProcessArgs &args) {
 	if (outputBuffer.empty()) {
 
 		{
-			inputSrc.setRates(args.sampleRate, 96000);
+			inputSrc.setRates(args.sampleRate, 48000);
 			dsp::Frame<2> inputFrames[NUM_SAMPLES];
 			int inLen = inputBuffer.size();
 			int outLen = NUM_SAMPLES;
@@ -544,8 +547,8 @@ void Rainbow::process(const ProcessArgs &args) {
 			inputBuffer.startIncr(inLen);
 
 			for (int i = 0; i < NUM_SAMPLES; i++) {
-				in[i * 2] 		= (int16_t)clamp(inputFrames[i].samples[0] * 32767.0f, -32768.0f, 32767.0f);
-				in[i * 2 + 1] 	= (int16_t)clamp(inputFrames[i].samples[1] * 32767.0f, -32768.0f, 32767.0f);
+				in[i * 2] 		= (int32_t)clamp(inputFrames[i].samples[0] * inMax, inMin, inMax);
+				in[i * 2 + 1] 	= (int32_t)clamp(inputFrames[i].samples[1] * inMax, inMin, inMax);
 			}
 		}
 
@@ -555,11 +558,11 @@ void Rainbow::process(const ProcessArgs &args) {
 		{
 			dsp::Frame<2> outputFrames[NUM_SAMPLES];
 			for (int i = 0; i < NUM_SAMPLES; i++) {
-				outputFrames[i].samples[0] = out[i * 2] / 32768.0;
-				outputFrames[i].samples[1] = out[i * 2 + 1] / 32768.0;
+				outputFrames[i].samples[0] = out[i * 2] / inMax;
+				outputFrames[i].samples[1] = out[i * 2 + 1] / inMax;
 			}
 
-			outputSrc.setRates(96000, args.sampleRate);
+			outputSrc.setRates(48000, args.sampleRate);
 			int inLen = NUM_SAMPLES;
 			int outLen = outputBuffer.capacity();
 			outputSrc.process(outputFrames, &inLen, outputBuffer.endData(), &outLen);

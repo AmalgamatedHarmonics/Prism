@@ -579,7 +579,7 @@ void Filter::filter_bpre(void) {
 	}
 }
 
-void Filter::process_audio_block(int16_t *src, int16_t *dst) {
+void Filter::process_audio_block(int32_t *src, int32_t *dst) {
 	//~78us static, ~104us morphing, every 166us = 6kHz ( = 96k / 16 samples)
 	float f_blended;
 
@@ -657,11 +657,11 @@ void Filter::process_audio_block(int16_t *src, int16_t *dst) {
 	filter_type_changed = false;
 }
 
-void Filter::audio_convert_2x16_to_stereo24(uint16_t size, int16_t *src, int32_t *ldst, int32_t *rdst) {
+void Filter::audio_convert_2x16_to_stereo24(uint16_t size, int32_t *src, int32_t *ldst, int32_t *rdst) {
 
 	for (int i = 0; i < size; i++) {
-		ldst[i] = ((int32_t)(src[i * 2])) << 16;
-		rdst[i] = ((int32_t)(src[i * 2 + 1])) << 16;
+		ldst[i] = src[i * 2];
+		rdst[i] = src[i * 2 + 1];
 
 		if (ldst[i] > INPUT_LED_CLIP_LEVEL) {
 			io->CLIP_ODD = true;
@@ -677,10 +677,10 @@ void Filter::audio_convert_2x16_to_stereo24(uint16_t size, int16_t *src, int32_t
 	}
 }
 
-void Filter::audio_convert_stereo24_to_2x16(uint16_t size, int32_t *lsrc, int32_t *rsrc, int16_t *dst) {
+void Filter::audio_convert_stereo24_to_2x16(uint16_t size, int32_t *lsrc, int32_t *rsrc, int32_t *dst) {
 	for (int i = 0; i < size; i++) {
-		dst[i * 2]     = (int16_t)(*lsrc >> 16) & 0x0000FFFF;
-		dst[i * 2 + 1] = (int16_t)(*rsrc >> 16) & 0x0000FFFF;
+		dst[i * 2]     = *lsrc;
+		dst[i * 2 + 1] = *rsrc;
 	}
 }
 
