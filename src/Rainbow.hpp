@@ -12,8 +12,8 @@
 #define NUM_SCALEBANKS 20
 
 // Audio buffer sizing
-#define BUFFER_SIZE 16
-#define NUM_SAMPLES 8
+#define BUFFER_SIZE 8
+#define NUM_SAMPLES 4
 
 // LPF
 #define MAX_FIR_LPF_SIZE 40
