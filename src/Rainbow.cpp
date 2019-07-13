@@ -607,7 +607,12 @@ void Rainbow::process(const ProcessArgs &args) {
 	}
 
 	main.io->CLIP_ODD ? lights[CLIP_ODD_LIGHT].setBrightness(1.0) : lights[CLIP_ODD_LIGHT].setBrightness(0.0); 
-	main.io->CLIP_EVEN ? lights[CLIP_EVEN_LIGHT].setBrightness(1.0) : lights[CLIP_EVEN_LIGHT].setBrightness(0.0); 
+
+	if (inputs[IN_EVEN_INPUT].isConnected()) { // Only process light if even input is connected
+		main.io->CLIP_EVEN ? lights[CLIP_EVEN_LIGHT].setBrightness(1.0) : lights[CLIP_EVEN_LIGHT].setBrightness(0.0); 
+	} else {
+		lights[CLIP_EVEN_LIGHT].setBrightness(0.0); 
+	}
 
 	for (int i = 0; i < NUM_FILTS; i++) {
 		if (main.io->FREQ_BLOCK[i]) {
