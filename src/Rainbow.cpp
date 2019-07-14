@@ -391,7 +391,8 @@ void Rainbow::process(const ProcessArgs &args) {
     	main.io->SCALEDOWN_BUTTON = false;
 	}
 
-    main.io->COMPRESS			= (Compressor)params[COMPRESS_PARAM].getValue();
+    // main.io->COMPRESS			= (Compressor)params[COMPRESS_PARAM].getValue();
+    main.io->COMPRESS			= CompressorOff;
 
 	main.io->MOD135_SWITCH 		= (Mod135Setting)params[MOD135_PARAM].getValue();
 	main.io->MOD246_SWITCH 		= (Mod246Setting)params[MOD246_PARAM].getValue();
@@ -781,7 +782,7 @@ struct RainbowWidget : ModuleWidget {
 		addParam(createParam<gui::PrismSSwitch3>(mm2px(Vec(10.261, 40.692)), module, Rainbow::ENV_PARAM));
 		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(30.013, 40.692)), module, Rainbow::PREPOST_PARAM));
 		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(49.765, 40.692)), module, Rainbow::VOCTGLIDE_PARAM));
-		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(69.517, 40.692)), module, Rainbow::COMPRESS_PARAM));
+		// addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(69.517, 40.692)), module, Rainbow::COMPRESS_PARAM));
 		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(229.051, 58.747)), module, Rainbow::SCALECCW_PARAM));
 		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(266.468, 58.747)), module, Rainbow::SCALECW_PARAM));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(116.911, 68.355)), module, Rainbow::CHANNEL_Q_ON_PARAM+0));
