@@ -13,7 +13,7 @@
 		{
 			"slug": "Rainbow" ,
 			"name": "Rainbow",
-			"description": "A multiband band-pass resonant filter",
+			"description": "A multiband band-pass resonant filter, a port of the 4ms SMR",
 			"tags": ["Physical modeling", "VCF"]
 		}
 	]
