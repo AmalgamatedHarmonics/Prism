@@ -233,23 +233,23 @@
     <linearGradient
        inkscape:collect="always"
        xlink:href="#linearGradient3050"
-       id="linearGradient1106"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.26458333,0,0,0.26458333,0.00312871,175.75316)"
-       x1="11.59907"
-       y1="339.00421"
-       x2="36.213654"
-       y2="339.00421" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient3050"
-       id="linearGradient1110"
+       id="linearGradient1125"
        gradientUnits="userSpaceOnUse"
        gradientTransform="matrix(0.26458333,0,0,0.26458333,0.00325356,169.04695)"
        x1="65.121284"
        y1="326.53928"
        x2="84.45462"
        y2="326.53928" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3050"
+       id="linearGradient1129"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.26458333,0,0,0.26458333,0.00312871,175.75316)"
+       x1="11.59907"
+       y1="339.00421"
+       x2="36.213654"
+       y2="339.00421" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -258,17 +258,17 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.360974"
-     inkscape:cx="1044.8468"
-     inkscape:cy="156.78977"
+     inkscape:zoom="1.3185307"
+     inkscape:cx="547.2"
+     inkscape:cy="242.83465"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="layer2"
      showgrid="false"
-     inkscape:window-width="1780"
-     inkscape:window-height="1046"
-     inkscape:window-x="129"
-     inkscape:window-y="-11"
-     inkscape:window-maximized="1"
+     inkscape:window-width="2051"
+     inkscape:window-height="1111"
+     inkscape:window-x="179"
+     inkscape:window-y="38"
+     inkscape:window-maximized="0"
      inkscape:snap-global="false" />
   <metadata
      id="metadata4537">
@@ -297,7 +297,7 @@
      inkscape:groupmode="layer"
      id="layer3"
      inkscape:label="components"
-     style="display:inline"
+     style="display:none"
      sodipodi:insensitive="true">
     <circle
        style="display:inline;opacity:1;fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.00035002;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
@@ -1512,16 +1512,16 @@
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:4.58611107px;font-family:'Barlow Condensed';-inkscape-font-specification:'Barlow Condensed, Bold Condensed';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#daff9e;fill-opacity:1;stroke-width:0.26305112">SCALE ROT</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:4.58611107px;line-height:1.25;font-family:'Barlow Condensed';-inkscape-font-specification:'Barlow Condensed, Bold Condensed';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:url(#linearGradient1110);fill-opacity:1;stroke:none;stroke-width:0.26305112"
-       x="27.205236"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:4.58611107px;line-height:1.25;font-family:'Barlow Condensed';-inkscape-font-specification:'Barlow Condensed, Bold Condensed';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:url(#linearGradient1125);fill-opacity:1;stroke:none;stroke-width:0.26305112"
+       x="28.021206"
        y="247.16637"
        id="text2317"
        transform="scale(0.95627334,1.0457261)"><tspan
          sodipodi:role="line"
          id="tspan2315"
-         x="27.205236"
+         x="28.021206"
          y="247.16637"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:4.58611107px;font-family:'Barlow Condensed';-inkscape-font-specification:'Barlow Condensed, Bold Condensed';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:url(#linearGradient1110);fill-opacity:1;stroke:none;stroke-width:0.26305112">LEFT</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:4.58611107px;font-family:'Barlow Condensed';-inkscape-font-specification:'Barlow Condensed, Bold Condensed';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:url(#linearGradient1125);fill-opacity:1;stroke:none;stroke-width:0.26305112">ODD</tspan></text>
     <circle
        style="display:inline;opacity:1;fill:#daff9e;fill-opacity:0;stroke:#1e641e;stroke-width:0.926;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0"
        id="path6752"
@@ -1576,14 +1576,14 @@
        transform="scale(0.99420903,1.0058247)"
        id="text2313"
        y="256.80383"
-       x="50.203091"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:4.58611107px;line-height:1.25;font-family:'Barlow Condensed';-inkscape-font-specification:'Barlow Condensed, Bold Condensed';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:url(#linearGradient1106);fill-opacity:1;stroke:none;stroke-width:0.26305112"
+       x="50.797352"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:4.58611107px;line-height:1.25;font-family:'Barlow Condensed';-inkscape-font-specification:'Barlow Condensed, Bold Condensed';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:url(#linearGradient1129);fill-opacity:1;stroke:none;stroke-width:0.26305112"
        xml:space="preserve"><tspan
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:4.58611107px;font-family:'Barlow Condensed';-inkscape-font-specification:'Barlow Condensed, Bold Condensed';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:url(#linearGradient1106);fill-opacity:1;stroke:none;stroke-width:0.26305112"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:4.58611107px;font-family:'Barlow Condensed';-inkscape-font-specification:'Barlow Condensed, Bold Condensed';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:url(#linearGradient1129);fill-opacity:1;stroke:none;stroke-width:0.26305112"
          y="256.80383"
-         x="50.203091"
+         x="50.797352"
          id="tspan2311"
-         sodipodi:role="line">RIGHT</tspan></text>
+         sodipodi:role="line">EVEN</tspan></text>
     <circle
        r="5.7950001"
        cy="265.82053"
