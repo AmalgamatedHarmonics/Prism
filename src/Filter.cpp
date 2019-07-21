@@ -270,6 +270,9 @@ void Filter::filter_twopass(void) {
 			c1 = 1.30899581; //hard limit at 20k
 		}
 
+		io->DEBUG[channel_num * 2] = c0;
+		io->DEBUG[channel_num * 2 + 1] = c1;
+
 		// CROSSFADE between the two filters
 		if  (qc[channel_num] < CF_MIN) {
 			ratio_a = 1.0f;
@@ -428,6 +431,9 @@ void Filter::filter_onepass(void) {
 			if (c1 > 1.30899581) {
 				c1 = 1.30899581; //hard limit at 20k
 			}
+
+			io->DEBUG[channel_num * 2] = c0;
+			io->DEBUG[channel_num * 2 + 1] = c1;
 
 			// Set VOCT output
 			envelope->envout_preload_voct[channel_num] = c1;

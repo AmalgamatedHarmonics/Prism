@@ -260,8 +260,8 @@ struct IO {
     uint16_t QPOT_ADC;
     uint16_t QVAL_ADC;
 
-    uint16_t SLIDER_ADC[6];
-    uint16_t LEVEL_ADC[6];
+    float   GLOBAL_LEVEL;
+    float   CHANNEL_LEVEL[6];
 
     uint16_t FREQNUDGE1_ADC;
     uint16_t FREQNUDGE6_ADC;
@@ -333,6 +333,8 @@ struct IO {
     int32_t     *out;
 
     float DEBUG[16];
+
+    float OUTLEVEL[6];
 
 };
 

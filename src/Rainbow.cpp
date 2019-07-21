@@ -91,6 +91,7 @@ struct Rainbow : core::PrismModule {
 		VOCTGLIDE_PARAM,
 		NOISE_PARAM,
 		COMPRESS_PARAM,
+		ENUMS(LEVEL_OUT_PARAM,6),
 		NUM_PARAMS
 	};
 	enum InputIds {
@@ -108,6 +109,8 @@ struct Rainbow : core::PrismModule {
 		LOCK246_INPUT,
 		IN_ODD_INPUT,
 		IN_EVEN_INPUT,
+		GLOBAL_Q_INPUT,
+		GLOBAL_LEVEL_INPUT,
 		NUM_INPUTS
 	};
 	enum OutputIds {
@@ -309,6 +312,7 @@ struct Rainbow : core::PrismModule {
 
 		for (int n = 0; n < 6; n++) {
 			configParam(CHANNEL_LEVEL_PARAM + n, 0, 4095, 4095, "Channel Level");
+			configParam(LEVEL_OUT_PARAM + n, 0, 1, 1, "Channel Level");
 
 			configParam(CHANNEL_Q_PARAM + n, 0, 4095, 2048, "Channel Q");
 			configParam(CHANNEL_Q_ON_PARAM + n, 0, 1, 0, "Channel Q activate");
@@ -352,8 +356,12 @@ void Rainbow::process(const ProcessArgs &args) {
 	
 	PrismModule::step();
 
-	float inMin = -2147483648.0f;
-	float inMax = 2147483647.0f;
+	// float inMin = INT32_MIN;
+	// float inMax = INT32_MAX;
+	// float outMax = INT32_MAX;
+	float inMin = -16777216.0f;
+	float inMax = 16777215.0f;
+	float outMax = 16777215.0f;
 
 	if (rotCWTrigger.process(inputs[ROTCW_INPUT].getVoltage())) {
 		main.io->ROTUP_TRIGGER = true;
@@ -443,18 +451,24 @@ void Rainbow::process(const ProcessArgs &args) {
 
 	main.io->MORPH_ADC 			= (uint16_t)clamp(params[MORPH_PARAM].getValue() + inputs[MORPH_INPUT].getVoltage() * 409.5f, 0.0, 4095.0f);
 	main.io->SPREAD_ADC 		= (uint16_t)clamp(params[SPREAD_PARAM].getValue() + inputs[SPREAD_INPUT].getVoltage() * 409.5f, 0.0, 4095.0f);
-	main.io->QVAL_ADC 			= (uint16_t)clamp(inputs[POLY_Q_INPUT].getVoltage(0) * 409.5f, 0.0, 4095.0f);
+
+	main.io->QVAL_ADC 			= (uint16_t)clamp(inputs[GLOBAL_Q_INPUT].getVoltage() * 409.5f, 0.0, 4095.0f);
 	main.io->QPOT_ADC 			= (uint16_t)params[GLOBAL_Q_PARAM].getValue();
+
+	float globalLevelCV 		= clamp(inputs[GLOBAL_LEVEL_INPUT].getVoltage() / 5.0f, -1.0f, 1.0f);
+	float globalLevelControl 	= params[GLOBAL_LEVEL_PARAM].getValue() / 4095.0f;
+
+	main.io->GLOBAL_LEVEL 		= globalLevelControl * globalLevelCV;
 
 	for (int n = 0; n < 6; n++) {
 
-		float level = params[GLOBAL_LEVEL_PARAM].getValue() + inputs[POLY_LEVEL_INPUT].getVoltage(0) * 409.5f  + inputs[POLY_LEVEL_INPUT].getVoltage(n + 1) * 409.5f;
-		main.io->LEVEL_ADC[n] = (uint16_t)clamp(level, 0.0, 4095.0f);
-
-		float q = params[CHANNEL_Q_PARAM + n].getValue() + inputs[POLY_Q_INPUT].getVoltage(n + 1) * 409.5f;
+		float q = params[CHANNEL_Q_PARAM + n].getValue() + inputs[POLY_Q_INPUT].getVoltage(n) * 409.5f;
 		main.io->CHANNEL_Q_ADC[n]	= (uint16_t)clamp(q, 0.0, 4095.0f);
 
-		main.io->SLIDER_ADC[n] 		= (uint16_t)params[CHANNEL_LEVEL_PARAM + n].getValue();
+		float channelLevelCV 		= clamp(inputs[POLY_LEVEL_INPUT].getVoltage(n) / 5.0f, -1.0f, 1.0f);
+		float channelLevelControl 	= params[CHANNEL_LEVEL_PARAM + n].getValue() / 4095.0f;
+		main.io->CHANNEL_LEVEL[n] 	= channelLevelControl * channelLevelCV;
+
 		main.io->TRANS_DIAL[n] 		= params[TRANS_PARAM + n].getValue();
 	}
 
@@ -497,16 +511,16 @@ void Rainbow::process(const ProcessArgs &args) {
 			float nO;
 			switch (noiseSelected) {
 				case 0:
-					nO = brown.next() * 2.0f - 1.0f;
+					nO = brown.next() * 10.0f - 5.0f;
 					break;
 				case 1:
-					nO = pink.next() * 2.0f - 1.0f;
+					nO = pink.next() * 10.0f - 5.0f;
 					break;
 				case 2:
-					nO = white.next() * 2.0f - 1.0f;
+					nO = white.next() * 10.0f - 5.0f;
 					break;
 				default:
-					nO = pink.next() * 2.0f - 1.0f;
+					nO = pink.next() * 10.0f - 5.0f;
 			}
 			inputFrame.samples[0] = nO * params[ODD_ATTN_PARAM].getValue() / 5.0;
 
@@ -516,16 +530,16 @@ void Rainbow::process(const ProcessArgs &args) {
 				float nE;
 				switch (noiseSelected) {
 					case 0:
-						nE = brown.next() * 2.0f - 1.0f;
+						nE = brown.next() * 10.0f - 5.0f;
 						break;
 					case 1:
-						nE = pink.next() * 2.0f - 1.0f;
+						nE = pink.next() * 10.0f - 5.0f;
 						break;
 					case 2:
-						nE = white.next() * 2.0f - 1.0f;
+						nE = white.next() * 10.0f - 5.0f;
 						break;
 					default:
-						nE = pink.next() * 2.0f - 1.0f;
+						nE = pink.next() * 10.0f - 5.0f;
 				}
 				inputFrame.samples[1] = nE * params[EVEN_ATTN_PARAM].getValue() / 5.0;
 			}
@@ -559,8 +573,8 @@ void Rainbow::process(const ProcessArgs &args) {
 		{
 			dsp::Frame<2> outputFrames[NUM_SAMPLES];
 			for (int i = 0; i < NUM_SAMPLES; i++) {
-				outputFrames[i].samples[0] = out[i * 2] / inMax;
-				outputFrames[i].samples[1] = out[i * 2 + 1] / inMax;
+				outputFrames[i].samples[0] = out[i * 2] / outMax;
+				outputFrames[i].samples[1] = out[i * 2 + 1] / outMax;
 			}
 
 			outputSrc.setRates(96000, args.sampleRate);
@@ -577,8 +591,8 @@ void Rainbow::process(const ProcessArgs &args) {
 		outputFrame = outputBuffer.shift();
 
 		if (outputs[OUT_RIGHT_OUTPUT].isConnected()) {
-			outputs[OUT_LEFT_OUTPUT].setVoltage(5.0 * outputFrame.samples[1]); // TODO THis seems to be reversed for some reason
-			outputs[OUT_RIGHT_OUTPUT].setVoltage(5.0 * outputFrame.samples[0]);
+			outputs[OUT_LEFT_OUTPUT].setVoltage(clamp(outputFrame.samples[1] * 5.0f, -10.0f, 10.0f)); // TODO THis seems to be reversed for some reason
+			outputs[OUT_RIGHT_OUTPUT].setVoltage(clamp(outputFrame.samples[0] * 5.0f, -10.0f, 10.0f));
 		} else {
 			outputs[OUT_LEFT_OUTPUT].setVoltage((outputFrame.samples[0] + outputFrame.samples[1]) * 2.5);
 		}
@@ -588,7 +602,7 @@ void Rainbow::process(const ProcessArgs &args) {
 	outputs[POLY_VOCT_OUTPUT].setChannels(6);
 	outputs[POLY_ENV_OUTPUT].setChannels(6);
 	for (int n = 0; n < 6; n++) {
-		outputs[POLY_ENV_OUTPUT].setVoltage(main.io->env_out[n], n);
+		outputs[POLY_ENV_OUTPUT].setVoltage(main.io->env_out[n] * 10.0f, n);
 		outputs[POLY_VOCT_OUTPUT].setVoltage(main.io->voct_out[n], n);
 	}
 
@@ -596,10 +610,10 @@ void Rainbow::process(const ProcessArgs &args) {
 		vuMeters[n].process(args.sampleTime, main.io->channelLevel[n]);
 	}
 
-	// outputs[POLY_DEBUG_OUTPUT].setChannels(16);
-	// for (int n = 0; n < 16; n++) {
-	// 	outputs[POLY_DEBUG_OUTPUT].setVoltage(main.io->DEBUG[n], n);
-	// }
+	outputs[POLY_DEBUG_OUTPUT].setChannels(16);
+	for (int n = 0; n < 16; n++) {
+		outputs[POLY_DEBUG_OUTPUT].setVoltage(main.io->DEBUG[n], n);
+	}
 
 	// Set VCV LEDs
 	for (int n = 0; n < 6; n++) {
@@ -662,6 +676,9 @@ void Rainbow::process(const ProcessArgs &args) {
 				outputLEDs[i]->colorBorder = defaultBorder;
 			}
 		}
+
+		params[Rainbow::LEVEL_OUT_PARAM+i].setValue(main.io->OUTLEVEL[i]);
+
 	}
 }
 
@@ -757,7 +774,7 @@ struct RainbowWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Rainbow.svg")));
 
-		// addOutput(createOutput<PJ301MPort>(mm2px(Vec(5,5)), module, Rainbow::POLY_DEBUG_OUTPUT));
+		addOutput(createOutput<PJ301MPort>(mm2px(Vec(5,5)), module, Rainbow::POLY_DEBUG_OUTPUT));
 
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(116.911, 15.686)), module, Rainbow::LOCKON_PARAM+0));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(128.057, 15.686)), module, Rainbow::LOCKON_PARAM+1));
@@ -779,6 +796,14 @@ struct RainbowWidget : ModuleWidget {
 		addParam(createParam<gui::PrismLEDSlider>(mm2px(Vec(146.898, 25.372)), module, Rainbow::CHANNEL_LEVEL_PARAM+3));
 		addParam(createParam<gui::PrismLEDSlider>(mm2px(Vec(158.044, 25.372)), module, Rainbow::CHANNEL_LEVEL_PARAM+4));
 		addParam(createParam<gui::PrismLEDSlider>(mm2px(Vec(169.19, 25.372)), module, Rainbow::CHANNEL_LEVEL_PARAM+5));
+
+		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(118.761, 25.372)), module, Rainbow::LEVEL_OUT_PARAM+0));
+		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(129.907, 25.372)), module, Rainbow::LEVEL_OUT_PARAM+1));
+		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(141.052, 25.372)), module, Rainbow::LEVEL_OUT_PARAM+2));
+		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(152.198, 25.372)), module, Rainbow::LEVEL_OUT_PARAM+3));
+		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(163.344, 25.372)), module, Rainbow::LEVEL_OUT_PARAM+4));
+		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(174.49, 25.372)), module, Rainbow::LEVEL_OUT_PARAM+5));
+
 		addParam(createParam<gui::PrismSSwitch3>(mm2px(Vec(10.261, 40.692)), module, Rainbow::ENV_PARAM));
 		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(30.013, 40.692)), module, Rainbow::PREPOST_PARAM));
 		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(49.765, 40.692)), module, Rainbow::VOCTGLIDE_PARAM));
@@ -827,6 +852,8 @@ struct RainbowWidget : ModuleWidget {
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(54.778, 76.69)), module, Rainbow::IN_EVEN_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(220.022, 118.124)), module, Rainbow::MORPH_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(274.402, 118.124)), module, Rainbow::SPREAD_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(86.52, 118.182)), module, Rainbow::GLOBAL_Q_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(202.983, 118.182)), module, Rainbow::GLOBAL_LEVEL_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(117.04, 118.183)), module, Rainbow::POLY_Q_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(172.511, 118.183)), module, Rainbow::POLY_LEVEL_INPUT));
 

@@ -131,6 +131,16 @@ struct PrismLEDSlider : LEDSlider {
 	}
 };
 
+struct PrismLEDIndicator : LEDSlider {
+	PrismLEDIndicator() {
+		maxHandlePos = app::mm2px(math::Vec(0.0, 0.0).plus(math::Vec(1, 0)));
+		minHandlePos = app::mm2px(math::Vec(0.0, 22.078).plus(math::Vec(1, 0)));
+		setBackgroundSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSliderNop.svg")));
+		setHandleSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismIndicator.svg")));
+	}
+};
+
+
 } // namespace gui
 
 } // namespace ah

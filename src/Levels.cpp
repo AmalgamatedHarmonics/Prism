@@ -42,17 +42,14 @@ void Levels::update(void) {
 
 		for (int j = 0; j < NUM_CHANNELS; j++) {
 
-			uint32_t t = io->SLIDER_ADC[j];
-			if (t < SLIDER_CHANGE_MIN) {
-				t = 0;
-			} else {
-				t -= SLIDER_CHANGE_MIN;
+			float level_lpf = io->GLOBAL_LEVEL + io->CHANNEL_LEVEL[j];
+			if (level_lpf <= SLIDER_LPF_MIN) {
+				level_lpf = 0.0f;
+			}
+			if (level_lpf > 1.0f) {
+				level_lpf = 1.0f;
 			}
 
-			float level_lpf = ((float)(io->LEVEL_ADC[j]) / 4096.0) * (float)(t) / 4096.0;
-			if (level_lpf <= SLIDER_LPF_MIN) {
-				level_lpf = 0.0;
-			}
 			prev_level[j] = level_goal[j];
 
 			level_goal[j] *= channel_level_lpf;
@@ -65,6 +62,7 @@ void Levels::update(void) {
 	} else { // SMOOTH OUT DATA BETWEEN ADC READS
 		for (int j = 0; j < NUM_CHANNELS; j++) {
 			channel_level[j] += level_inc[j];
+			io->OUTLEVEL[j] = channel_level[j]; 
 		}
 	}
 }
