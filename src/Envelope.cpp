@@ -75,8 +75,8 @@ void Envelope::update(void) {
 				} else {
 					io->env_out[j] = envelope[j] * levels->channel_level[j]  / 1.2e+8;
 				}
-				if (io->env_out[j] > 10.0) {
-					io->env_out[j] = 10.0;
+				if (io->env_out[j] > 1.0) {
+					io->env_out[j] = 1.0;
 				}
 			}
 		} else { //trigger mode
