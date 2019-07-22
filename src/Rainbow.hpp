@@ -260,8 +260,7 @@ struct IO {
     uint16_t QPOT_ADC;
     uint16_t QVAL_ADC;
 
-    float   GLOBAL_LEVEL;
-    float   CHANNEL_LEVEL[6];
+    float   LEVEL[6];
 
     uint16_t FREQNUDGE1_ADC;
     uint16_t FREQNUDGE6_ADC;

@@ -42,7 +42,7 @@ void Levels::update(void) {
 
 		for (int j = 0; j < NUM_CHANNELS; j++) {
 
-			float level_lpf = io->GLOBAL_LEVEL + io->CHANNEL_LEVEL[j];
+			float level_lpf = io->LEVEL[j];
 			if (level_lpf <= SLIDER_LPF_MIN) {
 				level_lpf = 0.0f;
 			}
