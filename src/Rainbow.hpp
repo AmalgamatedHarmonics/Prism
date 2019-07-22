@@ -257,8 +257,11 @@ struct Filter {
 struct IO {
 
     uint16_t MORPH_ADC;
-    uint16_t QPOT_ADC;
-    uint16_t QVAL_ADC;
+
+	int16_t     GlobalQLevel;
+	int16_t     GlobalQControl;
+	int16_t     ChannelQLevel[6];
+	int16_t     ChannelQControl[6];
 
     float   LEVEL[6];
 
@@ -281,7 +284,6 @@ struct IO {
     GlideSetting            GLIDE_SWITCH;
     EnvelopeMode            ENV_SWITCH;
 
-    uint16_t            CHANNEL_Q_ADC[6];
     bool                CHANNEL_Q_ON[6];
     bool                LOCK_ON[6];
     int8_t              TRANS_DIAL[6];
@@ -344,7 +346,7 @@ struct LEDRing {
     IO *            io;
     Filter *        filter;
     Tuning *        tuning;
-    Levels *        levels;
+    Q *             q;
 
     float sqrt2over2 = sqrt(2.0f) / 2.0f;
     float sqrt2 = sqrt(2.0f);
@@ -365,7 +367,7 @@ struct LEDRing {
         {255.0f/255.0f,     100.0f/255.0f,  255.0f/255.0f}, // Magenta
         };
 
-    void configure(Rotation *_rotation, Envelope *_envelope, IO *_io, Filter *_filter, Tuning *_tuning, Levels *_levels);
+    void configure(Rotation *_rotation, Envelope *_envelope, IO *_io, Filter *_filter, Tuning *_tuning, Q *_q);
 
     void display_filter_rotation();
     void display_scale();
@@ -512,16 +514,15 @@ struct Q {
     float       qval_goal[NUM_CHANNELS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 	float       prev_qval[NUM_CHANNELS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     
-    float       qcv_lpf;
-	float       qpot_lpf;
+    float       global_lpf;
 	float       qlockpot_lpf[NUM_CHANNELS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
 	uint32_t q_update_ctr = UINT32_MAX; // Initialise to always fire on first pass 
    	uint32_t Q_UPDATE_RATE = 15; 
 
     uint32_t QPOT_MIN_CHANGE = 100;
-    float QPOT_LPF = 0.95f;
-    float QCV_LPF = 0.95f;
+    float QGLOBAL_LPF = 0.95f;
+    float QCHANNEL_LPF = 0.95f;
 
     void configure(IO *_io);
     void update(void);

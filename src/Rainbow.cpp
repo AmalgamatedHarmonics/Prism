@@ -452,8 +452,8 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.io->MORPH_ADC 			= (uint16_t)clamp(params[MORPH_PARAM].getValue() + inputs[MORPH_INPUT].getVoltage() * 409.5f, 0.0, 4095.0f);
 	main.io->SPREAD_ADC 		= (uint16_t)clamp(params[SPREAD_PARAM].getValue() + inputs[SPREAD_INPUT].getVoltage() * 409.5f, 0.0, 4095.0f);
 
-	main.io->QVAL_ADC 			= (uint16_t)clamp(inputs[GLOBAL_Q_INPUT].getVoltage() * 409.5f, 0.0, 4095.0f);
-	main.io->QPOT_ADC 			= (uint16_t)params[GLOBAL_Q_PARAM].getValue();
+	main.io->GlobalQLevel 			= (int16_t)clamp(inputs[GLOBAL_Q_INPUT].getVoltage() * 409.5f, -4095.0, 4095.0f);
+	main.io->GlobalQControl 		= (int16_t)params[GLOBAL_Q_PARAM].getValue();
 
 	bool haveGlobalLevelCV		= inputs[GLOBAL_LEVEL_INPUT].isConnected();
 	bool haveChannelLevelCV		= inputs[POLY_LEVEL_INPUT].isConnected();
@@ -466,8 +466,8 @@ void Rainbow::process(const ProcessArgs &args) {
 
 	for (int n = 0; n < 6; n++) {
 
-		float q = params[CHANNEL_Q_PARAM + n].getValue() + inputs[POLY_Q_INPUT].getVoltage(n) * 409.5f;
-		main.io->CHANNEL_Q_ADC[n]	= (uint16_t)clamp(q, 0.0, 4095.0f);
+		main.io->ChannelQLevel[n] 	= (int16_t)clamp(inputs[POLY_Q_INPUT].getVoltage() * 409.5f, -4095.0, 4095.0f);
+		main.io->ChannelQControl[n] = (int16_t)params[CHANNEL_Q_PARAM + n].getValue();
 
 		float channelLevelControl 	= params[CHANNEL_LEVEL_PARAM + n].getValue() / 4095.0f;
 		main.io->LEVEL[n] 			= globalLevelControl * channelLevelControl;

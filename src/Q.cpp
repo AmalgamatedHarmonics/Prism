@@ -43,28 +43,34 @@ void Q::update(void) {
 		q_update_ctr = 0;
 
 		//Check jack + LPF
-		int32_t t = io->QVAL_ADC;
-		qcv_lpf *= QCV_LPF;
-		qcv_lpf += (1.0f - QCV_LPF) * t;
-
-		//Check pot + LPF
-		t = io->QPOT_ADC;
-		qpot_lpf *= QPOT_LPF;
-		qpot_lpf += (1.0f - QPOT_LPF) * t;
+		int32_t qg = io->GlobalQLevel + io->GlobalQControl;
+		if (qg < 0) {
+			qg = 0;
+		}
+		if (qg > 4095) {
+			qg = 4095;
+		}
+		
+		global_lpf *= QGLOBAL_LPF;
+		global_lpf += (1.0f - QGLOBAL_LPF) * qg;
 
 		for (int i = 0; i < NUM_CHANNELS; i++){
-			t = io->CHANNEL_Q_ADC[i];
-			qlockpot_lpf[i] *= QPOT_LPF;
-			qlockpot_lpf[i] += (1.0f - QPOT_LPF) * t;
+			int32_t qc = io->ChannelQLevel[i] + io->ChannelQControl[i];
+			if (qc < 0) {
+				qc = 0;
+			}
+			if (qc > 4095) {
+				qc = 4095;
+			}
+
+			qlockpot_lpf[i] *= QCHANNEL_LPF;
+			qlockpot_lpf[i] += (1.0f - QCHANNEL_LPF) * qc;
 
 			prev_qval[i] = qval_goal[i];
 			if (io->CHANNEL_Q_ON[i]) {
 				qval_goal[i] = qlockpot_lpf[i];
 			} else {
-				qval_goal[i] = qcv_lpf + qpot_lpf;
-				if (qval_goal[i] > 4095.0f) {
-                    qval_goal[i] = 4095.0f;
-                }
+				qval_goal[i] = global_lpf;
 			}
 		}
  	}

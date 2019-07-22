@@ -30,13 +30,13 @@
 
 using namespace rainbow;
 
-void LEDRing::configure(Rotation *_rotation, Envelope *_envelope, IO *_io, Filter *_filter, Tuning *_tuning, Levels *_levels) {
+void LEDRing::configure(Rotation *_rotation, Envelope *_envelope, IO *_io, Filter *_filter, Tuning *_tuning, Q *_q) {
 	rotation 	= _rotation;
 	envelope 	= _envelope;
 	io 			= _io;
 	filter		= _filter;
 	tuning		= _tuning;
-	levels 		= _levels;
+	q 			= _q;
 }
 
 void LEDRing::calculate_envout_leds() {
@@ -71,9 +71,10 @@ void LEDRing::calculate_envout_leds() {
 		}
 
 		// Level leds
-		io->level_leds[chan][0] = channel_led_colors[chan][0] * levels->channel_level[chan];
-		io->level_leds[chan][1] = channel_led_colors[chan][1] * levels->channel_level[chan];
-		io->level_leds[chan][2] = channel_led_colors[chan][2] * levels->channel_level[chan];
+		float qval = q->qval_goal[chan] / 4095.0f;
+		io->level_leds[chan][0] = channel_led_colors[chan][0] * qval;
+		io->level_leds[chan][1] = channel_led_colors[chan][1] * qval;
+		io->level_leds[chan][2] = channel_led_colors[chan][2] * qval;
 
 		if (io->level_leds[chan][0] > 1.0f) {
 			io->level_leds[chan][0] = 1.0f;

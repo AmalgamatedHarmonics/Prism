@@ -47,7 +47,7 @@ Controller::Controller(void) {
 
     rotation->configure(filter, io);
     envelope->configure(levels, io);
-    ring->configure(rotation, envelope, io, filter, tuning, levels);
+    ring->configure(rotation, envelope, io, filter, tuning, q);
     filter->configure(rotation, envelope, q, tuning, io, levels);
 	q->configure(io);
 	tuning->configure(filter, io);
