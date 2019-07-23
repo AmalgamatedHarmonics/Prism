@@ -132,7 +132,7 @@ struct Rainbow : core::PrismModule {
 	LED *ringLEDs[NUM_FILTS] = {};
 	LED *scaleLEDs[NUM_SCALES] = {};
 	LED *envelopeLEDs[NUM_CHANNELS] = {};
-	LED *levelLEDs[NUM_CHANNELS] = {};
+	LED *qLEDs[NUM_CHANNELS] = {};
 	LED *tuningLEDs[NUM_CHANNELS] = {};
 	LED *outputLEDs[NUM_CHANNELS] = {};
 
@@ -668,11 +668,11 @@ void Rainbow::process(const ProcessArgs &args) {
 			main.io->envelope_leds[i][2]);
 		envelopeLEDs[i]->colorBorder = defaultBorder;		
 
-		levelLEDs[i]->color = nvgRGBf(
-			main.io->level_leds[i][0], 
-			main.io->level_leds[i][1],
-			main.io->level_leds[i][2]);
-		levelLEDs[i]->colorBorder = defaultBorder;		
+		qLEDs[i]->color = nvgRGBf(
+			main.io->q_leds[i][0], 
+			main.io->q_leds[i][1],
+			main.io->q_leds[i][2]);
+		qLEDs[i]->colorBorder = defaultBorder;		
 
 		tuningLEDs[i]->color = nvgRGBf(
 			main.io->tuning_out_leds[i][0], 
@@ -785,7 +785,7 @@ struct RainbowWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Rainbow.svg")));
 
-		addOutput(createOutput<PJ301MPort>(mm2px(Vec(5,5)), module, Rainbow::POLY_DEBUG_OUTPUT));
+		// addOutput(createOutput<PJ301MPort>(mm2px(Vec(5,5)), module, Rainbow::POLY_DEBUG_OUTPUT));
 
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(116.911, 15.686)), module, Rainbow::LOCKON_PARAM+0));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(128.057, 15.686)), module, Rainbow::LOCKON_PARAM+1));
@@ -904,9 +904,9 @@ struct RainbowWidget : ModuleWidget {
 				module->outputLEDs[i]->module = NULL;
 				addChild(module->outputLEDs[i]);
 
-				module->levelLEDs[i] = new LED(i, channelStrip.x + i * 32.5, channelStrip.y + 11);
-				module->levelLEDs[i]->module = NULL;
-				addChild(module->levelLEDs[i]);
+				module->qLEDs[i] = new LED(i, channelStrip.x + i * 32.5, channelStrip.y + 11);
+				module->qLEDs[i]->module = NULL;
+				addChild(module->qLEDs[i]);
 
 				module->envelopeLEDs[i] = new LED(i, channelStrip.x + i * 32.5 + 12, channelStrip.y + 11);
 				module->envelopeLEDs[i]->module = NULL;

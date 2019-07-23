@@ -324,7 +324,7 @@ struct IO {
    	float scale[11][3];
 
     float envelope_leds[NUM_CHANNELS][3];
-    float level_leds[NUM_CHANNELS][3];
+    float q_leds[NUM_CHANNELS][3];
     float tuning_out_leds[NUM_CHANNELS][3];
 
     float channelLevel[NUM_CHANNELS]; // 0.0 - 1+, 1 = Clipping

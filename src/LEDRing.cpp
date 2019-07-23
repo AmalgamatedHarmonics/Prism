@@ -72,18 +72,18 @@ void LEDRing::calculate_envout_leds() {
 
 		// Level leds
 		float qval = q->qval_goal[chan] / 4095.0f;
-		io->level_leds[chan][0] = channel_led_colors[chan][0] * qval;
-		io->level_leds[chan][1] = channel_led_colors[chan][1] * qval;
-		io->level_leds[chan][2] = channel_led_colors[chan][2] * qval;
+		io->q_leds[chan][0] = channel_led_colors[chan][0] * qval;
+		io->q_leds[chan][1] = channel_led_colors[chan][1] * qval;
+		io->q_leds[chan][2] = channel_led_colors[chan][2] * qval;
 
-		if (io->level_leds[chan][0] > 1.0f) {
-			io->level_leds[chan][0] = 1.0f;
+		if (io->q_leds[chan][0] > 1.0f) {
+			io->q_leds[chan][0] = 1.0f;
 		}
-		if (io->level_leds[chan][1] > 1.0f) {
-			io->level_leds[chan][1] = 1.0f;
+		if (io->q_leds[chan][1] > 1.0f) {
+			io->q_leds[chan][1] = 1.0f;
 		}
-		if (io->level_leds[chan][2] > 1.0f) {
-			io->level_leds[chan][2] = 1.0f;
+		if (io->q_leds[chan][2] > 1.0f) {
+			io->q_leds[chan][2] = 1.0f;
 		}
 
 		// Envelope
