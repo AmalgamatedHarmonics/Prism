@@ -682,7 +682,7 @@ void Rainbow::process(const ProcessArgs &args) {
 
 		if (lightDivider.process()) {
 			for (int i = 0; i < 6; i++) {
-				float b = vuMeters[i].getBrightness(-6.f, 0.f) * 2.0f;
+				float b = vuMeters[i].getBrightness(-6.f, -3.f);
 				outputLEDs[i]->color = nvgRGBf(b, 1 - b, 0);
 				outputLEDs[i]->colorBorder = defaultBorder;
 			}
