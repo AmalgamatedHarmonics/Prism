@@ -130,6 +130,7 @@ struct Envelope {
 
     float MIN_VOCT = -10.0f/3.0f;
     float MAX_VOCT = 4.75f;
+    float ENV_SCALE = 4.0e+7;
 
     float envout_preload[NUM_CHANNELS];
     float envout_preload_voct[NUM_CHANNELS];
