@@ -648,8 +648,8 @@ void Filter::process_audio_block(int32_t *src, int32_t *dst) {
 	for (int j = 0; j < NUM_CHANNELS; j++) {
 		f_blended = (filter_out[j][0] * (1.0f - rotation->motion_morphpos[j])) + (filter_out[j + NUM_CHANNELS][0] * rotation->motion_morphpos[j]);
 
-		io->channelLevel[j] = (f_blended * levels->channel_level[j]) / SLIDER_CLIP_LEVEL;
-
+		io->channelLevel[j] = (f_blended * levels->channel_level[j]) / CLIP_LEVEL;
+		
 		if (f_blended > 0) {
 			envelope->envout_preload[j] = f_blended;
 		} else {

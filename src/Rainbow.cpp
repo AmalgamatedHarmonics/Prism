@@ -621,10 +621,10 @@ void Rainbow::process(const ProcessArgs &args) {
 		vuMeters[n].process(args.sampleTime, main.io->channelLevel[n]);
 	}
 
-	outputs[POLY_DEBUG_OUTPUT].setChannels(16);
-	for (int n = 0; n < 16; n++) {
-		outputs[POLY_DEBUG_OUTPUT].setVoltage(main.io->DEBUG[n], n);
-	}
+	// outputs[POLY_DEBUG_OUTPUT].setChannels(16);
+	// for (int n = 0; n < 16; n++) {
+	// 	outputs[POLY_DEBUG_OUTPUT].setVoltage(main.io->DEBUG[n], n);
+	// }
 
 	// Set VCV LEDs
 	for (int n = 0; n < 6; n++) {
@@ -682,7 +682,7 @@ void Rainbow::process(const ProcessArgs &args) {
 
 		if (lightDivider.process()) {
 			for (int i = 0; i < 6; i++) {
-				float b = vuMeters[i].getBrightness(-6.f, 0.f) * 2.0;
+				float b = vuMeters[i].getBrightness(-6.f, 0.f) * 2.0f;
 				outputLEDs[i]->color = nvgRGBf(b, 1 - b, 0);
 				outputLEDs[i]->colorBorder = defaultBorder;
 			}

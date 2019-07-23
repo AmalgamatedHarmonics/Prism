@@ -198,8 +198,8 @@ struct Filter {
     float CROSSFADE_WIDTH = 1800.0f;
     float CF_MIN = CROSSFADE_POINT - CROSSFADE_WIDTH / 2.0f;
     float CF_MAX = CROSSFADE_POINT + CROSSFADE_WIDTH / 2.0f;
-    uint32_t SLIDER_CLIP_LEVEL = 0x50000000;
     int32_t INPUT_LED_CLIP_LEVEL = 0x58000000;
+    uint32_t CLIP_LEVEL = 0x04000000;
 
     FilterTypes filter_type = MAXQ;
     FilterModes filter_mode = TWOPASS;
