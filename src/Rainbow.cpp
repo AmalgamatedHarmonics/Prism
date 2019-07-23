@@ -602,8 +602,8 @@ void Rainbow::process(const ProcessArgs &args) {
 		outputFrame = outputBuffer.shift();
 
 		if (outputs[OUT_RIGHT_OUTPUT].isConnected()) {
-			outputs[OUT_LEFT_OUTPUT].setVoltage(clamp(outputFrame.samples[1] * 5.0f, -10.0f, 10.0f)); // TODO THis seems to be reversed for some reason
-			outputs[OUT_RIGHT_OUTPUT].setVoltage(clamp(outputFrame.samples[0] * 5.0f, -10.0f, 10.0f));
+			outputs[OUT_LEFT_OUTPUT].setVoltage(outputFrame.samples[1] * 5.0f); // TODO THis seems to be reversed for some reason
+			outputs[OUT_RIGHT_OUTPUT].setVoltage(outputFrame.samples[0] * 5.0f);
 		} else {
 			outputs[OUT_LEFT_OUTPUT].setVoltage((outputFrame.samples[0] + outputFrame.samples[1]) * 2.5);
 		}
