@@ -94,12 +94,6 @@ enum GlideSetting {
 	GlideOn,
 };
 
-enum Compressor {
-	CompressorOff = 0,
-	CompressorOn = 0
-};
-
-
 // Utility functions
 void *memset(void *s, int c, size_t n);
 
@@ -120,7 +114,6 @@ struct Rotation;
 struct Q;
 struct Tuning;
 struct Levels;
-struct Limiter;
 struct State;
 
 struct Envelope {
@@ -205,8 +198,6 @@ struct Filter {
     FilterTypes filter_type = MAXQ;
     FilterModes filter_mode = TWOPASS;
     FilterTypes new_filter_type;
-
-    Limiter *compressor;
 
     bool filter_type_changed = false;
 
@@ -315,8 +306,6 @@ struct IO {
     float env_out[NUM_CHANNELS];
     float voct_out[NUM_CHANNELS];
 
-    Compressor     COMPRESS;
-
     // LEDS
     bool    CLIP_ODD;
     bool    CLIP_EVEN;
@@ -346,7 +335,6 @@ struct LEDRing {
     Envelope *      envelope;
     IO *            io;
     Filter *        filter;
-    Tuning *        tuning;
     Q *             q;
 
     float sqrt2over2 = sqrt(2.0f) / 2.0f;
@@ -368,7 +356,7 @@ struct LEDRing {
         {255.0f/255.0f,     100.0f/255.0f,  255.0f/255.0f}, // Magenta
         };
 
-    void configure(Rotation *_rotation, Envelope *_envelope, IO *_io, Filter *_filter, Tuning *_tuning, Q *_q);
+    void configure(Rotation *_rotation, Envelope *_envelope, IO *_io, Filter *_filter, Q *_q);
 
     void display_filter_rotation();
     void display_scale();
@@ -589,18 +577,6 @@ struct Levels {
     void configure(IO *_io);
 
     void update(void);
-
-};
-
-struct Limiter {
-
-    float max_sampleval;
-    float threshold_compiled;
-    float threshold_percent;
-    int32_t threshold_value;
-
-    int32_t limit(int32_t val);
-    void initialise(uint32_t max_sampleval_in, float threshold_percent_in);
 
 };
 

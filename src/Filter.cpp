@@ -45,10 +45,6 @@ void Filter::configure(Rotation *_rotation, Envelope *_envelope, Q *_q, Tuning *
 	tuning		= _tuning;
 	io			= _io;
 	levels		= _levels;
-
-	compressor = new Limiter();
-	compressor->initialise(1<<31, 0.75);
-
 }
 
 void Filter::process_bank_change(void) {
@@ -298,11 +294,6 @@ void Filter::filter_twopass(void) {
 			ptmp_i32 = left_buffer;
 		}
 
-        if (io->COMPRESS != 0) {
-			// if (channel_num == 0) std::cout << "2P One" << std::endl;^M
-			*ptmp_i32 = compressor->limit(*ptmp_i32);
-		}
-
 		int j = channel_num;
 		for (int i = 0; i < NUM_SAMPLES; i++) {
 			// FIRST PASS (_a)
@@ -449,11 +440,6 @@ void Filter::filter_onepass(void) {
 					tmp = left_buffer[i];
 				}
 
-				if (io->COMPRESS != 0) {
-					// if (channel_num == 0) std::cout << "1P One" << std::endl;
-					tmp = compressor->limit(tmp);
-				}
-
 				buf[channel_num][scale_num][filter_num][2] = (c0 * buf[channel_num][scale_num][filter_num][1] + c1 * buf[channel_num][scale_num][filter_num][0]) - c2 * tmp;
 				iir = buf[channel_num][scale_num][filter_num][0] - (c1 * buf[channel_num][scale_num][filter_num][2]);
 				buf[channel_num][scale_num][filter_num][0] = iir;
@@ -565,11 +551,6 @@ void Filter::filter_bpre(void) {
 					pTmp = right_buffer[i];
 				}
 
-				if (io->COMPRESS == CompressorOn) {
-					// if (channel_num == 0) std::cout << "BP One" << std::endl;
-					pTmp = compressor->limit(pTmp);
-				}
-
 				iir = pTmp * c0;
 
 				iir -= c1 * tmp;
@@ -631,16 +612,8 @@ void Filter::process_audio_block(int32_t *src, int32_t *dst) {
 			// APPLY LEVEL TO AUDIO OUT
 			if (j & 1) {
 				filtered_buffer[i]  += (f_blended * levels->channel_level[j]);
-				if (io->COMPRESS == CompressorOn) {
-					// if (i == 0) std::cout << "Two" << std::endl;
-					filtered_buffer[i] = compressor->limit(filtered_buffer[i]);
-				}
             } else {
 				filtered_bufferR[i] += (f_blended * levels->channel_level[j]);
-				if (io->COMPRESS == CompressorOn) {
-					// if (i == 0) std::cout << "Two" << std::endl;
-					filtered_bufferR[i] = compressor->limit(filtered_bufferR[i]);
-				}
             }
 		}
 	}

@@ -30,12 +30,11 @@
 
 using namespace rainbow;
 
-void LEDRing::configure(Rotation *_rotation, Envelope *_envelope, IO *_io, Filter *_filter, Tuning *_tuning, Q *_q) {
+void LEDRing::configure(Rotation *_rotation, Envelope *_envelope, IO *_io, Filter *_filter, Q *_q) {
 	rotation 	= _rotation;
 	envelope 	= _envelope;
 	io 			= _io;
 	filter		= _filter;
-	tuning		= _tuning;
 	q 			= _q;
 }
 
