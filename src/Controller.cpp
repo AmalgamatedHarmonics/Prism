@@ -45,20 +45,21 @@ Controller::Controller(void) {
 	input		= new Inputs();
 	state		= new State();
 
-    rotation->configure(filter, io);
-    envelope->configure(levels, io);
-    ring->configure(rotation, envelope, io, filter, q);
-    filter->configure(rotation, envelope, q, tuning, io, levels);
+    rotation->configure(io, filter);
+    envelope->configure(io, levels);
+    ring->configure(io, rotation, envelope, filter, q);
+    filter->configure(io, rotation, envelope, q, tuning, levels);
 	q->configure(io);
-	tuning->configure(filter, io);
+	tuning->configure(io, filter);
 	levels->configure(io);
-	input->configure(rotation, envelope, io, filter, tuning, levels);
+	input->configure(io, rotation, envelope, filter, tuning, levels);
 
 }
 
 void Controller::initialise(void) {
 
 	set_default_param_values();
+	
 	filter->set_default_user_scalebank();
 
 	rotation->spread = (io->SPREAD_ADC >> 8) + 1;
@@ -78,7 +79,6 @@ void Controller::prepare(void) {
 
     ring->update_led_ring();
 	
-    // was in IRQ
     rotation->update_motion();
 
 	envelope->update();
@@ -116,9 +116,7 @@ void Controller::prepare(void) {
 }
 
 void Controller::process_audio(void) {
-
 	filter->process_audio_block(io->in, io->out);
-
 }
 
 void Controller::set_default_param_values(void) {
@@ -134,8 +132,8 @@ void Controller::set_default_param_values(void) {
 		rotation->motion_spread_dest[i] 	= filter->note[i];
 		rotation->motion_fadeto_note[i] 	= filter->note[i];
 
-		rotation->motion_morphpos[i]        = 0;
-		tuning->freq_shift[i]     			= 0;
+		rotation->motion_morphpos[i]        = 0.0f;
+		tuning->freq_shift[i]     			= 0.0f;
 		rotation->motion_scalecv_overage[i] = 0;
 	}
 
@@ -164,8 +162,8 @@ void Controller::load_from_state(void) {
 			rotation->motion_spread_dest[i] 	= filter->note[i];
 			rotation->motion_fadeto_note[i] 	= filter->note[i];
 
-			rotation->motion_morphpos[i]        = 0;
-			tuning->freq_shift[i]     			= 0;
+			rotation->motion_morphpos[i]        = 0.0f;
+			tuning->freq_shift[i]     			= 0.0f;
 			rotation->motion_scalecv_overage[i] = 0;
 		}
 

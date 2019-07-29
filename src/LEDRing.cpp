@@ -30,7 +30,7 @@
 
 using namespace rainbow;
 
-void LEDRing::configure(Rotation *_rotation, Envelope *_envelope, IO *_io, Filter *_filter, Q *_q) {
+void LEDRing::configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Filter *_filter, Q *_q) {
 	rotation 	= _rotation;
 	envelope 	= _envelope;
 	io 			= _io;
@@ -42,7 +42,7 @@ void LEDRing::calculate_envout_leds() {
 
 	for (int chan = 0; chan < NUM_CHANNELS; chan++) {
 
-		float f = 0.0;
+		float f = 0.0f;
 
 		// V/OCT leds
 		if (io->voct_out[chan] < 0.0f) {
@@ -144,8 +144,8 @@ void LEDRing::display_filter_rotation() {
 			
 			if (filter->note[chan] == i) {
 			    // PROCESS REST OF LED RING
-				if (inv_fade[chan] > 0.0) {
-					if (io->ring[i][0] + io->ring[i][1] + io->ring[i][2] == 0) {
+				if (inv_fade[chan] > 0.0f) {
+					if (io->ring[i][0] + io->ring[i][1] + io->ring[i][2] == 0.0f) {
 						io->ring[i][0] = channel_led_colors[chan][0] * inv_fade[chan];
 						io->ring[i][1] = channel_led_colors[chan][1] * inv_fade[chan];
 						io->ring[i][2] = channel_led_colors[chan][2] * inv_fade[chan];
@@ -165,8 +165,8 @@ void LEDRing::display_filter_rotation() {
                         io->ring[i][2] = 1.0f;
                     }
 				}
-				if (fade[chan] > 0.0) {
-					if (io->ring[next_i][0] + io->ring[next_i][1] + io->ring[next_i][2] == 0) {
+				if (fade[chan] > 0.0f) {
+					if (io->ring[next_i][0] + io->ring[next_i][1] + io->ring[next_i][2] == 0.0f) {
 						io->ring[next_i][0] = channel_led_colors[chan][0] * fade[chan];
 						io->ring[next_i][1] = channel_led_colors[chan][1] * fade[chan];
 						io->ring[next_i][2] = channel_led_colors[chan][2] * fade[chan];

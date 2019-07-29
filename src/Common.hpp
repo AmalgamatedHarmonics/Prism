@@ -60,10 +60,7 @@ struct PrismLargeButton : SVGSwitch {
 	}	
 };
 
-
-struct PrismKnob : RoundKnob { };
-
-struct PrismKnobSnap : PrismKnob {
+struct PrismKnobSnap : RoundKnob {
 	PrismKnobSnap() {
 		snap = true;
 		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismKnob.svg")));
@@ -71,7 +68,7 @@ struct PrismKnobSnap : PrismKnob {
 	}
 };
 
-struct PrismKnobNoSnap : PrismKnob {
+struct PrismKnobNoSnap : RoundKnob {
 	PrismKnobNoSnap() {
 		snap = false;
 		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismKnob.svg")));
@@ -79,28 +76,28 @@ struct PrismKnobNoSnap : PrismKnob {
 	}
 };
 
-struct PrismLargeKnobNoSnap : PrismKnob {
+struct PrismLargeKnobNoSnap : RoundKnob {
 	PrismLargeKnobNoSnap() {
 		snap = false;
 		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibraryPrismLargeKnob.svg")));
 	}
 };
 
-struct PrismLargeKnobSnap : PrismKnob {
+struct PrismLargeKnobSnap : RoundKnob {
 	PrismLargeKnobSnap() {
 		snap = true;
 		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibraryPrismLargeKnob.svg")));
 	}
 };
 
-struct PrismTrimpotSnap : PrismKnob {
+struct PrismTrimpotSnap : RoundKnob {
 	PrismTrimpotSnap() {
 		snap = true;
 		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismTrimpot.svg")));
 	}
 };
 
-struct PrismTrimpotNoSnap : PrismKnob {
+struct PrismTrimpotNoSnap : RoundKnob {
 	PrismTrimpotNoSnap() {
 		snap = false;
 		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismTrimpot.svg")));
@@ -108,24 +105,24 @@ struct PrismTrimpotNoSnap : PrismKnob {
 };
 
 struct PrismSSwitch : app::SvgSwitch {
-        PrismSSwitch() {
-                addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSSwitch_0.svg")));
-                addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSSwitch_2.svg")));
-        }
+	PrismSSwitch() {
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSSwitch_0.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSSwitch_2.svg")));
+    }
 };
 
 struct PrismSSwitch3 : app::SvgSwitch {
-        PrismSSwitch3 () {
-                addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSSwitch_0.svg")));
-                addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSSwitch_1.svg")));
-                addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSSwitch_2.svg")));
-        }
+	PrismSSwitch3 () {
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSSwitch_0.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSSwitch_1.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSSwitch_2.svg")));
+    }
 };
 
 struct PrismLEDSlider : LEDSlider {
 	PrismLEDSlider() {
-		maxHandlePos = app::mm2px(math::Vec(0.0, 0.0).plus(math::Vec(1, 0)));
-		minHandlePos = app::mm2px(math::Vec(0.0, 22.078).plus(math::Vec(1, 0)));
+		maxHandlePos = app::mm2px(math::Vec(0.0f, 0.0f).plus(math::Vec(1.0f, 0.0f)));
+		minHandlePos = app::mm2px(math::Vec(0.0f, 22.078f).plus(math::Vec(1.0f, 0.0f)));
 		setBackgroundSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSlider.svg")));
 		setHandleSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSliderHandle.svg")));
 	}
@@ -133,13 +130,12 @@ struct PrismLEDSlider : LEDSlider {
 
 struct PrismLEDIndicator : LEDSlider {
 	PrismLEDIndicator() {
-		maxHandlePos = app::mm2px(math::Vec(0.0, 0.0).plus(math::Vec(1, 0)));
-		minHandlePos = app::mm2px(math::Vec(0.0, 22.078).plus(math::Vec(1, 0)));
+		maxHandlePos = app::mm2px(math::Vec(0.0f, 0.0f).plus(math::Vec(1.0f, 0.0f)));
+		minHandlePos = app::mm2px(math::Vec(0.0f, 22.078f).plus(math::Vec(1.0f, 0.0f)));
 		setBackgroundSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSliderNop.svg")));
 		setHandleSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismIndicator.svg")));
 	}
 };
-
 
 } // namespace gui
 

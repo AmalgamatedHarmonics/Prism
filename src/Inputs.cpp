@@ -32,7 +32,7 @@ extern float exp_4096[4096];
 
 using namespace rainbow;
 
-void Inputs::configure(Rotation *_rotation, Envelope *_envelope, IO *_io, Filter *_filter, Tuning *_tuning, Levels *_levels) {
+void Inputs::configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Filter *_filter, Tuning *_tuning, Levels *_levels) {
 	rotation 	= _rotation;
 	envelope 	= _envelope;
 	io 			= _io;
@@ -83,18 +83,18 @@ void Inputs::param_read_switches(void) {
 	switch (io->ENV_SWITCH) {
 		case Fast:
 			envelope->env_track_mode = ENV_FAST;
-			envelope->envspeed_attack = 0.9990;
-			envelope->envspeed_decay  = 0.9991;
+			envelope->envspeed_attack = 0.9990f;
+			envelope->envspeed_decay  = 0.9991f;
 			break;
 		case Slow:
 			envelope->env_track_mode = ENV_SLOW;
-			envelope->envspeed_attack = 0.9995;
-			envelope->envspeed_decay  = 0.9999;
+			envelope->envspeed_attack = 0.9995f;
+			envelope->envspeed_decay  = 0.9999f;
 			break;
 		case Trigger:
 			envelope->env_track_mode = ENV_TRIG;
-			envelope->envspeed_attack = 0.0;
-			envelope->envspeed_decay  = 0.0;
+			envelope->envspeed_attack = 0.0f;
+			envelope->envspeed_decay  = 0.0f;
 			break;
 	}
 
@@ -108,14 +108,14 @@ void Inputs::param_read_switches(void) {
 				if (lag_val > 4095) {
 					lag_val = 4095;
 				}
-				levels->channel_level_lpf = 1.0 - exp_4096[lag_val];
+				levels->channel_level_lpf = 1.0f - exp_4096[lag_val];
 				break;
 			case SlewControl:
 				lag_val = (io->SLEW_ADC / 2) + 137;
 				if (lag_val > 4095) {
 					lag_val = 4095;
 				}
-				levels->channel_level_lpf = 1.0 - exp_4096[lag_val];
+				levels->channel_level_lpf = 1.0f - exp_4096[lag_val];
 				break;
 			default:
 				levels->channel_level_lpf = levels->CHANNEL_LEVEL_MIN_LPF;
@@ -126,7 +126,7 @@ void Inputs::param_read_switches(void) {
 			if (lag_val > 4095) {
                 lag_val = 4095;
             }
-			levels->channel_level_lpf = 1.0 - exp_4096[lag_val];
+			levels->channel_level_lpf = 1.0f - exp_4096[lag_val];
 		} else {			
 			levels->channel_level_lpf = levels->CHANNEL_LEVEL_MIN_LPF;
 		}

@@ -142,7 +142,7 @@ struct Envelope {
     float           envspeed_attack;
     float           envspeed_decay;
 
-    void configure(Levels *_levels, IO *_io);
+    void configure(IO *_io, Levels *_levels);
 
     void initialise(void);
     void update();
@@ -226,7 +226,7 @@ struct Filter {
             0.06649289977552018
     };
 
-    void configure(Rotation *_rotation, Envelope *_envelope, Q *_q, Tuning *_tuning, IO *_io, Levels *_levels);
+    void configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Q *_q, Tuning *_tuning, Levels *_levels);
 
     void process_scale_bank(void);
 
@@ -356,7 +356,7 @@ struct LEDRing {
         {255.0f/255.0f,     100.0f/255.0f,  255.0f/255.0f}, // Magenta
         };
 
-    void configure(Rotation *_rotation, Envelope *_envelope, IO *_io, Filter *_filter, Q *_q);
+    void configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Filter *_filter, Q *_q);
 
     void display_filter_rotation();
     void display_scale();
@@ -387,7 +387,7 @@ struct Inputs {
 	int32_t t_old_scalecv = 0;
 	float lpf_buf;
 
-    void configure(Rotation *_rotation, Envelope *_envelope, IO *_io, Filter *_filter, Tuning *_tuning, Levels *_levels);
+    void configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Filter *_filter, Tuning *_tuning, Levels *_levels);
 
     void param_read_switches(void);
     int8_t read_spread(void);
@@ -474,7 +474,7 @@ struct Rotation {
 
     uint8_t scale_bank_defaultscale[NUM_SCALEBANKS] = {4, 4, 6, 5, 9, 5, 5};
 
-    void configure(Filter *_filter, IO *_io);
+    void configure(IO *_io, Filter *_filter);
 
     void update_spread(int8_t t_spread);
     void update_morph(void);
@@ -546,7 +546,7 @@ struct Tuning {
 
     LPF freq_jack_conditioning[2];     //LPF and bracketing for freq jacks
 
-    void configure(Filter * _filter, IO *_io);
+    void configure(IO *_io, Filter * _filter);
 
     void initialise(void);
     void update(void);

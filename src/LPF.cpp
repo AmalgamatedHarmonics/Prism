@@ -69,10 +69,10 @@ void LPF::apply_fir_lpf() {
 	lpf_val = (float)((lpf_val * fir_lpf_size) - old_value + new_value) / (float)(fir_lpf_size);
 
 	//Range check 
-	if (lpf_val < 0.0) {
-        lpf_val = 0.0;
-    } else if (lpf_val > 4095.0) {
-        lpf_val = 4095.0;
+	if (lpf_val < 0.0f) {
+        lpf_val = 0.0f;
+    } else if (lpf_val > 4095.0f) {
+        lpf_val = 4095.0f;
     }
 }
 

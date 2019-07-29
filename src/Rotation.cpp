@@ -34,7 +34,7 @@ extern float exp_4096[4096];
 
 using namespace rainbow;
 
-void Rotation::configure(Filter *_filter, IO *_io) {
+void Rotation::configure(IO *_io, Filter *_filter) {
 	filter 		= _filter;
 	io 			= _io;
 }
@@ -204,17 +204,17 @@ void Rotation::update_spread(int8_t t_spread) {
 }
 
 void Rotation::update_morph(void) {
-	f_morph *= 0.999;
-	f_morph += 0.001 * (exp_4096[io->MORPH_ADC] / 16.0);
+	f_morph *= 0.999f;
+	f_morph += 0.001f * (exp_4096[io->MORPH_ADC] / 16.0f);
 
 	//if morph is happening, continue it
 	//if it hits the limit, just hold it there until we can run update_motion()
 	for (int chan = 0; chan < NUM_CHANNELS; chan++)	{
-		if (motion_morphpos[chan] > 0.0) {
+		if (motion_morphpos[chan] > 0.0f) {
 			motion_morphpos[chan] += f_morph;
         }
-		if (motion_morphpos[chan] >= 1.0) {
-            motion_morphpos[chan] = 1.0;
+		if (motion_morphpos[chan] >= 1.0f) {
+            motion_morphpos[chan] = 1.0f;
         }
 	}
 
@@ -229,14 +229,14 @@ void Rotation::update_motion(void) {
 
 		for (int chan = 0; chan < NUM_CHANNELS; chan++)	{
 			//if morph has reached the end, shift our present position to the (former) fadeto destination
-			if (motion_morphpos[chan] >= 1.0) {
+			if (motion_morphpos[chan] >= 1.0f) {
 				filter->note[chan]  = motion_fadeto_note[chan];
 				filter->scale[chan] = motion_fadeto_scale[chan];
 
 				if (motion_spread_dest[chan] == filter->note[chan]) {
 					motion_spread_dir[chan] = 0;
 				}
-				motion_morphpos[chan] = 0.0;
+				motion_morphpos[chan] = 0.0f;
 
 				io->FORCE_RING_UPDATE = true;
 			}
@@ -267,7 +267,7 @@ void Rotation::update_motion(void) {
 						motion_spread_dir[chan] = -1;
 						//Dencrement circularly
 						if (motion_spread_dest[chan] == 0) {
-							motion_spread_dest[chan] = NUM_FILTS -1;
+							motion_spread_dest[chan] = NUM_FILTS - 1;
 						} else {
 							motion_spread_dest[chan]--;
 						}
@@ -312,7 +312,7 @@ void Rotation::update_motion(void) {
 								motion_fadeto_note[chan] = (motion_fadeto_note[chan] + 1) % NUM_FILTS;
 							} else {
 								if (motion_fadeto_note[chan] ==0 ) {
-									motion_fadeto_note[chan] = NUM_FILTS-1;
+									motion_fadeto_note[chan] = NUM_FILTS - 1;
 								} else {
 									motion_fadeto_note[chan] = motion_fadeto_note[chan] - 1;
 								}
@@ -342,7 +342,7 @@ void Rotation::update_motion(void) {
 
 		for (int chan = 0; chan < NUM_CHANNELS; chan++) {
 
-			if (motion_morphpos[chan] == 0.0) {
+			if (motion_morphpos[chan] == 0.0f) {
 
 				//Spread
 
@@ -418,7 +418,7 @@ void Rotation::update_motion(void) {
 						while (!is_distinct) {
 
 							//Increment circularly
-							if (motion_fadeto_note[chan] >= (NUM_FILTS-1)) {
+							if (motion_fadeto_note[chan] >= (NUM_FILTS - 1)) {
 								motion_fadeto_note[chan] = 0;
 
 								// If scale rotation is on, increment the scale, wrapping it around
@@ -455,7 +455,7 @@ void Rotation::update_motion(void) {
 
 							//Decrement circularly
 							if (motion_fadeto_note[chan] == 0) {
-								motion_fadeto_note[chan] = NUM_FILTS-1;
+								motion_fadeto_note[chan] = NUM_FILTS - 1;
 
 								// If scale rotation is on, decrement the scale, wrapping it around
 								if (rotate_to_next_scale) {
@@ -465,7 +465,7 @@ void Rotation::update_motion(void) {
 										motion_fadeto_scale[chan]--;
 									}
 									if (motion_scale_dest[chan] == 0) {
-										motion_scale_dest[chan] = NUM_SCALES-1;
+										motion_scale_dest[chan] = NUM_SCALES - 1;
 									} else {
 										motion_scale_dest[chan]--;
 									}

@@ -38,7 +38,7 @@ extern uint32_t twopass_calibration[3380];
 
 using namespace rainbow;
 
-void Filter::configure(Rotation *_rotation, Envelope *_envelope, Q *_q, Tuning *_tuning, IO *_io, Levels *_levels) {
+void Filter::configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Q *_q, Tuning *_tuning, Levels *_levels) {
 	rotation 	= _rotation;
 	envelope 	= _envelope; 
 	q			= _q;
@@ -84,9 +84,9 @@ void Filter::process_scale_bank(void) {
 
 			float *ff = (float *)buf[i];
 			for (int j = 0; j < (NUM_SCALES * NUM_FILTS); j++) {
-				*(ff+j)   = 0;
-				*(ff+j+1) = 0;
-				*(ff+j+2) = 0;
+				*(ff+j)   = 0.0f;
+				*(ff+j+1) = 0.0f;
+				*(ff+j+2) = 0.0f;
 			}
 
 			if (filter_type == MAXQ) {
@@ -243,31 +243,28 @@ void Filter::filter_twopass(void) {
 
 		// QVAL ADJUSTMENTS
 		// first filter max Q at noon on Q knob
-		qval_a[channel_num]	= qc[channel_num] * 2;
-		if (qval_a[channel_num] > 4095) {
-			qval_a[channel_num] = 4095;
+		qval_a[channel_num]	= qc[channel_num] * 2.0f;
+		if (qval_a[channel_num] > 4095.0f) {
+			qval_a[channel_num] = 4095.0f;
 		}
 
 		// limit q knob range on second filter
-		if (qc[channel_num] < 3900) {
-			qval_b[channel_num] = 1000;
-		} else if (qc[channel_num] >= 3900) {
-			qval_b[channel_num] = 1000 + (qc[channel_num] - 3900) * 15;
+		if (qc[channel_num] < 3900.0f) {
+			qval_b[channel_num] = 1000.0f;
+		} else if (qc[channel_num] >= 3900.0f) {
+			qval_b[channel_num] = 1000.0f + (qc[channel_num] - 3900.0f) * 15.0f;
 		} // 1000 to 3925
 		
 		// Q/RESONANCE: c0 = 1 - 2/(decay * samplerate), where decay is around 0.01 to 4.0
-		c0_a = 1.0 - exp_4096[(uint32_t)(qval_a[channel_num] / 1.4) + 200] / 10.0; //exp[200...3125]
-		c0   = 1.0 - exp_4096[(uint32_t)(qval_b[channel_num] / 1.4) + 200] / 10.0; //exp[200...3125]
+		c0_a = 1.0f - exp_4096[(uint32_t)(qval_a[channel_num] / 1.4f) + 200] / 10.0f; //exp[200...3125]
+		c0   = 1.0f - exp_4096[(uint32_t)(qval_b[channel_num] / 1.4f) + 200] / 10.0f; //exp[200...3125]
 
 		// FREQ: c1 = 2 * pi * freq / samplerate
 		c1 = *(c_hiq[channel_num] + (scale_num * 21) + filter_num);
 		c1 *= tuning->freq_nudge[channel_num] * tuning->freq_shift[channel_num];
-		if (c1 > 1.30899581) {
-			c1 = 1.30899581; //hard limit at 20k
+		if (c1 > 1.30899581f) {
+			c1 = 1.30899581f; //hard limit at 20k
 		}
-
-		io->DEBUG[channel_num * 2] = c0;
-		io->DEBUG[channel_num * 2 + 1] = c1;
 
 		// CROSSFADE between the two filters
 		if  (qc[channel_num] < CF_MIN) {
@@ -284,8 +281,8 @@ void Filter::filter_twopass(void) {
 		// FIXME: 43801543.68f gain could be directly printed into calibration vector
 		
 		// AMPLITUDE: Boost high freqs and boost low resonance
-		c2_a  = (0.003 * c1) - (0.1 * c0_a) + 0.102;
-		c2    = (0.003 * c1) - (0.1 * c0)   + 0.102;
+		c2_a  = (0.003f * c1) - (0.1f * c0_a) + 0.102f;
+		c2    = (0.003f * c1) - (0.1f * c0)   + 0.102f;
 		c2 *= ratio_b;
 
 		if (channel_num & 1) {
@@ -329,13 +326,13 @@ void Filter::filter_twopass(void) {
 			c1 = *(c_hiq[channel_num] + (scale_num * 21) + filter_num);
 			c1 *= tuning->freq_nudge[channel_num];
 			c1 *= tuning->freq_shift[channel_num];
-			if (c1 > 1.30899581) {
-				c1 = 1.30899581; //hard limit at 20k
+			if (c1 > 1.30899581f) {
+				c1 = 1.30899581f; //hard limit at 20k
 			}
 
 			//AMPLITUDE: Boost high freqs and boost low resonance
-			c2_a  = (0.003 * c1) - (0.1 * c0_a) + 0.102;
-			c2    = (0.003 * c1) - (0.1 * c0) + 0.102;
+			c2_a  = (0.003f * c1) - (0.1f * c0_a) + 0.102f;
+			c2    = (0.003f * c1) - (0.1f * c0)   + 0.102f;
 			c2 	*= ratio_b;
 
 			//Point to the left or right input buffer
@@ -413,25 +410,22 @@ void Filter::filter_onepass(void) {
 			}
 
 			// Q/RESONANCE: c0 = 1 - 2/(decay * samplerate), where decay is around 0.01 to 4.0
-			c0 = 1.0 - exp_4096[(uint32_t)(q->qval[channel_num] / 1.4) + 200] / 10.0; //exp[200...3125]
+			c0 = 1.0f - exp_4096[(uint32_t)(q->qval[channel_num] / 1.4f) + 200] / 10.0; //exp[200...3125]
 
 			// FREQ: c1 = 2 * pi * freq / samplerate
 			c1 = *(c_hiq[channel_num] + (scale_num * 21) + filter_num);
 			c1 *= tuning->freq_nudge[channel_num];
 			c1 *= tuning->freq_shift[channel_num];
-			if (c1 > 1.30899581) {
-				c1 = 1.30899581; //hard limit at 20k
+			if (c1 > 1.30899581f) {
+				c1 = 1.30899581f; //hard limit at 20k
 			}
-
-			io->DEBUG[channel_num * 2] = c0;
-			io->DEBUG[channel_num * 2 + 1] = c1;
 
 			// Set VOCT output
 			envelope->envout_preload_voct[channel_num] = c1;
 
 			// AMPLITUDE: Boost high freqs and boost low resonance
-			c2  = (0.003 * c1) - (0.1 * c0) + 0.102;
-			c2 *= ((4096.0 - q->qval[channel_num]) / 1024.0) + 1.04;
+			c2  = (0.003f * c1) - (0.1f * c0) + 0.102f;
+			c2 *= ((4096.0f - q->qval[channel_num]) / 1024.0f) + 1.04f;
 
 			for (int i = 0; i < NUM_SAMPLES; i++) {
 				if (channel_num & 1) {
@@ -486,7 +480,7 @@ void Filter::filter_bpre(void) {
 			channel_num = j - NUM_CHANNELS;
 		}
 
-		if (j < NUM_CHANNELS || rotation->motion_morphpos[channel_num] != 0.0) {
+		if (j < NUM_CHANNELS || rotation->motion_morphpos[channel_num] != 0.0f) {
 
 			// Set filter_num and scale_num to the Morph sources
 			if (j < NUM_CHANNELS) {
@@ -501,13 +495,13 @@ void Filter::filter_bpre(void) {
 
 			//Q vector
 			var_f = tuning->freq_nudge[channel_num];
-			if (var_f < 0.002) {
-				var_f = 0.0;
+			if (var_f < 0.002f) {
+				var_f = 0.0f;
 			}
-			if (var_f > 0.998) {
-				var_f = 1.0;
+			if (var_f > 0.998f) {
+				var_f = 1.0f;
 			}
-			inv_var_f = 1.0 - var_f;
+			inv_var_f = 1.0f - var_f;
 
 			//Freq nudge vector
 			nudge_filter_num = filter_num + 1;
@@ -525,11 +519,11 @@ void Filter::filter_bpre(void) {
 
 			//Q vector
 			if (q->qval[channel_num] > 4065) {
-				var_q     = 1.0;
-				inv_var_q = 0.0;
+				var_q     = 1.0f;
+				inv_var_q = 0.0f;
 			} else {
 				var_q     = log_4096[q->qval[channel_num]];
-				inv_var_q = 1.0 - var_q;
+				inv_var_q = 1.0f - var_q;
 			}
 
 			c0 = c0 * var_q + a0 * inv_var_q;
@@ -603,7 +597,7 @@ void Filter::process_audio_block(int32_t *src, int32_t *dst) {
 
 		for (int j = 0; j < NUM_CHANNELS; j++) {
 		
-			if (rotation->motion_morphpos[j] == 0.0) {
+			if (rotation->motion_morphpos[j] == 0.0f) {
 				f_blended = filter_out[j][i];
             } else {
 				f_blended = (filter_out[j][i] * (1.0f - rotation->motion_morphpos[j])) + (filter_out[j + NUM_CHANNELS][i] * rotation->motion_morphpos[j]); // filter blending
@@ -623,10 +617,10 @@ void Filter::process_audio_block(int32_t *src, int32_t *dst) {
 
 		io->channelLevel[j] = (f_blended * levels->channel_level[j]) / CLIP_LEVEL;
 		
-		if (f_blended > 0) {
+		if (f_blended > 0.0f) {
 			envelope->envout_preload[j] = f_blended;
 		} else {
-			envelope->envout_preload[j] = -1.0 * f_blended;
+			envelope->envout_preload[j] = -1.0f * f_blended;
 		}
 	}
 	

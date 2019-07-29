@@ -34,7 +34,7 @@ using namespace rainbow;
 
 extern float exp_1voct[4096];
 
-void Tuning::configure(Filter * _filter, IO *_io) {
+void Tuning::configure(IO *_io, Filter * _filter) {
     filter      = _filter;
 	io			= _io;
 }
@@ -72,54 +72,54 @@ void Tuning::update(void) {
 
 			// FREQ NUDGE 
 			// SEMITONE FINE TUNE	
-			f_nudge_odds  = 1 + t_fo / 55000.0; // goes beyond semitone 
-			f_nudge_evens = 1 + t_fe / 55000.0; 
+			f_nudge_odds  = 1 + t_fo / 55000.0f; // goes beyond semitone 
+			f_nudge_evens = 1 + t_fe / 55000.0f; 
 
 			// 12-SEMITONE COARSE TUNE
 			for (int i = 0; i < NUM_CHANNELS; i++) {
 
 				switch(io->TRANS_DIAL[i]) {
 					case 0:
-						coarse_adj[i] = 1.0;
+						coarse_adj[i] = 1.0f;
 						break;
 					case -6:
-						coarse_adj[i] = 1.0 / 1.41421356237; 
+						coarse_adj[i] = 1.0f / 1.41421356237f; 
 						break;
 					case -5:
-						coarse_adj[i] = 1.0 / 1.33483985417; 
+						coarse_adj[i] = 1.0f / 1.33483985417f; 
 						break;
 					case -4: 
-						coarse_adj[i] = 1.0 / 1.25992104989; 
+						coarse_adj[i] = 1.0f / 1.25992104989f; 
 						break;
 					case -3:
-						coarse_adj[i] = 1.0 / 1.189207115;   
+						coarse_adj[i] = 1.0f / 1.189207115f;
 						break;
 					case -2:
-						coarse_adj[i] = 1.0 / 1.12246204831; 
+						coarse_adj[i] = 1.0f / 1.12246204831f;
 						break;
 					case -1:
-						coarse_adj[i] = 1.0 / 1.05946309436; 
+						coarse_adj[i] = 1.0f / 1.05946309436f;
 						break;
 					case 1:
-						coarse_adj[i] = 1.05946309436;       
+						coarse_adj[i] = 1.05946309436f;
 						break;
 					case 2:
-						coarse_adj[i] = 1.12246204831;       
+						coarse_adj[i] = 1.12246204831f;       
 						break;
 					case 3:
-						coarse_adj[i] = 1.189207115; 	    
+						coarse_adj[i] = 1.189207115f;
 						break;
 					case 4:
-						coarse_adj[i] = 1.25992104989; 	    
+						coarse_adj[i] = 1.25992104989f;
 						break;
 					case 5:
-						coarse_adj[i] = 1.33483985417;	    
+						coarse_adj[i] = 1.33483985417f;
 						break;
 					case 6:
-						coarse_adj[i] = 1.41421356237;	    
+						coarse_adj[i] = 1.41421356237f;
 						break;
 					default:
-						coarse_adj[i] = 1.0;                 
+						coarse_adj[i] = 1.0f;       
 						break;
 				}
 			}
@@ -151,12 +151,12 @@ void Tuning::update(void) {
 				if (!io->LOCK_ON[2]) {
 					freq_nudge[2] = coarse_adj[2];
 				}
-				freq_shift[2] = 1.0;
+				freq_shift[2] = 1.0f;
 
 				if (!io->LOCK_ON[4]) {
 					freq_nudge[4] = coarse_adj[4];
 				}
-				freq_shift[4] = 1.0;
+				freq_shift[4] = 1.0f;
 			}
 
 		//EVENS
@@ -181,28 +181,28 @@ void Tuning::update(void) {
 				if (!io->LOCK_ON[3]) {
 					freq_nudge[3] = coarse_adj[3];
 				}
-				freq_shift[3] = 1.0;
+				freq_shift[3] = 1.0f;
 
 				if (!io->LOCK_ON[1]) {
 					freq_nudge[1] = coarse_adj[1];
 				}
-				freq_shift[1] = 1.0;
+				freq_shift[1] = 1.0f;
 			}
 
 		} else { // BPRE Filter
 
-			t_fo = (float)(io->FREQNUDGE1_ADC + io->FREQCV1_ADC) / 4096.0;
-			if (t_fo > 1.0) {
-				t_fo = 1.0;
+			t_fo = (float)(io->FREQNUDGE1_ADC + io->FREQCV1_ADC) / 4096.0f;
+			if (t_fo > 1.0f) {
+				t_fo = 1.0f;
 			}
 
-			t_fe = (float)(io->FREQNUDGE6_ADC + io->FREQCV6_ADC) / 4096.0;
-			if (t_fe>1.0) {
-				t_fe=1.0;
+			t_fe = (float)(io->FREQNUDGE6_ADC + io->FREQCV6_ADC) / 4096.0f;
+			if (t_fe > 1.0f) {
+				t_fe = 1.0f;
 			}
 
-			f_shift_odds  = 1.0;
-			f_shift_evens = 1.0;
+			f_shift_odds  = 1.0f;
+			f_shift_evens = 1.0f;
 			
 			f_nudge_odds  *= FREQNUDGE_LPF;
 			f_nudge_odds  += (1.0f - FREQNUDGE_LPF) * t_fo;
@@ -227,14 +227,14 @@ void Tuning::update(void) {
 				freq_shift[4] = f_shift_odds;
 			} else {
 				if (!io->LOCK_ON[2]) {
-					freq_nudge[2] = 0.0;
+					freq_nudge[2] = 0.0f;
 				}
-				freq_shift[2] = 1.0;
+				freq_shift[2] = 1.0f;
 
 				if (!io->LOCK_ON[4]) {
-					freq_nudge[4] = 0.0;
+					freq_nudge[4] = 0.0f;
 				}
-				freq_shift[4] = 1.0;
+				freq_shift[4] = 1.0f;
 			}
 
 			if (!io->LOCK_ON[5]) {
@@ -254,14 +254,14 @@ void Tuning::update(void) {
 				freq_shift[3] = f_shift_evens;
 			} else {
 				if (!io->LOCK_ON[1]) {
-					freq_nudge[1] = 0.0;
+					freq_nudge[1] = 0.0f;
 				}
-				freq_shift[1] = 1.0;
+				freq_shift[1] = 1.0f;
 
 				if (!io->LOCK_ON[3]) {
-					freq_nudge[3] = 0.0;
+					freq_nudge[3] = 0.0f;
 				}
-				freq_shift[3] = 1.0;
+				freq_shift[3] = 1.0f;
 			}
 		}	
 	}
