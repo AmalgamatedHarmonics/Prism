@@ -134,10 +134,11 @@ struct Rainbow : core::PrismModule {
 	LED *envelopeLEDs[NUM_CHANNELS] = {};
 	LED *qLEDs[NUM_CHANNELS] = {};
 	LED *tuningLEDs[NUM_CHANNELS] = {};
-	LED *outputLEDs[NUM_CHANNELS] = {};
 
 	dsp::VuMeter2 vuMeters[6];
 	dsp::ClockDivider lightDivider;
+	uint32_t channelClipCnt[6];
+	float clipLimit = -5.2895f; // Clip at 10V;
 
 	NVGcolor defaultBorder = nvgRGB(50, 150, 50);
 	NVGcolor blockedBorder = nvgRGB(255, 0, 0);
@@ -322,6 +323,7 @@ struct Rainbow : core::PrismModule {
 			configParam(TRANS_PARAM + n, -6, 6, 0, "Semitone transpose"); 
 
 			vuMeters[n].mode = dsp::VuMeter2::RMS;
+			channelClipCnt[n] = 0;
 
 		}
 
@@ -655,12 +657,23 @@ void Rainbow::process(const ProcessArgs &args) {
 		scaleLEDs[i]->colorBorder = defaultBorder;		
 	}
 
+	bool procVu = lightDivider.process();
 	for (int i = 0; i < NUM_CHANNELS; i++) {
-		envelopeLEDs[i]->color = nvgRGBf(
-			main.io->envelope_leds[i][0], 
-			main.io->envelope_leds[i][1],
-			main.io->envelope_leds[i][2]);
-		envelopeLEDs[i]->colorBorder = defaultBorder;		
+
+		if (procVu) {
+			vuMeters[i].getBrightness(clipLimit, clipLimit) == 1.0f ? channelClipCnt[i]++ : channelClipCnt[i] = 0;
+		}
+
+		if (channelClipCnt[i] & 32) {
+			envelopeLEDs[i]->color = nvgRGBf(0.0f, 0.0f, 0.0f);
+			envelopeLEDs[i]->colorBorder = defaultBorder;		
+		} else {
+			envelopeLEDs[i]->color = nvgRGBf(
+				main.io->envelope_leds[i][0], 
+				main.io->envelope_leds[i][1],
+				main.io->envelope_leds[i][2]);
+			envelopeLEDs[i]->colorBorder = defaultBorder;		
+		}
 
 		qLEDs[i]->color = nvgRGBf(
 			main.io->q_leds[i][0], 
@@ -673,14 +686,6 @@ void Rainbow::process(const ProcessArgs &args) {
 			main.io->tuning_out_leds[i][1],
 			main.io->tuning_out_leds[i][2]);
 		tuningLEDs[i]->colorBorder = defaultBorder;		
-
-		if (lightDivider.process()) {
-			for (int i = 0; i < 6; i++) {
-				float b = vuMeters[i].getBrightness(-6.0f, -3.0f);
-				outputLEDs[i]->color = nvgRGBf(b, 1.0f - b, 0.0f);
-				outputLEDs[i]->colorBorder = defaultBorder;
-			}
-		}
 
 		params[Rainbow::LEVEL_OUT_PARAM+i].setValue(main.io->OUTLEVEL[i]);
 
@@ -894,10 +899,6 @@ struct RainbowWidget : ModuleWidget {
 			Vec channelStrip(mm2px(Vec(113.3f, 54.0f)));
 
 			for (int i = 0; i < NUM_CHANNELS; i++) {
-				module->outputLEDs[i] = new LED(i, levelStrip.x + i * 32.5f + 6.0f, levelStrip.y);
-				module->outputLEDs[i]->module = NULL;
-				addChild(module->outputLEDs[i]);
-
 				module->qLEDs[i] = new LED(i, channelStrip.x + i * 32.5f, channelStrip.y + 11.0f);
 				module->qLEDs[i]->module = NULL;
 				addChild(module->qLEDs[i]);
