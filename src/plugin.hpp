@@ -13,4 +13,5 @@ extern Plugin *pluginInstance;
 ////////////////////
 
 extern Model *modelRainbow;
+extern Model *modelRainbowExpander;
 

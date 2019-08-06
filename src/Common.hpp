@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <bitset>
 
 #include "plugin.hpp"
 #include "componentlibrary.hpp"
@@ -136,6 +137,31 @@ struct PrismLEDIndicator : LEDSlider {
 		setHandleSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismIndicator.svg")));
 	}
 };
+
+struct PrismReadoutParam : app::ParamWidget {
+
+	std::shared_ptr<Font> font;
+
+	PrismReadoutParam() {
+		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/BarlowCondensed-Bold.ttf"));
+	}
+
+	void draw(const DrawArgs &ctx) override {
+
+		std::cout << "draw" << std::endl;
+
+		nvgFontSize(ctx.vg, 17.0f);
+		nvgFontFaceId(ctx.vg, font->handle);
+
+		char text[128];
+
+		snprintf(text, sizeof(text), "%f", paramQuantity->getValue());
+		nvgText(ctx.vg, 0, box.pos.y, text, NULL);
+
+	}
+
+};
+
 
 } // namespace gui
 

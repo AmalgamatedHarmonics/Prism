@@ -90,6 +90,8 @@ void Controller::prepare(void) {
 
     filter->process_bank_change();
 
+	filter->process_user_scale_change();
+
     if (io->ROTUP_TRIGGER || io->ROTUP_BUTTON) {
         rotation->rotate_up();
     }

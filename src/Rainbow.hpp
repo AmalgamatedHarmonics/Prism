@@ -5,11 +5,18 @@
 #include <iostream>
 #include <inttypes.h>
 
+extern float default_user_scalebank[21];
+
 //Number of components
 #define NUM_FILTS 20
 #define NUM_CHANNELS 6
 #define NUM_SCALES 11
 #define NUM_SCALEBANKS 20
+
+// Number of notes to completely define a scale
+#define NUM_SCALENOTES 21
+#define NUM_BANKNOTES 231
+
 
 // Audio buffer sizing
 #define BUFFER_SIZE 8
@@ -100,6 +107,11 @@ void *memset(void *s, int c, size_t n);
 void *memcpy(void *dest, const void *src, size_t n);
 
 uint32_t diff(uint32_t a, uint32_t b);
+
+struct RainbowExpanderMessage {
+	float coeffs[NUM_BANKNOTES];
+	bool updated;
+};
 
 namespace rainbow {
 
@@ -201,36 +213,15 @@ struct Filter {
 
     bool filter_type_changed = false;
 
-    float user_scalebank[231];
-    float DEFAULT_user_scalebank[21] = {
-            0.02094395102393198,
-            0.0221893431599245,
-            0.02350879016601388,
-            0.02490669557392844,
-            0.02638772476301919,
-            0.02795682053052971,
-            0.02961921958772248,
-            0.03138047003691591,
-            0.03324644988776009,
-            0.03522338667454755,
-            0.03731787824003011,
-            0.03953691475510571,
-            0.04188790204786397,
-            0.04437868631984903,
-            0.04701758033202778,
-            0.0498133911478569,
-            0.0527754495260384,
-            0.05591364106105944,
-            0.05923843917544499,
-            0.06276094007383184,
-            0.06649289977552018
-    };
+    float user_scale_bank[231];
+    bool user_scale_changed = true;
 
     void configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Q *_q, Tuning *_tuning, Levels *_levels);
 
     void process_scale_bank(void);
 
     void process_bank_change(void);
+    void process_user_scale_change(void);
     void filter_twopass(void);
     void filter_onepass(void);
     void filter_bpre(void);
@@ -250,10 +241,10 @@ struct IO {
 
     uint16_t MORPH_ADC;
 
-	int16_t     GlobalQLevel;
-	int16_t     GlobalQControl;
-	int16_t     ChannelQLevel[6];
-	int16_t     ChannelQControl[6];
+	int16_t     GLOBAL_Q_LEVEL;
+	int16_t     GLOBAL_Q_CONTROL;
+	int16_t     CHANNEL_Q_LEVEL[6];
+	int16_t     CHANNEL_Q_CONTROL[6];
 
     float   LEVEL[6];
 
@@ -295,6 +286,8 @@ struct IO {
     // Bank select
     bool        CHANGED_BANK;
     uint8_t     NEW_BANK;
+    float       USER_SCALE[NUM_BANKNOTES];
+    bool        USER_SCALE_CHANGED = false;
 
     //FREQ BLOCKS
     std::bitset<20> FREQ_BLOCK;
@@ -319,14 +312,22 @@ struct IO {
 
     float channelLevel[NUM_CHANNELS]; // 0.0 - 1+, 1 = Clipping
 
-    bool    FORCE_RING_UPDATE = true; // TODO force update first time through
-
+    bool    FORCE_RING_UPDATE;
+ 
     int32_t     *out;
 
     float DEBUG[16];
 
     float OUTLEVEL[6];
 
+    IO(void) {
+        FORCE_RING_UPDATE = true; // TODO force update first time through
+		for (int j = 0; j < NUM_SCALES; j++) {
+			for (int i = 0; i < NUM_SCALENOTES; i++) {
+				USER_SCALE[i + j * NUM_SCALENOTES] = default_user_scalebank[i];
+			}
+		}
+    }
 };
 
 struct LEDRing {

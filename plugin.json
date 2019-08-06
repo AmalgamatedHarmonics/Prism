@@ -9,14 +9,21 @@
 	"authorUrl": "https://github.com/AmalgamatedHarmonics/Prism/wiki",
 	"sourceUrl": "https://github.com/AmalgamatedHarmonics/Prism",
 	"changelogUrl": "https://github.com/AmalgamatedHarmonics/Prism/blob/master/CHANGELOG.md",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"modules": [
 		{
-			"slug": "Rainbow" ,
+			"slug": "Rainbow",
 			"name": "Rainbow",
 			"description": "A multiband band-pass resonant filter, a port of the 4ms SMR",
 			"tags": ["Physical modeling", "VCF"]
+		},
+		{
+			"slug": "RainbowExpander",
+			"name": "RainbowExpander",
+			"description": "Expander for Rainbow",
+			"tags": ["Expander"]
 		}
+
 	]
 }
 

@@ -35,6 +35,7 @@
 extern float exp_4096[4096];
 extern float log_4096[4096];
 extern uint32_t twopass_calibration[3380];
+extern float default_user_scalebank[21];
 
 using namespace rainbow;
 
@@ -55,6 +56,16 @@ void Filter::process_bank_change(void) {
             }
         }
     }
+}
+
+void Filter::process_user_scale_change() {
+	if (io->USER_SCALE_CHANGED) {
+		for (int i = 0; i < NUM_BANKNOTES; i++) {
+			user_scale_bank[i] = io->USER_SCALE[i];
+		}
+		io->USER_SCALE_CHANGED = false;
+		user_scale_changed = true;
+	}
 }
 
 void Filter::change_filter_type(FilterTypes newtype) {
@@ -78,7 +89,7 @@ void Filter::process_scale_bank(void) {
             scale[i] = NUM_SCALES - 1;
         }
 
-		if (scale_bank[i] != old_scale_bank[i] || filter_type_changed) {
+		if (scale_bank[i] != old_scale_bank[i] || filter_type_changed || user_scale_changed) {
 
 			old_scale_bank[i] = scale_bank[i];
 
@@ -138,7 +149,7 @@ void Filter::process_scale_bank(void) {
 
 				// User	Scales
 				} else if (scale_bank[i] == NUM_SCALEBANKS - 1) { 		// User scalebank is the last scalebank
-					c_hiq[i] = (float *)(user_scalebank);
+					c_hiq[i] = (float *)(user_scale_bank);
 				}
 
 			} else if (filter_mode != TWOPASS && filter_type == BPRE) {
@@ -235,6 +246,14 @@ void Filter::filter_twopass(void) {
 
 	int32_t *ptmp_i32;
 
+	// bool dump = false;
+	// static int fCount = 0;
+
+	// if (fCount++ > 100000) {
+	// 	fCount = 0;
+	// 	dump = true;
+	// } 
+
 	for (channel_num = 0; channel_num < NUM_CHANNELS; channel_num++) {
 		filter_num = note[channel_num];
 		scale_num  = scale[channel_num];
@@ -259,8 +278,13 @@ void Filter::filter_twopass(void) {
 		c0_a = 1.0f - exp_4096[(uint32_t)(qval_a[channel_num] / 1.4f) + 200] / 10.0f; //exp[200...3125]
 		c0   = 1.0f - exp_4096[(uint32_t)(qval_b[channel_num] / 1.4f) + 200] / 10.0f; //exp[200...3125]
 
+		// if (dump) {
+		// 	int freqIndex = channel_num + (scale_num * NUM_SCALENOTES) + filter_num;
+		// 	std::cout << "p1 " << (int)channel_num << " " << freqIndex << std::endl;
+		// } 
+
 		// FREQ: c1 = 2 * pi * freq / samplerate
-		c1 = *(c_hiq[channel_num] + (scale_num * 21) + filter_num);
+		c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
 		c1 *= tuning->freq_nudge[channel_num] * tuning->freq_shift[channel_num];
 		if (c1 > 1.30899581f) {
 			c1 = 1.30899581f; //hard limit at 20k
@@ -322,8 +346,13 @@ void Filter::filter_twopass(void) {
 			filter_num = rotation->motion_fadeto_note[channel_num];
 			scale_num  = rotation->motion_fadeto_scale[channel_num];
 
+			// if (dump) {
+			// 	int freqIndex = channel_num + (scale_num * NUM_SCALENOTES) + filter_num;
+			// 	std::cout << "p2 " << (int)channel_num << " " << freqIndex << std::endl;
+			// } 
+
 			//FREQ: c1 = 2 * pi * freq / samplerate
-			c1 = *(c_hiq[channel_num] + (scale_num * 21) + filter_num);
+			c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
 			c1 *= tuning->freq_nudge[channel_num];
 			c1 *= tuning->freq_shift[channel_num];
 			if (c1 > 1.30899581f) {
@@ -413,7 +442,7 @@ void Filter::filter_onepass(void) {
 			c0 = 1.0f - exp_4096[(uint32_t)(q->qval[channel_num] / 1.4f) + 200] / 10.0; //exp[200...3125]
 
 			// FREQ: c1 = 2 * pi * freq / samplerate
-			c1 = *(c_hiq[channel_num] + (scale_num * 21) + filter_num);
+			c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
 			c1 *= tuning->freq_nudge[channel_num];
 			c1 *= tuning->freq_shift[channel_num];
 			if (c1 > 1.30899581f) {
@@ -626,8 +655,9 @@ void Filter::process_audio_block(int32_t *src, int32_t *dst) {
 	
 	audio_merge(NUM_SAMPLES, filtered_buffer, filtered_bufferR, dst); //1.5us
 
-	// Processed filter
 	filter_type_changed = false;
+	user_scale_changed = false;
+
 }
 
 void Filter::audio_split(uint16_t size, int32_t *src, int32_t *ldst, int32_t *rdst) {
@@ -659,8 +689,8 @@ void Filter::audio_merge(uint16_t size, int32_t *lsrc, int32_t *rsrc, int32_t *d
 
 void Filter::set_default_user_scalebank(void) {
 	for (int j = 0; j < NUM_SCALES; j++) {
-		for (int i = 0; i < NUM_FILTS + 1; i++) {
-			user_scalebank[i + j * 21] = DEFAULT_user_scalebank[i];
+		for (int i = 0; i < NUM_SCALENOTES; i++) {
+			user_scale_bank[i + j * NUM_SCALENOTES] = default_user_scalebank[i];
 		}
 	}
 }
