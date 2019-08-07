@@ -215,13 +215,56 @@ struct PrismReadoutParam : app::ParamWidget {
 
 };
 
-struct SmallReadout : PrismReadoutParam {
+struct FloatReadout : PrismReadoutParam {
 
-	SmallReadout() {
+	FloatReadout() {
 		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismReadout.svg")));
 	}
 
+	void draw(const DrawArgs &ctx) override {
+
+		ParamWidget::draw(ctx);
+
+		if (paramQuantity) {
+
+			Vec pos = Vec(5, 15);
+
+			nvgFontSize(ctx.vg, 17.0f);
+			nvgFontFaceId(ctx.vg, font->handle);
+
+			char text[128];
+			snprintf(text, sizeof(text), "%.3f", paramQuantity->getValue());
+			nvgText(ctx.vg, pos.x, pos.y, text, NULL);
+		}
+	}
+
 };
+
+struct IntegerReadout : PrismReadoutParam {
+
+	IntegerReadout() {
+		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismReadout.svg")));
+	}
+
+	void draw(const DrawArgs &ctx) override {
+
+		ParamWidget::draw(ctx);
+
+		if (paramQuantity) {
+
+			Vec pos = Vec(5, 15);
+
+			nvgFontSize(ctx.vg, 17.0f);
+			nvgFontFaceId(ctx.vg, font->handle);
+
+			char text[128];
+			snprintf(text, sizeof(text), "%d", (int)paramQuantity->getValue());
+			nvgText(ctx.vg, pos.x, pos.y, text, NULL);
+		}
+	}
+	
+};
+
 
 } // namespace gui
 
