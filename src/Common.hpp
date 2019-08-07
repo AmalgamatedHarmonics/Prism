@@ -140,28 +140,88 @@ struct PrismLEDIndicator : LEDSlider {
 
 struct PrismReadoutParam : app::ParamWidget {
 
+	widget::FramebufferWidget *fb;
+	widget::SvgWidget *sw;
 	std::shared_ptr<Font> font;
 
 	PrismReadoutParam() {
+		fb = new widget::FramebufferWidget;
+		addChild(fb);
+
+		sw = new widget::SvgWidget;
+		fb->addChild(sw);
+
 		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/BarlowCondensed-Bold.ttf"));
+	}
+
+	void setSvg(std::shared_ptr<Svg> svg) {
+		sw->setSvg(svg);
+		fb->box.size = sw->box.size;
+		box.size = sw->box.size;
+	}
+
+	void onChange(const event::Change &e) override {
+		if (paramQuantity) {
+			fb->dirty = true;
+		}
+		ParamWidget::onChange(e);
+	}
+
+	void onHover(const event::Hover &e) override {
+		math::Vec c = box.size.div(2);
+		float dist = e.pos.minus(c).norm();
+		if (dist <= c.x) {
+			ParamWidget::onHover(e);
+		}
+	}
+
+	void onButton(const event::Button &e) override {
+		math::Vec c = box.size.div(2);
+		float dist = e.pos.minus(c).norm();
+		if (dist <= c.x) {
+			ParamWidget::onButton(e);
+		}
+	}
+
+	void reset() override {
+		if (paramQuantity && paramQuantity->isBounded()) {
+			paramQuantity->reset();
+		}
+	}
+
+	void randomize() override {
+		if (paramQuantity && paramQuantity->isBounded()) {
+			float value = math::rescale(random::uniform(), 0.f, 1.f, paramQuantity->getMinValue(), paramQuantity->getMaxValue());
+			paramQuantity->setValue(value);
+		}
 	}
 
 	void draw(const DrawArgs &ctx) override {
 
-		std::cout << "draw" << std::endl;
+		ParamWidget::draw(ctx);
 
-		nvgFontSize(ctx.vg, 17.0f);
-		nvgFontFaceId(ctx.vg, font->handle);
+		if (paramQuantity) {
 
-		char text[128];
+			Vec pos = Vec(5, 15);
 
-		snprintf(text, sizeof(text), "%f", paramQuantity->getValue());
-		nvgText(ctx.vg, 0, box.pos.y, text, NULL);
+			nvgFontSize(ctx.vg, 17.0f);
+			nvgFontFaceId(ctx.vg, font->handle);
 
+			char text[128];
+			snprintf(text, sizeof(text), "%.3f", paramQuantity->getValue());
+			nvgText(ctx.vg, pos.x, pos.y, text, NULL);
+		}
 	}
 
 };
 
+struct SmallReadout : PrismReadoutParam {
+
+	SmallReadout() {
+		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismReadout.svg")));
+	}
+
+};
 
 } // namespace gui
 
