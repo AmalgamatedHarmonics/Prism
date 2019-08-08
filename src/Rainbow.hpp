@@ -196,7 +196,7 @@ struct Filter {
    	// Filter parameters
 	float qval_b[NUM_CHANNELS]   = {0, 0, 0, 0, 0, 0};	
 	float qval_a[NUM_CHANNELS]   = {0, 0, 0, 0, 0, 0};	
-	float qc[NUM_CHANNELS]   	= {0, 0, 0, 0, 0, 0};
+	float qc[NUM_CHANNELS]   	 = {0, 0, 0, 0, 0, 0};
 
 	uint8_t old_scale_bank[NUM_CHANNELS] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
@@ -214,7 +214,6 @@ struct Filter {
     bool filter_type_changed = false;
 
     float user_scale_bank[231];
-    bool user_scale_changed = true;
 
     void configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Q *_q, Tuning *_tuning, Levels *_levels);
 
@@ -239,14 +238,14 @@ struct Filter {
 
 struct IO {
 
-    uint16_t MORPH_ADC;
+    uint16_t    MORPH_ADC;
 
 	int16_t     GLOBAL_Q_LEVEL;
 	int16_t     GLOBAL_Q_CONTROL;
-	int16_t     CHANNEL_Q_LEVEL[6];
-	int16_t     CHANNEL_Q_CONTROL[6];
+	int16_t     CHANNEL_Q_LEVEL[NUM_CHANNELS];
+	int16_t     CHANNEL_Q_CONTROL[NUM_CHANNELS];
 
-    float   LEVEL[6];
+    float   LEVEL[NUM_CHANNELS];
 
     uint16_t FREQNUDGE1_ADC;
     uint16_t FREQNUDGE6_ADC;
@@ -267,9 +266,9 @@ struct IO {
     GlideSetting            GLIDE_SWITCH;
     EnvelopeMode            ENV_SWITCH;
 
-    bool                CHANNEL_Q_ON[6];
-    bool                LOCK_ON[6];
-    int8_t              TRANS_DIAL[6];
+    bool                CHANNEL_Q_ON[NUM_CHANNELS];
+    bool                LOCK_ON[NUM_CHANNELS];
+    int8_t              TRANS_DIAL[NUM_CHANNELS];
 
     // CV Rotate
     bool ROTUP_TRIGGER;
@@ -290,21 +289,19 @@ struct IO {
     bool        USER_SCALE_CHANGED = false;
 
     //FREQ BLOCKS
-    std::bitset<20> FREQ_BLOCK;
-
-    // Audio
-    int32_t     *in;
+    std::bitset<NUM_FILTS> FREQ_BLOCK;
 
     // OUTPUTS
     float env_out[NUM_CHANNELS];
     float voct_out[NUM_CHANNELS];
+    float OUTLEVEL[NUM_SCALES];
 
     // LEDS
     bool    CLIP_ODD;
     bool    CLIP_EVEN;
 
-   	float ring[20][3];
-   	float scale[11][3];
+   	float ring[NUM_FILTS][3];
+   	float scale[NUM_SCALES][3];
 
     float envelope_leds[NUM_CHANNELS][3];
     float q_leds[NUM_CHANNELS][3];
@@ -312,22 +309,14 @@ struct IO {
 
     float channelLevel[NUM_CHANNELS]; // 0.0 - 1+, 1 = Clipping
 
-    bool    FORCE_RING_UPDATE;
+    bool FORCE_RING_UPDATE = true;
  
+     // Audio
+    int32_t     *in;
     int32_t     *out;
 
     float DEBUG[16];
 
-    float OUTLEVEL[6];
-
-    IO(void) {
-        FORCE_RING_UPDATE = true; // TODO force update first time through
-		for (int j = 0; j < NUM_SCALES; j++) {
-			for (int i = 0; i < NUM_SCALENOTES; i++) {
-				USER_SCALE[i + j * NUM_SCALENOTES] = default_user_scalebank[i];
-			}
-		}
-    }
 };
 
 struct LEDRing {
@@ -348,7 +337,7 @@ struct LEDRing {
     uint8_t flash_ctr = 0;
 	uint8_t elacs_ctr[NUM_SCALES] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     
-    float channel_led_colors[6][3] = {
+    float channel_led_colors[NUM_CHANNELS][3] = {
         {255.0f/255.0f,     100.0f/255.0f,  100.0f/255.0f}, // Red
         {255.0f/255.0f,     255.0f/255.0f,  100.0f/255.0f}, // Yellow
         {100.0f/255.0f,     255.0f/255.0f,  100.0f/255.0f}, // Green
@@ -507,12 +496,12 @@ struct Q {
     float       global_lpf;
 	float       qlockpot_lpf[NUM_CHANNELS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
-	uint32_t q_update_ctr = UINT32_MAX; // Initialise to always fire on first pass 
-   	uint32_t Q_UPDATE_RATE = 15; 
+	uint32_t q_update_ctr       = UINT32_MAX; // Initialise to always fire on first pass 
+   	uint32_t Q_UPDATE_RATE      = 15; 
 
-    uint32_t QPOT_MIN_CHANGE = 100;
-    float QGLOBAL_LPF = 0.95f;
-    float QCHANNEL_LPF = 0.95f;
+    uint32_t QPOT_MIN_CHANGE    = 100;
+    float QGLOBAL_LPF           = 0.95f;
+    float QCHANNEL_LPF          = 0.95f;
 
     void configure(IO *_io);
     void update(void);
@@ -525,7 +514,7 @@ struct Tuning {
     IO *            io;
 
     //FREQ NUDGE/LOCK JACKS
-    float freq_nudge[NUM_CHANNELS] = {1.0, 1.0};
+    float freq_nudge[NUM_CHANNELS] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     float coarse_adj_led[NUM_CHANNELS];
     float coarse_adj[NUM_CHANNELS] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     float freq_shift[NUM_CHANNELS];

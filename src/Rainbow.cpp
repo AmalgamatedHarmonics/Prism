@@ -359,6 +359,9 @@ struct Rainbow : core::PrismModule {
 		rightExpander.producerMessage = pMessage;
 		rightExpander.consumerMessage = cMessage;
 
+		pMessage->updated = false;
+		cMessage->updated = false;
+
 	}
 
 	void onReset() override {

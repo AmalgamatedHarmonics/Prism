@@ -62,9 +62,8 @@ void Filter::process_user_scale_change() {
 	if (io->USER_SCALE_CHANGED) {
 		for (int i = 0; i < NUM_BANKNOTES; i++) {
 			user_scale_bank[i] = io->USER_SCALE[i];
-		}
-		io->USER_SCALE_CHANGED = false;
-		user_scale_changed = true;
+            // std::cout << "Load from scale " << i << " " << user_scale_bank[i] << std::endl;
+ 		}
 	}
 }
 
@@ -89,7 +88,7 @@ void Filter::process_scale_bank(void) {
             scale[i] = NUM_SCALES - 1;
         }
 
-		if (scale_bank[i] != old_scale_bank[i] || filter_type_changed || user_scale_changed) {
+		if (scale_bank[i] != old_scale_bank[i] || filter_type_changed || io->USER_SCALE_CHANGED) {
 
 			old_scale_bank[i] = scale_bank[i];
 
@@ -279,8 +278,9 @@ void Filter::filter_twopass(void) {
 		c0   = 1.0f - exp_4096[(uint32_t)(qval_b[channel_num] / 1.4f) + 200] / 10.0f; //exp[200...3125]
 
 		// if (dump) {
-		// 	int freqIndex = channel_num + (scale_num * NUM_SCALENOTES) + filter_num;
-		// 	std::cout << "p1 " << (int)channel_num << " " << freqIndex << std::endl;
+		// 	for (int i = 0; i < NUM_BANKNOTES; i++) {
+		// 		std::cout << "Current " << i << " " << user_scale_bank[i] << std::endl;
+		// 	}
 		// } 
 
 		// FREQ: c1 = 2 * pi * freq / samplerate
@@ -656,7 +656,7 @@ void Filter::process_audio_block(int32_t *src, int32_t *dst) {
 	audio_merge(NUM_SAMPLES, filtered_buffer, filtered_bufferR, dst); //1.5us
 
 	filter_type_changed = false;
-	user_scale_changed = false;
+	io->USER_SCALE_CHANGED = false;
 
 }
 
@@ -690,7 +690,9 @@ void Filter::audio_merge(uint16_t size, int32_t *lsrc, int32_t *rsrc, int32_t *d
 void Filter::set_default_user_scalebank(void) {
 	for (int j = 0; j < NUM_SCALES; j++) {
 		for (int i = 0; i < NUM_SCALENOTES; i++) {
-			user_scale_bank[i + j * NUM_SCALENOTES] = default_user_scalebank[i];
+			int idx = i + j * NUM_SCALENOTES;
+			user_scale_bank[idx] = default_user_scalebank[i];
+            std::cout << "Load from default " << idx << " " << user_scale_bank[idx] << std::endl;
 		}
 	}
 }

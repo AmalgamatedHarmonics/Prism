@@ -78,8 +78,6 @@ struct RainbowExpander : core::PrismModule {
 	int currNote;
 	int lastScale;
 
-	int exUpdates = 0;
-	bool updated = false;
 	float Ctof = 96000.0f / (2.0f * core::PI);
 	float ftoC = (2.0f * core::PI) / 96000.0f;
 
@@ -178,11 +176,6 @@ struct RainbowExpander : core::PrismModule {
 
 void RainbowExpander::process(const ProcessArgs &args) {
 
-	updated = false;
-	if (loadTrigger.process(params[LOAD_PARAM].getValue())) {
-		updated = true;
-	} 
-
 	currScale = params[SCALE_PARAM].getValue();
 	currNote = params[NOTE_PARAM].getValue();
 
@@ -224,12 +217,11 @@ void RainbowExpander::process(const ProcessArgs &args) {
 
 	} 
 
-
 	PrismModule::step();
 
 	if (leftExpander.module && leftExpander.module->model == modelRainbow) {
 		RainbowExpanderMessage *pM = (RainbowExpanderMessage*)leftExpander.module->rightExpander.producerMessage;
-		if (updated) {
+		if (loadTrigger.process(params[LOAD_PARAM].getValue())) {
 			for (int i = 0; i < NUM_BANKNOTES; i++) {
 				pM->coeffs[i] = currFreqs[i] * ftoC;
 				currState[i] = LOADED;

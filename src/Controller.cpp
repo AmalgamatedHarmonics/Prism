@@ -171,6 +171,7 @@ void Controller::load_from_state(void) {
 
 		for (int i = 0; i < NUM_BANKNOTES; i++) {
 			filter->user_scale_bank[i] = state->userscale[i];
+            // std::cout << "Load from state " << i << " " << filter->user_scale_bank[i] << std::endl;
 		}
 
 		rotation->motion_notejump 	= 0;
