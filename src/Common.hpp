@@ -218,7 +218,7 @@ struct PrismReadoutParam : app::ParamWidget {
 struct FloatReadout : PrismReadoutParam {
 
 	FloatReadout() {
-		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismReadout.svg")));
+		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismFloatReadout.svg")));
 	}
 
 	void draw(const DrawArgs &ctx) override {
@@ -243,7 +243,7 @@ struct FloatReadout : PrismReadoutParam {
 struct IntegerReadout : PrismReadoutParam {
 
 	IntegerReadout() {
-		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismReadout.svg")));
+		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismIntegerReadout.svg")));
 	}
 
 	void draw(const DrawArgs &ctx) override {
