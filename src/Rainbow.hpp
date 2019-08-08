@@ -588,6 +588,7 @@ struct State {
     uint8_t note[NUM_CHANNELS];
     uint8_t scale[NUM_CHANNELS];
     uint8_t scale_bank[NUM_CHANNELS];
+    float userscale[NUM_BANKNOTES];
 
 	FilterTypes filter_type;
 	FilterModes filter_mode;

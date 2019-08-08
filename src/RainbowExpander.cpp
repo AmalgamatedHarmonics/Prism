@@ -139,6 +139,37 @@ struct RainbowExpander : core::PrismModule {
 	void onReset() override {
 	}
 
+	json_t *dataToJson() override {
+
+        json_t *rootJ = json_object();
+
+		json_t *userscale_array      	= json_array();
+		for (int i = 0; i < NUM_BANKNOTES; i++) {
+			json_t *noteJ   		= json_real(currFreqs[i]);
+			json_array_append_new(userscale_array,   	noteJ);
+		}
+		json_object_set_new(rootJ, "userscale",	userscale_array);
+
+        return rootJ;
+    }
+
+	void dataFromJson(json_t *rootJ) override {
+
+		// userscale
+		json_t *uscale_array = json_object_get(rootJ, "userscale");
+		if (uscale_array) {
+			for (int i = 0; i < NUM_BANKNOTES; i++) {
+				json_t *noteJ = json_array_get(uscale_array, i);
+				if (noteJ) {
+					currFreqs[i] = json_real_value(noteJ);
+					currState[i] = FRESH;
+				}
+			}
+		}
+
+	}
+
+
 	void process(const ProcessArgs &args) override;
 
 };

@@ -217,6 +217,13 @@ struct Rainbow : core::PrismModule {
 		json_t *blockJ = json_string(main.io->FREQ_BLOCK.to_string().c_str());
 		json_object_set_new(rootJ, "freqblock", blockJ);
 
+		json_t *userscale_array      	= json_array();
+		for (int i = 0; i < NUM_BANKNOTES; i++) {
+			json_t *noteJ   		= json_real(main.state->userscale[i]);
+			json_array_append_new(userscale_array,   	noteJ);
+		}
+		json_object_set_new(rootJ, "userscale",	userscale_array);
+
         return rootJ;
     }
 
@@ -275,6 +282,16 @@ struct Rainbow : core::PrismModule {
 		json_t *blockJ = json_object_get(rootJ, "freqblock");
 		if (blockJ)
 			main.io->FREQ_BLOCK = std::bitset<20>(json_string_value(blockJ));
+
+		// userscale
+		json_t *uscale_array = json_object_get(rootJ, "userscale");
+		if (uscale_array) {
+			for (int i = 0; i < NUM_BANKNOTES; i++) {
+				json_t *noteJ = json_array_get(uscale_array, i);
+				if (noteJ)
+					main.state->userscale[i] = json_real_value(noteJ);
+			}
+		}
 
 		main.load_from_state();
 

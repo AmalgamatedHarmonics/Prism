@@ -169,6 +169,10 @@ void Controller::load_from_state(void) {
 			rotation->motion_scalecv_overage[i] = 0;
 		}
 
+		for (int i = 0; i < NUM_BANKNOTES; i++) {
+			filter->user_scale_bank[i] = state->userscale[i];
+		}
+
 		rotation->motion_notejump 	= 0;
 		rotation->motion_rotate   	= 0;
 
@@ -187,4 +191,9 @@ void Controller::populate_state(void) {
 			state->scale_bank[i]				= filter->scale_bank[i];
 		}
 	}
+
+	for (int i = 0; i < NUM_BANKNOTES; i++) {
+		state->userscale[i] = filter->user_scale_bank[i]; 
+	}
+
 }
