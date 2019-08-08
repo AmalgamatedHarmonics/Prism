@@ -692,7 +692,7 @@ void Filter::set_default_user_scalebank(void) {
 		for (int i = 0; i < NUM_SCALENOTES; i++) {
 			int idx = i + j * NUM_SCALENOTES;
 			user_scale_bank[idx] = default_user_scalebank[i];
-            std::cout << "Load from default " << idx << " " << user_scale_bank[idx] << std::endl;
+            // std::cout << "Load from default " << idx << " " << user_scale_bank[idx] << std::endl;
 		}
 	}
 }
