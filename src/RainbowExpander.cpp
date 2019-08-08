@@ -53,6 +53,7 @@ struct RainbowExpander : core::PrismModule {
 		SET_FROM_FREQ_PARAM,
 		SET_FROM_ET_PARAM,
 		SET_FROM_JI_PARAM,
+		ROOTA_PARAM,
 		NUM_PARAMS
 	};
 	enum InputIds {
@@ -111,8 +112,9 @@ struct RainbowExpander : core::PrismModule {
 		configParam(FREQ_PARAM, 0, 20000.0f, 440.0f, "Note frequency");
 
 		configParam(OCTAVE_PARAM, 0, 10, 4, "Octave");
+		configParam(ROOTA_PARAM, 400, 500, 440, "Base tuning of A");
 
-		configParam(ET_ROOT_PARAM, 0, 10, 0, "Root note for interval");
+		configParam(ET_ROOT_PARAM, 0, 11, 0, "Root note for interval");
 		configParam(ET_SEMITONE_PARAM, 0, 11, 0, "Interval in Semitones");
 		configParam(CENTS_PARAM, -1200, 1200, 0, "Cents");
 
@@ -184,6 +186,8 @@ void RainbowExpander::process(const ProcessArgs &args) {
 	currScale = params[SCALE_PARAM].getValue();
 	currNote = params[NOTE_PARAM].getValue();
 
+	float rootA = params[ROOTA_PARAM].getValue() / 32.0f;
+
 	if (freqSetTrigger.process(params[SET_FROM_FREQ_PARAM].getValue())) {
 		currFreqs[currNote + currScale * NUM_SCALENOTES] = params[FREQ_PARAM].getValue();
 		currState[currNote + currScale * NUM_SCALENOTES] = EDITED;
@@ -197,7 +201,7 @@ void RainbowExpander::process(const ProcessArgs &args) {
 		float cents = params[CENTS_PARAM].getValue();
 		
 		float root2 = pow(2.0, (root + semi) / 12.0f);
-		float freq = ROOT * octaves[oct] * root2 * pow(2.0f, cents / 1200.0f);
+		float freq = rootA * octaves[oct] * root2 * pow(2.0f, cents / 1200.0f);
 
 		currFreqs[currNote + currScale * NUM_SCALENOTES] = freq;
 		currState[currNote + currScale * NUM_SCALENOTES] = EDITED;
@@ -212,7 +216,7 @@ void RainbowExpander::process(const ProcessArgs &args) {
 		float lower = params[JI_LOWER_PARAM].getValue();
 		float cents = params[CENTS_PARAM].getValue();
 		
-		float freq0 = ROOT * pow(2,root/12.0);		
+		float freq0 = rootA * pow(2,root/12.0);		
 		float freq = freq0 * octaves[oct] * (upper / lower) * pow(2.0f, cents / 1200.0f);
 
 		currFreqs[currNote + currScale * NUM_SCALENOTES] = freq;
@@ -298,6 +302,7 @@ struct RainbowExpanderWidget : ModuleWidget {
 
 		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(35.234, 15.823)), module, RainbowExpander::NOTE_PARAM));
 		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(51.848, 15.823)), module, RainbowExpander::SCALE_PARAM));
+		addParam(createParam<gui::IntegerReadout>(mm2px(Vec(64.563, 12.573)), module, RainbowExpander::ROOTA_PARAM));
 		addParam(createParam<gui::FloatReadout>(mm2px(Vec(30.284, 35.774)), module, RainbowExpander::FREQ_PARAM));
 		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(119.792, 39.024)), module, RainbowExpander::SET_FROM_FREQ_PARAM));
 		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(52.998, 59.132)), module, RainbowExpander::ET_ROOT_PARAM));
