@@ -18,8 +18,14 @@
 			"tags": ["Physical modeling", "VCF"]
 		},
 		{
-			"slug": "RainbowExpander",
-			"name": "RainbowExpander",
+			"slug": "ETRainbowExpander",
+			"name": "ETRainbowExpander",
+			"description": "Expander for Rainbow",
+			"tags": ["Expander"]
+		},
+		{
+			"slug": "JIRainbowExpander",
+			"name": "JIRainbowExpander",
 			"description": "Expander for Rainbow",
 			"tags": ["Expander"]
 		}

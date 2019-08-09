@@ -12,6 +12,7 @@ expander
 - JI 5-limit intervals
 - BP scale (needs new section since we have a tritave 3/1 not octave 2/1)
 - Tooltips
+- Separate ET/JI into new modules
 - Check/Handle BpRe mode
 
 
