@@ -7,13 +7,12 @@ Specific
 - refactor filter code
 
 expander
-- annotated scale with definition
+- annotated scale with definition, including presets
 - refactor scales
-- load factory scale with definition
-- scale number in ui list
 - JI 5-limit intervals
 - BP scale (needs new section since we have a tritave 3/1 not octave 2/1)
 - Tooltips
+- Check/Handle BpRe mode
 
 
 BUG    system_mode.c:  if (ctr==80000){ //User took too long, start over // bug will never timeout

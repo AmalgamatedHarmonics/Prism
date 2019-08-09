@@ -394,15 +394,16 @@ void Rainbow::process(const ProcessArgs &args) {
 	float outMax = 16777215.0f;
 
 	main.io->USER_SCALE_CHANGED = false;
-	if (rightExpander.module && rightExpander.module->model == modelRainbowExpander) {
-
-		RainbowExpanderMessage *cM = (RainbowExpanderMessage*)rightExpander.consumerMessage;
-		if (cM->updated) {
-			for (int i = 0; i < NUM_BANKNOTES; i++) {
-				main.io->USER_SCALE[i] = cM->coeffs[i];
-			}
-			main.io->USER_SCALE_CHANGED = true;
-		} 
+	if (rightExpander.module) {
+		if (rightExpander.module->model == modelRainbowExpander) {
+			RainbowExpanderMessage *cM = (RainbowExpanderMessage*)rightExpander.consumerMessage;
+			if (cM->updated) {
+				for (int i = 0; i < NUM_BANKNOTES; i++) {
+					main.io->USER_SCALE[i] = cM->coeffs[i];
+				}
+				main.io->USER_SCALE_CHANGED = true;
+			} 
+		}
 	} 
 
 	if (rotCWTrigger.process(inputs[ROTCW_INPUT].getVoltage())) {
