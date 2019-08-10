@@ -187,6 +187,14 @@ struct Rainbow : core::PrismModule {
 		json_t *bankJ = json_integer((int) currBank);
 		json_object_set_new(rootJ, "bank", bankJ);
 
+		// qlocks
+		json_t *qlocksJ = json_array();
+		for (int i = 0; i < NUM_CHANNELS; i++) {
+			json_t *qlockJ = json_integer((int) main.io->CHANNEL_Q_ON[i]);
+			json_array_append_new(qlocksJ, qlockJ);
+		}
+		json_object_set_new(rootJ, "qlocks", qlocksJ);
+
 		// locks
 		json_t *locksJ = json_array();
 		for (int i = 0; i < NUM_CHANNELS; i++) {
@@ -233,6 +241,16 @@ struct Rainbow : core::PrismModule {
 		json_t *bankJ = json_object_get(rootJ, "bank");
 		if (bankJ)
 			currBank = json_integer_value(bankJ);
+
+		// qlocks
+		json_t *qlocksJ = json_object_get(rootJ, "qlocks");
+		if (qlocksJ) {
+			for (int i = 0; i < NUM_CHANNELS; i++) {
+				json_t *qlockJ = json_array_get(qlocksJ, i);
+				if (qlockJ)
+					main.io->CHANNEL_Q_ON[i] = !!json_integer_value(qlockJ);
+			}
+		}
 
 		// locks
 		json_t *locksJ = json_object_get(rootJ, "locks");
