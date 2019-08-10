@@ -62,12 +62,6 @@ enum Mod246Setting {
 	Mod_246
 };
 
-enum SlewSetting {
-	SlewOff = 0,
-	SlewMorph,
-	SlewControl
-};
-
 enum ScaleRotationSetting {
 	RotateOff = 0,
 	RotateOn
@@ -270,7 +264,6 @@ struct IO {
     FilterSetting           FILTER_SWITCH;
     Mod135Setting           MOD135_SWITCH;
     Mod246Setting           MOD246_SWITCH;
-    SlewSetting             SLEW_SWITCH;
     ScaleRotationSetting    SCALEROT_SWITCH;
     PrePostSetting          PREPOST_SWITCH;
     GlideSetting            GLIDE_SWITCH;
@@ -376,8 +369,6 @@ struct Inputs {
 
     float SCALECV_LPF = 0.99f;
     uint32_t SPREAD_ADC_HYSTERESIS = 75;
-
-	SlewSetting lastSlewSetting = SlewOff;
 
    	uint16_t old_rotcv_adc = 0;
 	int8_t rot_offset = 0;
