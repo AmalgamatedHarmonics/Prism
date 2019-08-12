@@ -150,16 +150,16 @@ struct Rainbow : core::PrismModule {
 	const float MAX_12BIT = 16777215.0f;
 
 	dsp::SampleRateConverter<1> nInputSrc[6];
-	// dsp::SampleRateConverter<2> twoInputSrc;
-	// dsp::SampleRateConverter<3> threeInputSrc;
-	// dsp::SampleRateConverter<6> sixInputSrc;
+	dsp::SampleRateConverter<2> twoInputSrc;
+	dsp::SampleRateConverter<3> threeInputSrc;
+	dsp::SampleRateConverter<6> sixInputSrc;
 
 	dsp::SampleRateConverter<2> outputSrc;
 
 	dsp::DoubleRingBuffer<dsp::Frame<1>, 256> nInputBuffer[6];
-	// dsp::DoubleRingBuffer<dsp::Frame<2>, 256> twoInputBuffer;
-	// dsp::DoubleRingBuffer<dsp::Frame<3>, 256> threeInputBuffer;
-	// dsp::DoubleRingBuffer<dsp::Frame<6>, 256> sixInputBuffer;
+	dsp::DoubleRingBuffer<dsp::Frame<2>, 256> twoInputBuffer;
+	dsp::DoubleRingBuffer<dsp::Frame<3>, 256> threeInputBuffer;
+	dsp::DoubleRingBuffer<dsp::Frame<6>, 256> sixInputBuffer;
 
 	dsp::DoubleRingBuffer<dsp::Frame<2>, 256> outputBuffer;
 
@@ -305,6 +305,9 @@ struct Rainbow : core::PrismModule {
 	float generateNoise(int noiseSelected);
 	void nChannelProcess(int inputChannels, int noiseSelected, float sampleRate);
 
+	dsp::Frame<1> nInputFrame[6] = {};
+	dsp::Frame<1> nInputFrames[6][NUM_SAMPLES] = {};
+
 	void TwoChannelProcess(int inputChannels, int noiseSelected, float sampleRate);
 	void ThreeChannelProcess(float sampleRate);
 	void SixChannelProcess(float sampleRate);
@@ -418,8 +421,6 @@ void Rainbow::nChannelProcess(int inputChannels, int noiseSelected, float sample
 			chan = 6;
 	}
 
-	dsp::Frame<1> nInputFrame[chan] = {};
-
 	for (int i = 0; i < chan; i++) {
 		if (!nInputBuffer[i].full()) {
 			if (inputChannels == 0) {
@@ -429,16 +430,14 @@ void Rainbow::nChannelProcess(int inputChannels, int noiseSelected, float sample
 			} else {
 				nInputFrame[i].samples[0] = inputs[POLY_IN_INPUT].getVoltage(i) / 5.0f;
 			}
+			nInputBuffer[i].push(nInputFrame[i]);
 		} 
-		nInputBuffer[i].push(nInputFrame[i]);
 	}
 
 	// At this point we have populated 2,3 or 6 buffers
 
 	// Process buffer
 	if (outputBuffer.empty()) {
-
-		dsp::Frame<1> nInputFrames[chan][NUM_SAMPLES] = {};
 
 		for (int i = 0; i < chan; i++) {
 			nInputSrc[i].setRates(sampleRate, 96000);
@@ -485,184 +484,184 @@ void Rainbow::nChannelProcess(int inputChannels, int noiseSelected, float sample
 	}
 }
 
-// void Rainbow::TwoChannelProcess(int inputChannels, int noiseSelected, float sampleRate) {
-// 		// Get input
-// 	dsp::Frame<2> twoInputFrame = {};
-// 	if (!twoInputBuffer.full()) {
-// 		if (inputChannels == 0) {
-// 			float nO;
-// 			float nE;
-// 			switch (noiseSelected) {
-// 				case 0:
-// 					nO = brown.next() * 10.0f - 5.0f;
-// 					nE = brown.next() * 10.0f - 5.0f;
-// 					break;
-// 				case 1:
-// 					nO = pink.next() * 10.0f - 5.0f;
-// 					nE = pink.next() * 10.0f - 5.0f;
-// 					break;
-// 				case 2:
-// 					nO = white.next() * 10.0f - 5.0f;
-// 					nE = white.next() * 10.0f - 5.0f;
-// 					break;
-// 				default:
-// 					nO = pink.next() * 10.0f - 5.0f;
-// 					nE = pink.next() * 10.0f - 5.0f;
-// 			}
-// 			twoInputFrame.samples[0] = nO / 5.0f;
-// 			twoInputFrame.samples[1] = nE / 5.0f;
-// 		} else if (inputChannels == 1) {
-// 			twoInputFrame.samples[0] = inputs[POLY_IN_INPUT].getVoltage(0) / 5.0f;
-// 			twoInputFrame.samples[1] = inputs[POLY_IN_INPUT].getVoltage(0) / 5.0f;
-// 		} else {
-// 			twoInputFrame.samples[0] = inputs[POLY_IN_INPUT].getVoltage(0) / 5.0f;
-// 			twoInputFrame.samples[1] = inputs[POLY_IN_INPUT].getVoltage(1) / 5.0f;
-// 		} 
+void Rainbow::TwoChannelProcess(int inputChannels, int noiseSelected, float sampleRate) {
+		// Get input
+	dsp::Frame<2> twoInputFrame = {};
+	if (!twoInputBuffer.full()) {
+		if (inputChannels == 0) {
+			float nO;
+			float nE;
+			switch (noiseSelected) {
+				case 0:
+					nO = brown.next() * 10.0f - 5.0f;
+					nE = brown.next() * 10.0f - 5.0f;
+					break;
+				case 1:
+					nO = pink.next() * 10.0f - 5.0f;
+					nE = pink.next() * 10.0f - 5.0f;
+					break;
+				case 2:
+					nO = white.next() * 10.0f - 5.0f;
+					nE = white.next() * 10.0f - 5.0f;
+					break;
+				default:
+					nO = pink.next() * 10.0f - 5.0f;
+					nE = pink.next() * 10.0f - 5.0f;
+			}
+			twoInputFrame.samples[0] = nO / 5.0f;
+			twoInputFrame.samples[1] = nE / 5.0f;
+		} else if (inputChannels == 1) {
+			twoInputFrame.samples[0] = inputs[POLY_IN_INPUT].getVoltage(0) / 5.0f;
+			twoInputFrame.samples[1] = inputs[POLY_IN_INPUT].getVoltage(0) / 5.0f;
+		} else {
+			twoInputFrame.samples[0] = inputs[POLY_IN_INPUT].getVoltage(0) / 5.0f;
+			twoInputFrame.samples[1] = inputs[POLY_IN_INPUT].getVoltage(1) / 5.0f;
+		} 
 		
-// 		twoInputBuffer.push(twoInputFrame);		
-// 	}
+		twoInputBuffer.push(twoInputFrame);		
+	}
 
-// 	// Process buffer
-// 	if (outputBuffer.empty()) {
+	// Process buffer
+	if (outputBuffer.empty()) {
 
-// 		{
-// 			twoInputSrc.setRates(sampleRate, 96000);
-// 			dsp::Frame<2> twoInputFrames[NUM_SAMPLES];
-// 			int inLen = twoInputBuffer.size();
-// 			int outLen = NUM_SAMPLES;
-// 			twoInputSrc.process(twoInputBuffer.startData(), &inLen, twoInputFrames, &outLen);
-// 			twoInputBuffer.startIncr(inLen);
+		{
+			twoInputSrc.setRates(sampleRate, 96000);
+			dsp::Frame<2> twoInputFrames[NUM_SAMPLES];
+			int inLen = twoInputBuffer.size();
+			int outLen = NUM_SAMPLES;
+			twoInputSrc.process(twoInputBuffer.startData(), &inLen, twoInputFrames, &outLen);
+			twoInputBuffer.startIncr(inLen);
 
-// 			for (int i = 0; i < NUM_SAMPLES; i++) {
-// 				int32_t odd = (int32_t)clamp(twoInputFrames[i].samples[0] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
-// 				int32_t even = (int32_t)clamp(twoInputFrames[i].samples[1] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
-// 				main.io->in[0][i] = odd;
-// 				main.io->in[1][i] = even;
-// 				main.io->in[2][i] = odd;
-// 				main.io->in[3][i] = even;
-// 				main.io->in[4][i] = odd;
-// 				main.io->in[5][i] = even;
-// 			}
-// 		}
+			for (int i = 0; i < NUM_SAMPLES; i++) {
+				int32_t odd = (int32_t)clamp(twoInputFrames[i].samples[0] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
+				int32_t even = (int32_t)clamp(twoInputFrames[i].samples[1] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
+				main.io->in[0][i] = odd;
+				main.io->in[1][i] = even;
+				main.io->in[2][i] = odd;
+				main.io->in[3][i] = even;
+				main.io->in[4][i] = odd;
+				main.io->in[5][i] = even;
+			}
+		}
 
-// 		main.process_audio();
+		main.process_audio();
 
-// 		// Convert output buffer
-// 		{
-// 			dsp::Frame<2> outputFrames[NUM_SAMPLES];
-// 			for (int i = 0; i < NUM_SAMPLES; i++) {
-// 				outputFrames[i].samples[0] = out[i * 2] / MAX_12BIT;
-// 				outputFrames[i].samples[1] = out[i * 2 + 1] / MAX_12BIT;
-// 			}
+		// Convert output buffer
+		{
+			dsp::Frame<2> outputFrames[NUM_SAMPLES];
+			for (int i = 0; i < NUM_SAMPLES; i++) {
+				outputFrames[i].samples[0] = out[i * 2] / MAX_12BIT;
+				outputFrames[i].samples[1] = out[i * 2 + 1] / MAX_12BIT;
+			}
 
-// 			outputSrc.setRates(96000, sampleRate);
-// 			int inLen = NUM_SAMPLES;
-// 			int outLen = outputBuffer.capacity();
-// 			outputSrc.process(outputFrames, &inLen, outputBuffer.endData(), &outLen);
-// 			outputBuffer.endIncr(outLen);
-// 		}
-// 	}
-// }
+			outputSrc.setRates(96000, sampleRate);
+			int inLen = NUM_SAMPLES;
+			int outLen = outputBuffer.capacity();
+			outputSrc.process(outputFrames, &inLen, outputBuffer.endData(), &outLen);
+			outputBuffer.endIncr(outLen);
+		}
+	}
+}
 
-// void Rainbow::ThreeChannelProcess(float sampleRate) {
-// 		// Get input
-// 	dsp::Frame<3> threeInputFrame = {};
-// 	if (!threeInputBuffer.full()) {
-// 		for (int chan = 0; chan < 3; chan++) {
-// 			threeInputFrame.samples[chan] = inputs[POLY_IN_INPUT].getVoltage(chan) / 5.0f;
-// 		}
-// 		threeInputBuffer.push(threeInputFrame);		
-// 	}
+void Rainbow::ThreeChannelProcess(float sampleRate) {
+		// Get input
+	dsp::Frame<3> threeInputFrame = {};
+	if (!threeInputBuffer.full()) {
+		for (int chan = 0; chan < 3; chan++) {
+			threeInputFrame.samples[chan] = inputs[POLY_IN_INPUT].getVoltage(chan) / 5.0f;
+		}
+		threeInputBuffer.push(threeInputFrame);		
+	}
 
-// 	// Process buffer
-// 	if (outputBuffer.empty()) {
+	// Process buffer
+	if (outputBuffer.empty()) {
 
-// 		{
-// 			threeInputSrc.setRates(sampleRate, 96000);
-// 			dsp::Frame<3> threeInputFrames[NUM_SAMPLES];
-// 			int inLen = threeInputBuffer.size();
-// 			int outLen = NUM_SAMPLES;
-// 			threeInputSrc.process(threeInputBuffer.startData(), &inLen, threeInputFrames, &outLen);
-// 			threeInputBuffer.startIncr(inLen);
+		{
+			threeInputSrc.setRates(sampleRate, 96000);
+			dsp::Frame<3> threeInputFrames[NUM_SAMPLES];
+			int inLen = threeInputBuffer.size();
+			int outLen = NUM_SAMPLES;
+			threeInputSrc.process(threeInputBuffer.startData(), &inLen, threeInputFrames, &outLen);
+			threeInputBuffer.startIncr(inLen);
 
-// 			for (int i = 0; i < NUM_SAMPLES; i++) {
-// 				int32_t i0 = (int32_t)clamp(threeInputFrames[i].samples[0] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
-// 				int32_t i1 = (int32_t)clamp(threeInputFrames[i].samples[1] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
-// 				int32_t i2 = (int32_t)clamp(threeInputFrames[i].samples[2] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
-// 				main.io->in[0][i] = i0;
-// 				main.io->in[1][i] = i0;
-// 				main.io->in[2][i] = i1;
-// 				main.io->in[3][i] = i1;
-// 				main.io->in[4][i] = i2;
-// 				main.io->in[5][i] = i2;
-// 			}
-// 		}
+			for (int i = 0; i < NUM_SAMPLES; i++) {
+				int32_t i0 = (int32_t)clamp(threeInputFrames[i].samples[0] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
+				int32_t i1 = (int32_t)clamp(threeInputFrames[i].samples[1] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
+				int32_t i2 = (int32_t)clamp(threeInputFrames[i].samples[2] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
+				main.io->in[0][i] = i0;
+				main.io->in[1][i] = i0;
+				main.io->in[2][i] = i1;
+				main.io->in[3][i] = i1;
+				main.io->in[4][i] = i2;
+				main.io->in[5][i] = i2;
+			}
+		}
 
-// 		main.process_audio();
+		main.process_audio();
 
-// 		// Convert output buffer
-// 		{
-// 			dsp::Frame<2> outputFrames[NUM_SAMPLES];
-// 			for (int i = 0; i < NUM_SAMPLES; i++) {
-// 				outputFrames[i].samples[0] = out[i * 2] / MAX_12BIT;
-// 				outputFrames[i].samples[1] = out[i * 2 + 1] / MAX_12BIT;
-// 			}
+		// Convert output buffer
+		{
+			dsp::Frame<2> outputFrames[NUM_SAMPLES];
+			for (int i = 0; i < NUM_SAMPLES; i++) {
+				outputFrames[i].samples[0] = out[i * 2] / MAX_12BIT;
+				outputFrames[i].samples[1] = out[i * 2 + 1] / MAX_12BIT;
+			}
 
-// 			outputSrc.setRates(96000, sampleRate);
-// 			int inLen = NUM_SAMPLES;
-// 			int outLen = outputBuffer.capacity();
-// 			outputSrc.process(outputFrames, &inLen, outputBuffer.endData(), &outLen);
-// 			outputBuffer.endIncr(outLen);
-// 		}
-// 	}
-// }
+			outputSrc.setRates(96000, sampleRate);
+			int inLen = NUM_SAMPLES;
+			int outLen = outputBuffer.capacity();
+			outputSrc.process(outputFrames, &inLen, outputBuffer.endData(), &outLen);
+			outputBuffer.endIncr(outLen);
+		}
+	}
+}
 
-// void Rainbow::SixChannelProcess(float sampleRate) {
-// 	// Get input
-// 	dsp::Frame<NUM_CHANNELS> sixInputFrame = {};
-// 	if (!sixInputBuffer.full()) {
-// 		for (int chan = 0; chan < NUM_CHANNELS; chan++) {
-// 			sixInputFrame.samples[chan] = inputs[POLY_IN_INPUT].getVoltage(chan) / 5.0f;
-// 		}
-// 		sixInputBuffer.push(sixInputFrame);		
-// 	}
+void Rainbow::SixChannelProcess(float sampleRate) {
+	// Get input
+	dsp::Frame<NUM_CHANNELS> sixInputFrame = {};
+	if (!sixInputBuffer.full()) {
+		for (int chan = 0; chan < NUM_CHANNELS; chan++) {
+			sixInputFrame.samples[chan] = inputs[POLY_IN_INPUT].getVoltage(chan) / 5.0f;
+		}
+		sixInputBuffer.push(sixInputFrame);		
+	}
 
-// 	// Process buffer
-// 	if (outputBuffer.empty()) {
+	// Process buffer
+	if (outputBuffer.empty()) {
 
-// 		{
-// 			sixInputSrc.setRates(sampleRate, 96000);
-// 			dsp::Frame<NUM_CHANNELS> sixInputFrames[NUM_SAMPLES];
-// 			int inLen = sixInputBuffer.size();
-// 			int outLen = NUM_SAMPLES;
-// 			sixInputSrc.process(sixInputBuffer.startData(), &inLen, sixInputFrames, &outLen);
-// 			sixInputBuffer.startIncr(inLen);
+		{
+			sixInputSrc.setRates(sampleRate, 96000);
+			dsp::Frame<NUM_CHANNELS> sixInputFrames[NUM_SAMPLES];
+			int inLen = sixInputBuffer.size();
+			int outLen = NUM_SAMPLES;
+			sixInputSrc.process(sixInputBuffer.startData(), &inLen, sixInputFrames, &outLen);
+			sixInputBuffer.startIncr(inLen);
 
-// 			for (int i = 0; i < NUM_CHANNELS; i++) {
-// 				for (int j = 0; j < NUM_SAMPLES; j++) {
-// 					main.io->in[i][j] = (int32_t)clamp(sixInputFrames[j].samples[i] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
-// 				}
-// 			}
-// 		}
+			for (int i = 0; i < NUM_CHANNELS; i++) {
+				for (int j = 0; j < NUM_SAMPLES; j++) {
+					main.io->in[i][j] = (int32_t)clamp(sixInputFrames[j].samples[i] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
+				}
+			}
+		}
 
-// 		main.process_audio();
+		main.process_audio();
 
-// 		// Convert output buffer
-// 		{
-// 			dsp::Frame<2> outputFrames[NUM_SAMPLES];
-// 			for (int i = 0; i < NUM_SAMPLES; i++) {
-// 				outputFrames[i].samples[0] = out[i * 2] / MAX_12BIT;
-// 				outputFrames[i].samples[1] = out[i * 2 + 1] / MAX_12BIT;
-// 			}
+		// Convert output buffer
+		{
+			dsp::Frame<2> outputFrames[NUM_SAMPLES];
+			for (int i = 0; i < NUM_SAMPLES; i++) {
+				outputFrames[i].samples[0] = out[i * 2] / MAX_12BIT;
+				outputFrames[i].samples[1] = out[i * 2 + 1] / MAX_12BIT;
+			}
 
-// 			outputSrc.setRates(96000, sampleRate);
-// 			int inLen = NUM_SAMPLES;
-// 			int outLen = outputBuffer.capacity();
-// 			outputSrc.process(outputFrames, &inLen, outputBuffer.endData(), &outLen);
-// 			outputBuffer.endIncr(outLen);
-// 		}
-// 	}
-// }
+			outputSrc.setRates(96000, sampleRate);
+			int inLen = NUM_SAMPLES;
+			int outLen = outputBuffer.capacity();
+			outputSrc.process(outputFrames, &inLen, outputBuffer.endData(), &outLen);
+			outputBuffer.endIncr(outLen);
+		}
+	}
+}
 
 void Rainbow::process(const ProcessArgs &args) {
 	
@@ -806,7 +805,23 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.prepare();
 
 	int inputChannels = inputs[POLY_IN_INPUT].getChannels();
-	nChannelProcess(inputChannels, noiseSelected, args.sampleRate);
+
+	if (main.io->SCALEROT_SWITCH == RotateOn) {
+		nChannelProcess(inputChannels, noiseSelected, args.sampleRate);
+	} else {
+		switch(inputChannels) {
+			case 0:
+			case 1:
+			case 2:
+				TwoChannelProcess(inputChannels, noiseSelected, args.sampleRate);
+				break;
+			case 3:
+				ThreeChannelProcess(args.sampleRate);
+				break;
+			default:
+				SixChannelProcess(args.sampleRate);
+		}
+	}
 
 	// Set output
 	dsp::Frame<2> outputFrame = {};
