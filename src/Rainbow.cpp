@@ -481,18 +481,12 @@ void Rainbow::ThreeChannelProcess(float sampleRate) {
 				int32_t i0 = (int32_t)clamp(threeInputFrames[i].samples[0] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
 				int32_t i1 = (int32_t)clamp(threeInputFrames[i].samples[1] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
 				int32_t i2 = (int32_t)clamp(threeInputFrames[i].samples[2] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
-				main.io->in[0][i] = i0; // 1 
-				main.io->in[1][i] = i1; // 2
-				main.io->in[2][i] = i0; // 3
-				main.io->in[3][i] = i2; // 4 
-				main.io->in[4][i] = i1; // 5
-				main.io->in[5][i] = i2; // 6
-				// main.io->in[0][i] = i0;
-				// main.io->in[1][i] = i0;
-				// main.io->in[2][i] = i1;
-				// main.io->in[3][i] = i1;
-				// main.io->in[4][i] = i2;
-				// main.io->in[5][i] = i2;
+				main.io->in[0][i] = i0;
+				main.io->in[1][i] = i0;
+				main.io->in[2][i] = i1;
+				main.io->in[3][i] = i1;
+				main.io->in[4][i] = i2;
+				main.io->in[5][i] = i2;
 			}
 		}
 
