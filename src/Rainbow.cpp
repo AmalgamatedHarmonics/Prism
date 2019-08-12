@@ -306,8 +306,7 @@ struct Rainbow : core::PrismModule {
 		configParam(SPREAD_PARAM, 0, 4095, 0, "Spread");
 		configParam(MORPH_PARAM, 0, 4095, 0, "Morph");
 
-		configParam(SLEW_PARAM, 0, 4095, 2048, "Channel slew speed"); // 50% slew
-		configParam(SLEWON_PARAM, 0, 2, 0, "Channel slew: on/from morph/from pot"); // off/morph/control
+		configParam(SLEW_PARAM, 0, 4095, 0, "Channel slew speed"); // 0% slew
 		configParam(FILTER_PARAM, 0, 2, 0, "Filter type: 2-pass, 1-pass, bpre"); // two/one/bpre
 		configParam(VOCTGLIDE_PARAM, 0, 1, 0, "V/Oct glide on/off"); // on/off
 		configParam(SCALEROT_PARAM, 0, 1, 0, "Scale rotation on/off"); // on/off
@@ -629,7 +628,6 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.io->FREQCV6_ADC 		= (uint16_t)clamp(inputs[FREQCV6_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
 
 	main.io->SLEW_ADC			= (uint16_t)params[SLEW_PARAM].getValue();							
-	main.io->SLEW_SWITCH 		= (SlewSetting)params[SLEWON_PARAM].getValue();
 
 	main.io->FILTER_SWITCH 		= (FilterSetting)params[FILTER_PARAM].getValue();
 	main.io->SCALEROT_SWITCH 	= (ScaleRotationSetting)params[SCALEROT_PARAM].getValue();
@@ -848,7 +846,6 @@ struct RainbowWidget : ModuleWidget {
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(150.348f, 15.686f)), module, Rainbow::LOCKON_PARAM+3));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(161.494f, 15.686f)), module, Rainbow::LOCKON_PARAM+4));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(172.64f, 15.686f)), module, Rainbow::LOCKON_PARAM+5));
-		addParam(createParam<gui::PrismSSwitch3>(mm2px(Vec(10.261f, 9.144f)), module, Rainbow::SLEWON_PARAM));
 		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(25.752f, 16.594f)), module, Rainbow::SLEW_PARAM));
 		addParam(createParam<gui::PrismSSwitch3>(mm2px(Vec(49.765f, 9.144f)), module, Rainbow::NOISE_PARAM));
 		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(69.517f, 9.144f)), module, Rainbow::SCALEROT_PARAM));
