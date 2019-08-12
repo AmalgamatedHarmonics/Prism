@@ -424,7 +424,7 @@ void Rainbow::nChannelProcess(int inputChannels, int noiseSelected, float sample
 	for (int i = 0; i < chan; i++) {
 		if (!nInputBuffer[i].full()) {
 			if (inputChannels == 0) {
-				nInputFrame[i].samples[0] = generateNoise(noiseSelected);
+				nInputFrame[i].samples[0] = generateNoise(noiseSelected) / 5.0f;
 			} else if (inputChannels == 1) {
 				nInputFrame[i].samples[0] = inputs[POLY_IN_INPUT].getVoltage(0) / 5.0f;
 			} else {
