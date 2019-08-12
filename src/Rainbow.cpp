@@ -699,11 +699,6 @@ void Rainbow::process(const ProcessArgs &args) {
 
 	int inputChannels = inputs[POLY_IN_INPUT].getChannels();
 
-	// 0 inputs -> 2 x noise on O/E channels
-	// 1 inputs -> 1 x input on all channels
-	// 2 inputs -> 2 x input on O/E channels
-	// 3+ input -> 1 x inputs per channel
-
 	switch(inputChannels) {
 		case 0:
 		case 1:

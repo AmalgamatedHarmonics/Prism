@@ -235,6 +235,8 @@ void Filter::filter_twopass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
 
 	int32_t *ptmp_i32;
 
+	io->INPUT_CLIP = false;
+
 	for (channel_num = 0; channel_num < NUM_CHANNELS; channel_num++) {
 		filter_num = note[channel_num];
 		scale_num  = scale[channel_num];
@@ -292,9 +294,7 @@ void Filter::filter_twopass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
 
 			if (*ptmp_i32 > INPUT_LED_CLIP_LEVEL) {
 				io->INPUT_CLIP = true;
-			} else {
-				io->INPUT_CLIP = false;
-			}
+			} 
 
 			// FIRST PASS (_a)
 			buf_a[channel_num][scale_num][filter_num][2] = (c0_a * buf_a[channel_num][scale_num][filter_num][1] + c1 * buf_a[channel_num][scale_num][filter_num][0]) - c2_a * (*ptmp_i32++);
@@ -382,6 +382,8 @@ void Filter::filter_onepass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
 	float tmp;
 	float iir;
 
+	io->INPUT_CLIP = false;
+
 	for (int j = 0; j < NUM_CHANNELS * 2; j++) {
 
 		if (j < NUM_CHANNELS) {
@@ -431,8 +433,6 @@ void Filter::filter_onepass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
 
 				if (tmp > INPUT_LED_CLIP_LEVEL) {
 					io->INPUT_CLIP = true;
-				} else {
-					io->INPUT_CLIP = false;
 				}
 
 				buf[channel_num][scale_num][filter_num][2] = (c0 * buf[channel_num][scale_num][filter_num][1] + c1 * buf[channel_num][scale_num][filter_num][0]) - c2 * tmp;
@@ -472,6 +472,8 @@ void Filter::filter_bpre(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
     float inv_var_q;
     float var_f;
     float inv_var_f;
+
+	io->INPUT_CLIP = false;
 
 	for (int j = 0; j < NUM_CHANNELS * 2; j++) {
 
@@ -543,8 +545,6 @@ void Filter::filter_bpre(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
 
 				if (pTmp > INPUT_LED_CLIP_LEVEL) {
 					io->INPUT_CLIP = true;
-				} else {
-					io->INPUT_CLIP = false;
 				}
 
 				iir = pTmp * c0;
