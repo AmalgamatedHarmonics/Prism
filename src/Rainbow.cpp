@@ -150,11 +150,15 @@ struct Rainbow : core::PrismModule {
 	const float MAX_12BIT = 16777215.0f;
 
 	dsp::SampleRateConverter<2> twoInputSrc;
+	dsp::SampleRateConverter<3> threeInputSrc;
 	dsp::SampleRateConverter<6> sixInputSrc;
+
 	dsp::SampleRateConverter<2> outputSrc;
 
 	dsp::DoubleRingBuffer<dsp::Frame<2>, 256> twoInputBuffer;
+	dsp::DoubleRingBuffer<dsp::Frame<3>, 256> threeInputBuffer;
 	dsp::DoubleRingBuffer<dsp::Frame<6>, 256> sixInputBuffer;
+
 	dsp::DoubleRingBuffer<dsp::Frame<2>, 256> outputBuffer;
 
 	bogaudio::dsp::PinkNoiseGenerator pink;
@@ -297,6 +301,7 @@ struct Rainbow : core::PrismModule {
 	}
 
 	void TwoChannelProcess(int inputChannels, int noiseSelected, float sampleRate);
+	void ThreeChannelProcess(float sampleRate);
 	void SixChannelProcess(float sampleRate);
 
 	Rainbow() : core::PrismModule(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) { 
@@ -429,6 +434,65 @@ void Rainbow::TwoChannelProcess(int inputChannels, int noiseSelected, float samp
 				main.io->in[3][i] = even;
 				main.io->in[4][i] = odd;
 				main.io->in[5][i] = even;
+			}
+		}
+
+		main.process_audio();
+
+		// Convert output buffer
+		{
+			dsp::Frame<2> outputFrames[NUM_SAMPLES];
+			for (int i = 0; i < NUM_SAMPLES; i++) {
+				outputFrames[i].samples[0] = out[i * 2] / MAX_12BIT;
+				outputFrames[i].samples[1] = out[i * 2 + 1] / MAX_12BIT;
+			}
+
+			outputSrc.setRates(96000, sampleRate);
+			int inLen = NUM_SAMPLES;
+			int outLen = outputBuffer.capacity();
+			outputSrc.process(outputFrames, &inLen, outputBuffer.endData(), &outLen);
+			outputBuffer.endIncr(outLen);
+		}
+	}
+}
+
+void Rainbow::ThreeChannelProcess(float sampleRate) {
+		// Get input
+	dsp::Frame<3> threeInputFrame = {};
+	if (!threeInputBuffer.full()) {
+		for (int chan = 0; chan < 3; chan++) {
+			threeInputFrame.samples[chan] = inputs[POLY_IN_INPUT].getVoltage(chan) / 5.0f;
+		}
+		threeInputBuffer.push(threeInputFrame);		
+	}
+
+	// Process buffer
+	if (outputBuffer.empty()) {
+
+		{
+			threeInputSrc.setRates(sampleRate, 96000);
+			dsp::Frame<3> threeInputFrames[NUM_SAMPLES];
+			int inLen = threeInputBuffer.size();
+			int outLen = NUM_SAMPLES;
+			threeInputSrc.process(threeInputBuffer.startData(), &inLen, threeInputFrames, &outLen);
+			threeInputBuffer.startIncr(inLen);
+
+			for (int i = 0; i < NUM_SAMPLES; i++) {
+				int32_t i0 = (int32_t)clamp(threeInputFrames[i].samples[0] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
+				int32_t i1 = (int32_t)clamp(threeInputFrames[i].samples[1] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
+				int32_t i2 = (int32_t)clamp(threeInputFrames[i].samples[2] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
+				main.io->in[0][i] = i0; // 1 
+				main.io->in[1][i] = i1; // 2
+				main.io->in[2][i] = i0; // 3
+				main.io->in[3][i] = i2; // 4 
+				main.io->in[4][i] = i1; // 5
+				main.io->in[5][i] = i2; // 6
+				// main.io->in[0][i] = i0;
+				// main.io->in[1][i] = i0;
+				// main.io->in[2][i] = i1;
+				// main.io->in[3][i] = i1;
+				// main.io->in[4][i] = i2;
+				// main.io->in[5][i] = i2;
 			}
 		}
 
@@ -646,10 +710,17 @@ void Rainbow::process(const ProcessArgs &args) {
 	// 2 inputs -> 2 x input on O/E channels
 	// 3+ input -> 1 x inputs per channel
 
-	if (inputChannels > 2) {
-		SixChannelProcess(args.sampleRate);
-	} else {
-		TwoChannelProcess(inputChannels, noiseSelected, args.sampleRate);
+	switch(inputChannels) {
+		case 0:
+		case 1:
+		case 2:
+			TwoChannelProcess(inputChannels, noiseSelected, args.sampleRate);
+			break;
+		case 3:
+			ThreeChannelProcess(args.sampleRate);
+			break;
+		default:
+			SixChannelProcess(args.sampleRate);
 	}
 
 	// Set output
