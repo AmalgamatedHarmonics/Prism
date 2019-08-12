@@ -413,7 +413,7 @@ void Rainbow::process(const ProcessArgs &args) {
 
 	main.io->USER_SCALE_CHANGED = false;
 	if (rightExpander.module) {
-		if (rightExpander.module->model == modelETRainbowExpander) {
+		if (rightExpander.module->model == modelRainbowExpanderET) {
 			RainbowExpanderMessage *cM = (RainbowExpanderMessage*)rightExpander.consumerMessage;
 			if (cM->updated) {
 				for (int i = 0; i < NUM_BANKNOTES; i++) {

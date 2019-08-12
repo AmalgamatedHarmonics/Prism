@@ -13,6 +13,6 @@ extern Plugin *pluginInstance;
 ////////////////////
 
 extern Model *modelRainbow;
-extern Model *modelETRainbowExpander;
-extern Model *modelJIRainbowExpander;
+extern Model *modelRainbowExpanderET;
+extern Model *modelRainbowExpanderJI;
 
