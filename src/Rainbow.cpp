@@ -652,12 +652,20 @@ void Rainbow::process(const ProcessArgs &args) {
 		}
 	}
 
+	// Handle bank/filter change
 	nextBank = params[BANK_PARAM].getValue();
+	main.io->FILTER_SWITCH		= (FilterSetting)params[FILTER_PARAM].getValue();
 
+	// Handle bank switch press
 	if (changeBankTrigger.process(params[SWITCHBANK_PARAM].getValue())) {
-    	main.io->CHANGED_BANK = true;
-    	main.io->NEW_BANK = nextBank;
-		currBank = nextBank;
+		if (main.io->FILTER_SWITCH == Bpre && nextBank == 19) {
+	    	main.io->CHANGED_BANK = false;
+			params[BANK_PARAM].setValue(currBank);
+		} else {
+			main.io->CHANGED_BANK = true;
+			main.io->NEW_BANK = nextBank;
+			currBank = nextBank;
+		}
 	} else {
     	main.io->CHANGED_BANK = false;
 	}
@@ -706,7 +714,6 @@ void Rainbow::process(const ProcessArgs &args) {
 
 	main.io->SLEW_ADC			= (uint16_t)params[SLEW_PARAM].getValue();							
 
-	main.io->FILTER_SWITCH 		= (FilterSetting)params[FILTER_PARAM].getValue();
 	main.io->SCALEROT_SWITCH 	= (ScaleRotationSetting)params[SCALEROT_PARAM].getValue();
 	main.io->PREPOST_SWITCH 	= (PrePostSetting)params[PREPOST_PARAM].getValue();
 	main.io->ENV_SWITCH 		= (EnvelopeMode)params[ENV_PARAM].getValue();

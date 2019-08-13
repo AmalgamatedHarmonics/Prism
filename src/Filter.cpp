@@ -217,6 +217,9 @@ void Filter::process_scale_bank(void) {
 				} else if (scale_bank[i] == 18){
 					c_hiq[i] = (float *)(filter_bpre_coefs_B296_800Q);				// Buchla 296 EQ
 					c_loq[i] = (float *)(filter_bpre_coefs_B296_2Q);				// Buchla 296 EQ
+				} else {
+					c_hiq[i] = (float *)(filter_bpre_coefs_Major_800Q); 			// Default to Major scale/chords
+					c_loq[i] = (float *)(filter_bpre_coefs_Major_2Q); 				// Major scale/chords
 				}
 			}
 		} 	// new scale bank or filter type changed
