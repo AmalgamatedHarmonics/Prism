@@ -69,12 +69,6 @@ enum Mod246Setting {
 	Mod_246
 };
 
-enum SlewSetting {
-	SlewOff = 0,
-	SlewMorph,
-	SlewControl
-};
-
 enum ScaleRotationSetting {
 	RotateOff = 0,
 	RotateOn
@@ -176,8 +170,6 @@ struct Filter {
     uint8_t scale[NUM_CHANNELS];
     uint8_t scale_bank[NUM_CHANNELS];
 
-    int32_t	left_buffer[NUM_SAMPLES];
-    int32_t	right_buffer[NUM_SAMPLES];
     int32_t	filtered_buffer[NUM_SAMPLES];
     int32_t	filtered_bufferR[NUM_SAMPLES];
 
@@ -204,7 +196,7 @@ struct Filter {
     float CROSSFADE_WIDTH = 1800.0f;
     float CF_MIN = CROSSFADE_POINT - CROSSFADE_WIDTH / 2.0f;
     float CF_MAX = CROSSFADE_POINT + CROSSFADE_WIDTH / 2.0f;
-    int32_t INPUT_LED_CLIP_LEVEL = 0x58000000;
+    int32_t INPUT_LED_CLIP_LEVEL = 0x58000000 >> 16;
     uint32_t CLIP_LEVEL = 0x04C00000;
 
     FilterTypes filter_type = MAXQ;
@@ -221,12 +213,13 @@ struct Filter {
 
     void process_bank_change(void);
     void process_user_scale_change(void);
-    void filter_twopass(void);
-    void filter_onepass(void);
-    void filter_bpre(void);
+
+    void filter_twopass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]);
+    void filter_onepass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]);
+    void filter_bpre(int32_t src[NUM_CHANNELS][NUM_SAMPLES]);
 
     void change_filter_type(FilterTypes newtype);
-    void process_audio_block(int32_t *src, int32_t *dst);
+    void process_audio_block(int32_t src[NUM_CHANNELS][NUM_SAMPLES], int32_t *dst);
     void set_default_user_scalebank();
 
     void update_slider_leds(void);
@@ -260,7 +253,6 @@ struct IO {
     FilterSetting           FILTER_SWITCH;
     Mod135Setting           MOD135_SWITCH;
     Mod246Setting           MOD246_SWITCH;
-    SlewSetting             SLEW_SWITCH;
     ScaleRotationSetting    SCALEROT_SWITCH;
     PrePostSetting          PREPOST_SWITCH;
     GlideSetting            GLIDE_SWITCH;
@@ -289,7 +281,10 @@ struct IO {
     bool        USER_SCALE_CHANGED = false;
 
     //FREQ BLOCKS
-    std::bitset<NUM_FILTS> FREQ_BLOCK;
+    std::bitset<20> FREQ_BLOCK;
+
+    // Audio
+   	int32_t in[NUM_CHANNELS][NUM_SAMPLES] = {}; 
 
     // OUTPUTS
     float env_out[NUM_CHANNELS];
@@ -297,9 +292,8 @@ struct IO {
     float OUTLEVEL[NUM_SCALES];
 
     // LEDS
-    bool    CLIP_ODD;
-    bool    CLIP_EVEN;
-
+    bool    INPUT_CLIP;
+    
    	float ring[NUM_FILTS][3];
    	float scale[NUM_SCALES][3];
 
@@ -366,8 +360,6 @@ struct Inputs {
 
     float SCALECV_LPF = 0.99f;
     uint32_t SPREAD_ADC_HYSTERESIS = 75;
-
-	SlewSetting lastSlewSetting = SlewOff;
 
    	uint16_t old_rotcv_adc = 0;
 	int8_t rot_offset = 0;

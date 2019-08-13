@@ -85,8 +85,6 @@ struct Rainbow : core::PrismModule {
 		SCALECCW_PARAM,
 		BANK_PARAM,
 		SWITCHBANK_PARAM,
-		ODD_ATTN_PARAM,
-		EVEN_ATTN_PARAM,
 		ENUMS(TRANS_PARAM,6),
 		VOCTGLIDE_PARAM,
 		NOISE_PARAM,
@@ -107,8 +105,7 @@ struct Rainbow : core::PrismModule {
 		ROTCCW_INPUT,
 		LOCK135_INPUT,
 		LOCK246_INPUT,
-		IN_ODD_INPUT,
-		IN_EVEN_INPUT,
+		POLY_IN_INPUT,
 		GLOBAL_Q_INPUT,
 		GLOBAL_LEVEL_INPUT,
 		NUM_INPUTS
@@ -122,8 +119,7 @@ struct Rainbow : core::PrismModule {
 		NUM_OUTPUTS
 	};
 	enum LightIds {
-		CLIP_ODD_LIGHT,
-		CLIP_EVEN_LIGHT,
+		CLIP_LIGHT,
 		ENUMS(LOCK_LIGHT,6),
 		ENUMS(QLOCK_LIGHT,6),
 		NUM_LIGHTS
@@ -151,12 +147,17 @@ struct Rainbow : core::PrismModule {
 	int currBank = 0; // TODO Move to State
 	int nextBank = 0;
 
-	int32_t in[BUFFER_SIZE] = {};  	// 16 stereo sample pairs
 	int32_t out[BUFFER_SIZE] = {};
 
-	dsp::SampleRateConverter<2> inputSrc;
+	const float MIN_12BIT = -16777216.0f;
+	const float MAX_12BIT = 16777215.0f;
+
+	dsp::SampleRateConverter<1> nInputSrc[6];
+
 	dsp::SampleRateConverter<2> outputSrc;
-	dsp::DoubleRingBuffer<dsp::Frame<2>, 256> inputBuffer;
+
+	dsp::DoubleRingBuffer<dsp::Frame<1>, 256> nInputBuffer[6];
+
 	dsp::DoubleRingBuffer<dsp::Frame<2>, 256> outputBuffer;
 
 	bogaudio::dsp::PinkNoiseGenerator pink;
@@ -315,7 +316,13 @@ struct Rainbow : core::PrismModule {
 
 	}
 
-	~Rainbow() {
+	float generateNoise(int noiseSelected);
+	void nChannelProcess(int inputChannels, int noiseSelected, float sampleRate);
+
+	dsp::Frame<1> nInputFrame[6] = {};
+	dsp::Frame<1> nInputFrames[6][NUM_SAMPLES] = {};
+
+  ~Rainbow() {
 		delete pMessage;
 		delete cMessage;
 	}
@@ -327,8 +334,7 @@ struct Rainbow : core::PrismModule {
 		configParam(SPREAD_PARAM, 0, 4095, 0, "Spread");
 		configParam(MORPH_PARAM, 0, 4095, 0, "Morph");
 
-		configParam(SLEW_PARAM, 0, 4095, 2048, "Channel slew speed"); // 50% slew
-		configParam(SLEWON_PARAM, 0, 2, 0, "Channel slew: on/from morph/from pot"); // off/morph/control
+		configParam(SLEW_PARAM, 0, 4095, 0, "Channel slew speed"); // 0% slew
 		configParam(FILTER_PARAM, 0, 2, 0, "Filter type: 2-pass, 1-pass, bpre"); // two/one/bpre
 		configParam(VOCTGLIDE_PARAM, 0, 1, 0, "V/Oct glide on/off"); // on/off
 		configParam(SCALEROT_PARAM, 0, 1, 0, "Scale rotation on/off"); // on/off
@@ -350,9 +356,6 @@ struct Rainbow : core::PrismModule {
 		configParam(ROTCCW_PARAM, 0, 1, 0, "Rotate CCW/Down"); 
 		configParam(SCALECW_PARAM, 0, 1, 0, "Scale CW/Up"); 
 		configParam(SCALECCW_PARAM, 0, 1, 0, "Scale CCW/Down"); 
-
-		configParam(ODD_ATTN_PARAM, 0.0f, 1.0f, 1.0f, "Odd input attenuation");
-		configParam(EVEN_ATTN_PARAM, 0.0f, 1.0f, 1.0f, "Even input attenuation");
 
 		for (int n = 0; n < 6; n++) {
 			configParam(CHANNEL_LEVEL_PARAM + n, 0, 4095, 4095, "Channel Level");
@@ -403,13 +406,108 @@ struct Rainbow : core::PrismModule {
 
 };
 
+float Rainbow::generateNoise(int noiseSelected) {
+	float nO;
+	switch (noiseSelected) {
+		case 0:
+			nO = brown.next() * 10.0f - 5.0f;
+			break;
+		case 1:
+			nO = pink.next() * 10.0f - 5.0f;
+			break;
+		case 2:
+			nO = white.next() * 10.0f - 5.0f;
+			break;
+		default:
+			nO = pink.next() * 10.0f - 5.0f;
+	}
+	return nO;
+}
+
+void Rainbow::nChannelProcess(int inputChannels, int noiseSelected, float sampleRate) {
+
+	int chan;
+
+	// Must generate 2, 3 or 6 channels
+	switch(inputChannels) {
+		case 0:
+		case 1:
+		case 2:
+			chan = 2;
+			break;
+		case 3:
+			chan = 3;
+			break;
+		default:
+			chan = 6;
+	}
+
+	for (int i = 0; i < chan; i++) {
+		if (!nInputBuffer[i].full()) {
+			if (inputChannels == 0) {
+				nInputFrame[i].samples[0] = generateNoise(noiseSelected) / 5.0f;
+			} else if (inputChannels == 1) {
+				nInputFrame[i].samples[0] = inputs[POLY_IN_INPUT].getVoltage(0) / 5.0f;
+			} else {
+				nInputFrame[i].samples[0] = inputs[POLY_IN_INPUT].getVoltage(i) / 5.0f;
+			}
+			nInputBuffer[i].push(nInputFrame[i]);
+		} 
+	}
+
+	// At this point we have populated 2,3 or 6 buffers
+
+	// Process buffer
+	if (outputBuffer.empty()) {
+
+		for (int i = 0; i < chan; i++) {
+			nInputSrc[i].setRates(sampleRate, 96000);
+
+			int inLen = nInputBuffer[i].size();
+			int outLen = NUM_SAMPLES;
+			nInputSrc[i].process(nInputBuffer[i].startData(), &inLen, nInputFrames[i], &outLen);
+			nInputBuffer[i].startIncr(inLen);
+
+			for (int j = 0; j < NUM_SAMPLES; j++) {
+				int32_t v = (int32_t)clamp(nInputFrames[i][j].samples[0] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
+
+				switch(chan) {
+					case 2:
+						main.io->in[i][j] 		= v;
+						main.io->in[2 + i][j] 	= v;
+						main.io->in[4 + i][j] 	= v;
+						break;
+					case 3:
+						main.io->in[i][j] 		= v;
+						main.io->in[1 + i][j] 	= v;
+						break;
+					default:
+						main.io->in[i][j] 		= v;
+				}
+			}
+		}
+
+		// Pass to module
+		main.process_audio();
+
+		// Convert output buffer
+		dsp::Frame<2> outputFrames[NUM_SAMPLES];
+		for (int i = 0; i < NUM_SAMPLES; i++) {
+			outputFrames[i].samples[0] = out[i * 2] / MAX_12BIT;
+			outputFrames[i].samples[1] = out[i * 2 + 1] / MAX_12BIT;
+		}
+
+		outputSrc.setRates(96000, sampleRate);
+		int inLen = NUM_SAMPLES;
+		int outLen = outputBuffer.capacity();
+		outputSrc.process(outputFrames, &inLen, outputBuffer.endData(), &outLen);
+		outputBuffer.endIncr(outLen);
+	}
+}
+
 void Rainbow::process(const ProcessArgs &args) {
 	
 	PrismModule::step();
-
-	float inMin = -16777216.0f;
-	float inMax = 16777215.0f;
-	float outMax = 16777215.0f;
 
 	main.io->USER_SCALE_CHANGED = false;
 	if (rightExpander.module) {
@@ -551,7 +649,6 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.io->FREQCV6_ADC 		= (uint16_t)clamp(inputs[FREQCV6_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
 
 	main.io->SLEW_ADC			= (uint16_t)params[SLEW_PARAM].getValue();							
-	main.io->SLEW_SWITCH 		= (SlewSetting)params[SLEWON_PARAM].getValue();
 
 	main.io->FILTER_SWITCH 		= (FilterSetting)params[FILTER_PARAM].getValue();
 	main.io->SCALEROT_SWITCH 	= (ScaleRotationSetting)params[SCALEROT_PARAM].getValue();
@@ -559,101 +656,12 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.io->ENV_SWITCH 		= (EnvelopeMode)params[ENV_PARAM].getValue();
 	main.io->GLIDE_SWITCH		= (GlideSetting)params[VOCTGLIDE_PARAM].getValue();
 
-	main.io->in 				= in;
 	main.io->out 				= out;
 	
 	main.prepare();
 
-	// Get input
-	dsp::Frame<2> inputFrame = {};
-	if (!inputBuffer.full()) {
-
-		if (inputs[IN_ODD_INPUT].isConnected()) {
-			inputFrame.samples[0] = inputs[IN_ODD_INPUT].getVoltage() * params[ODD_ATTN_PARAM].getValue() / 5.0f;
-
-			if (inputs[IN_EVEN_INPUT].isConnected()) {
-				inputFrame.samples[1] = inputs[IN_EVEN_INPUT].getVoltage() * params[EVEN_ATTN_PARAM].getValue() / 5.0f;
-			} else {
-				inputFrame.samples[1] = inputs[IN_ODD_INPUT].getVoltage() * params[ODD_ATTN_PARAM].getValue() / 5.0f;
-			}
-
-		} else {
-			float nO;
-			switch (noiseSelected) {
-				case 0:
-					nO = brown.next() * 10.0f - 5.0f;
-					break;
-				case 1:
-					nO = pink.next() * 10.0f - 5.0f;
-					break;
-				case 2:
-					nO = white.next() * 10.0f - 5.0f;
-					break;
-				default:
-					nO = pink.next() * 10.0f - 5.0f;
-			}
-			inputFrame.samples[0] = nO * params[ODD_ATTN_PARAM].getValue() / 5.0f;
-
-			if (inputs[IN_EVEN_INPUT].isConnected()) {
-				inputFrame.samples[1] = inputs[IN_EVEN_INPUT].getVoltage() * params[EVEN_ATTN_PARAM].getValue() / 5.0f;
-			} else {
-				float nE;
-				switch (noiseSelected) {
-					case 0:
-						nE = brown.next() * 10.0f - 5.0f;
-						break;
-					case 1:
-						nE = pink.next() * 10.0f - 5.0f;
-						break;
-					case 2:
-						nE = white.next() * 10.0f - 5.0f;
-						break;
-					default:
-						nE = pink.next() * 10.0f - 5.0f;
-				}
-				inputFrame.samples[1] = nE * params[EVEN_ATTN_PARAM].getValue() / 5.0f;
-			}
-
-		}
-
-		inputBuffer.push(inputFrame);
-		
-	}
-
-	// Process buffer
-	if (outputBuffer.empty()) {
-
-		{
-			inputSrc.setRates(args.sampleRate, 96000);
-			dsp::Frame<2> inputFrames[NUM_SAMPLES];
-			int inLen = inputBuffer.size();
-			int outLen = NUM_SAMPLES;
-			inputSrc.process(inputBuffer.startData(), &inLen, inputFrames, &outLen);
-			inputBuffer.startIncr(inLen);
-
-			for (int i = 0; i < NUM_SAMPLES; i++) {
-				in[i * 2] 		= (int32_t)clamp(inputFrames[i].samples[0] * inMax, inMin, inMax);
-				in[i * 2 + 1] 	= (int32_t)clamp(inputFrames[i].samples[1] * inMax, inMin, inMax);
-			}
-		}
-
-		main.process_audio();
-
-		// Convert output buffer
-		{
-			dsp::Frame<2> outputFrames[NUM_SAMPLES];
-			for (int i = 0; i < NUM_SAMPLES; i++) {
-				outputFrames[i].samples[0] = out[i * 2] / outMax;
-				outputFrames[i].samples[1] = out[i * 2 + 1] / outMax;
-			}
-
-			outputSrc.setRates(96000, args.sampleRate);
-			int inLen = NUM_SAMPLES;
-			int outLen = outputBuffer.capacity();
-			outputSrc.process(outputFrames, &inLen, outputBuffer.endData(), &outLen);
-			outputBuffer.endIncr(outLen);
-		}
-	}
+	int inputChannels = inputs[POLY_IN_INPUT].getChannels();
+	nChannelProcess(inputChannels, noiseSelected, args.sampleRate);
 
 	// Set output
 	dsp::Frame<2> outputFrame = {};
@@ -691,13 +699,7 @@ void Rainbow::process(const ProcessArgs &args) {
 		main.io->CHANNEL_Q_ON[n] ? lights[QLOCK_LIGHT + n].setBrightness(1.0f) : lights[QLOCK_LIGHT + n].setBrightness(0.0f); 
 	}
 
-	main.io->CLIP_ODD ? lights[CLIP_ODD_LIGHT].setBrightness(1.0f) : lights[CLIP_ODD_LIGHT].setBrightness(0.0f); 
-
-	if (inputs[IN_EVEN_INPUT].isConnected()) { // Only process light if even input is connected
-		main.io->CLIP_EVEN ? lights[CLIP_EVEN_LIGHT].setBrightness(1.0f) : lights[CLIP_EVEN_LIGHT].setBrightness(0.0f); 
-	} else {
-		lights[CLIP_EVEN_LIGHT].setBrightness(0.0f); 
-	}
+	main.io->INPUT_CLIP ? lights[CLIP_LIGHT].setBrightness(1.0f) : lights[CLIP_LIGHT].setBrightness(0.0f); 
 
 	for (int i = 0; i < NUM_FILTS; i++) {
 		if (main.io->FREQ_BLOCK[i]) {
@@ -855,7 +857,6 @@ struct RainbowWidget : ModuleWidget {
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(150.348f, 15.686f)), module, Rainbow::LOCKON_PARAM+3));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(161.494f, 15.686f)), module, Rainbow::LOCKON_PARAM+4));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(172.64f, 15.686f)), module, Rainbow::LOCKON_PARAM+5));
-		addParam(createParam<gui::PrismSSwitch3>(mm2px(Vec(10.261f, 9.144f)), module, Rainbow::SLEWON_PARAM));
 		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(25.752f, 16.594f)), module, Rainbow::SLEW_PARAM));
 		addParam(createParam<gui::PrismSSwitch3>(mm2px(Vec(49.765f, 9.144f)), module, Rainbow::NOISE_PARAM));
 		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(69.517f, 9.144f)), module, Rainbow::SCALEROT_PARAM));
@@ -889,8 +890,6 @@ struct RainbowWidget : ModuleWidget {
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(150.348f, 68.355f)), module, Rainbow::CHANNEL_Q_ON_PARAM+3));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(161.494f, 68.355f)), module, Rainbow::CHANNEL_Q_ON_PARAM+4));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(172.64f, 68.355f)), module, Rainbow::CHANNEL_Q_ON_PARAM+5));
-		addParam(createParamCentered<gui::PrismTrimpotNoSnap>(mm2px(Vec(40.366f, 80.3f)), module, Rainbow::ODD_ATTN_PARAM));
-		addParam(createParamCentered<gui::PrismTrimpotNoSnap>(mm2px(Vec(65.245f, 80.3f)), module, Rainbow::EVEN_ATTN_PARAM));
 		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(116.911f, 82.174f)), module, Rainbow::CHANNEL_Q_PARAM+0));
 		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(128.057f, 82.174f)), module, Rainbow::CHANNEL_Q_PARAM+1));
 		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(139.202f, 82.174f)), module, Rainbow::CHANNEL_Q_PARAM+2));
@@ -921,8 +920,7 @@ struct RainbowWidget : ModuleWidget {
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(247.76f, 66.497f)), module, Rainbow::SCALE_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(100.89f, 72.407f)), module, Rainbow::LOCK135_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(188.66f, 72.407f)), module, Rainbow::LOCK246_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(29.899f, 76.69f)), module, Rainbow::IN_ODD_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(54.778f, 76.69f)), module, Rainbow::IN_EVEN_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(29.899f, 76.69f)), module, Rainbow::POLY_IN_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(220.022f, 118.124f)), module, Rainbow::MORPH_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(274.402f, 118.124f)), module, Rainbow::SPREAD_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(86.52f, 118.182f)), module, Rainbow::GLOBAL_Q_INPUT));
@@ -947,8 +945,7 @@ struct RainbowWidget : ModuleWidget {
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(150.348f, 68.355f)), module, Rainbow::QLOCK_LIGHT+3));
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(161.494f, 68.355f)), module, Rainbow::QLOCK_LIGHT+4));
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(172.64f, 68.355f)), module, Rainbow::QLOCK_LIGHT+5));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(40.366f, 72.769f)), module, Rainbow::CLIP_ODD_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(65.245f, 72.769f)), module, Rainbow::CLIP_EVEN_LIGHT));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(40.366f, 72.769f)), module, Rainbow::CLIP_LIGHT));
 
 		if(module) {
 

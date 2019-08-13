@@ -98,39 +98,16 @@ void Inputs::param_read_switches(void) {
 			break;
 	}
 
-	if (io->SLEW_SWITCH != lastSlewSetting) { // switch changed
-		lastSlewSetting = io->SLEW_SWITCH; // save switch value
-
-		// CVLAG switch is flipped on, latch the current Morph adc value and use that to calculate LPF coefficients
-		switch(io->SLEW_SWITCH) {
-			case SlewMorph:
-				lag_val = (io->MORPH_ADC / 2) + 137;
-				if (lag_val > 4095) {
-					lag_val = 4095;
-				}
-				levels->channel_level_lpf = 1.0f - exp_4096[lag_val];
-				break;
-			case SlewControl:
-				lag_val = (io->SLEW_ADC / 2) + 137;
-				if (lag_val > 4095) {
-					lag_val = 4095;
-				}
-				levels->channel_level_lpf = 1.0f - exp_4096[lag_val];
-				break;
-			default:
-				levels->channel_level_lpf = levels->CHANNEL_LEVEL_MIN_LPF;
+	if (io->SLEW_ADC > 0) {
+		lag_val = (io->SLEW_ADC / 2) + 137;
+		if (lag_val > 4095) {
+			lag_val = 4095;
 		}
-		if (io->SLEW_SWITCH == SlewMorph) {
-			//Read from morph pot, and scale to 137..4095
-			lag_val = (io->MORPH_ADC / 2) + 137;
-			if (lag_val > 4095) {
-                lag_val = 4095;
-            }
-			levels->channel_level_lpf = 1.0f - exp_4096[lag_val];
-		} else {			
-			levels->channel_level_lpf = levels->CHANNEL_LEVEL_MIN_LPF;
-		}
+		levels->channel_level_lpf = 1.0f - exp_4096[lag_val];
+	} else {
+		levels->channel_level_lpf = levels->CHANNEL_LEVEL_MIN_LPF;
 	}
+
 }
 
 //Reads ADC, applies hysteresis correction and returns 1 if spread value has changed
