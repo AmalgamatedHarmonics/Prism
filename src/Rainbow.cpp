@@ -141,6 +141,9 @@ struct Rainbow : core::PrismModule {
 
     rainbow::Controller main;
 
+	RainbowExpanderMessage *pMessage = new RainbowExpanderMessage;
+	RainbowExpanderMessage *cMessage = new RainbowExpanderMessage;
+
 	int currBank = 0; // TODO Move to State
 	int nextBank = 0;
 
@@ -223,6 +226,13 @@ struct Rainbow : core::PrismModule {
 		json_t *blockJ = json_string(main.io->FREQ_BLOCK.to_string().c_str());
 		json_object_set_new(rootJ, "freqblock", blockJ);
 
+		json_t *userscale_array      	= json_array();
+		for (int i = 0; i < NUM_BANKNOTES; i++) {
+			json_t *noteJ   		= json_real(main.state->userscale[i]);
+			json_array_append_new(userscale_array,   	noteJ);
+		}
+		json_object_set_new(rootJ, "userscale",	userscale_array);
+
         return rootJ;
     }
 
@@ -292,6 +302,16 @@ struct Rainbow : core::PrismModule {
 		if (blockJ)
 			main.io->FREQ_BLOCK = std::bitset<20>(json_string_value(blockJ));
 
+		// userscale
+		json_t *uscale_array = json_object_get(rootJ, "userscale");
+		if (uscale_array) {
+			for (int i = 0; i < NUM_BANKNOTES; i++) {
+				json_t *noteJ = json_array_get(uscale_array, i);
+				if (noteJ)
+					main.state->userscale[i] = json_real_value(noteJ);
+			}
+		}
+
 		main.load_from_state();
 
 	}
@@ -301,6 +321,11 @@ struct Rainbow : core::PrismModule {
 
 	dsp::Frame<1> nInputFrame[6] = {};
 	dsp::Frame<1> nInputFrames[6][NUM_SAMPLES] = {};
+
+  ~Rainbow() {
+		delete pMessage;
+		delete cMessage;
+	}
 
 	Rainbow() : core::PrismModule(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) { 
 
@@ -324,7 +349,7 @@ struct Rainbow : core::PrismModule {
 		configParam(MOD135_PARAM, 0, 1, 0, "Mod 1/135"); // 1/135
 		configParam(MOD246_PARAM, 0, 1, 0, "Mod 2/246"); // 6/246
 
-		configParam(BANK_PARAM, 0, 18, 0, "Bank"); 
+		configParam(BANK_PARAM, 0, 19, 0, "Bank"); 
 		configParam(SWITCHBANK_PARAM, 0, 1, 0, "Switch bank"); 
 
 		configParam(ROTCW_PARAM, 0, 1, 0, "Rotate CW/Up"); 
@@ -351,6 +376,12 @@ struct Rainbow : core::PrismModule {
 		lightDivider.setDivision(256);
 
 	    main.initialise();
+
+		rightExpander.producerMessage = pMessage;
+		rightExpander.consumerMessage = cMessage;
+
+		pMessage->updated = false;
+		cMessage->updated = false;
 
 	}
 
@@ -478,6 +509,20 @@ void Rainbow::process(const ProcessArgs &args) {
 	
 	PrismModule::step();
 
+	main.io->USER_SCALE_CHANGED = false;
+	if (rightExpander.module) {
+		if (rightExpander.module->model == modelRainbowExpanderET ||
+			rightExpander.module->model == modelRainbowExpanderJI ) {
+			RainbowExpanderMessage *cM = (RainbowExpanderMessage*)rightExpander.consumerMessage;
+			if (cM->updated) {
+				for (int i = 0; i < NUM_BANKNOTES; i++) {
+					main.io->USER_SCALE[i] = cM->coeffs[i];
+				}
+				main.io->USER_SCALE_CHANGED = true;
+			} 
+		}
+	} 
+
 	if (rotCWTrigger.process(inputs[ROTCW_INPUT].getVoltage())) {
 		main.io->ROTUP_TRIGGER = true;
 	} else {
@@ -564,8 +609,8 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.io->MORPH_ADC 			= (uint16_t)clamp(params[MORPH_PARAM].getValue() + inputs[MORPH_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
 	main.io->SPREAD_ADC 		= (uint16_t)clamp(params[SPREAD_PARAM].getValue() + inputs[SPREAD_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
 
-	main.io->GlobalQLevel 			= (int16_t)clamp(inputs[GLOBAL_Q_INPUT].getVoltage() * 409.5f, -4095.0f, 4095.0f);
-	main.io->GlobalQControl 		= (int16_t)params[GLOBAL_Q_PARAM].getValue();
+	main.io->GLOBAL_Q_LEVEL 	= (int16_t)clamp(inputs[GLOBAL_Q_INPUT].getVoltage() * 409.5f, -4095.0f, 4095.0f);
+	main.io->GLOBAL_Q_CONTROL 	= (int16_t)params[GLOBAL_Q_PARAM].getValue();
 
 	bool haveGlobalLevelCV		= inputs[GLOBAL_LEVEL_INPUT].isConnected();
 	bool haveChannelLevelCV		= inputs[POLY_LEVEL_INPUT].isConnected();
@@ -578,8 +623,8 @@ void Rainbow::process(const ProcessArgs &args) {
 
 	for (int n = 0; n < 6; n++) {
 
-		main.io->ChannelQLevel[n] 	= (int16_t)clamp(inputs[POLY_Q_INPUT].getVoltage() * 409.5f, -4095.0, 4095.0f);
-		main.io->ChannelQControl[n] = (int16_t)params[CHANNEL_Q_PARAM + n].getValue();
+		main.io->CHANNEL_Q_LEVEL[n] 	= (int16_t)clamp(inputs[POLY_Q_INPUT].getVoltage() * 409.5f, -4095.0, 4095.0f);
+		main.io->CHANNEL_Q_CONTROL[n] = (int16_t)params[CHANNEL_Q_PARAM + n].getValue();
 
 		float channelLevelControl 	= params[CHANNEL_LEVEL_PARAM + n].getValue() / 4095.0f;
 		main.io->LEVEL[n] 			= globalLevelControl * channelLevelControl;
@@ -732,10 +777,10 @@ struct BankWidget : Widget {
 	Rainbow *module = NULL;
 
 	std::string banks[NUM_SCALEBANKS] = {"MAJOR (ET)", "MINOR (ET)", "INTERVALS (ET)", "TRIADS (ET)", "CHROMATIC (ET)", "WHOLE STEP (ET)", 
-		"INTERVALS (JT)", "TRIADS (JT)", "WHOLE STEP (JT)", 
+		"INTERVALS (JI)", "TRIADS (JI)", "WHOLE STEP (JI)", 
 		"INDIAN PENTATONIC", "INDIAN SHRUTIS", "MESOPOTAMIAN", "GAMELAN PELOG",
 		"ALPHA 1", "ALPHA 2", "GAMMA", "17 NOTE/OCT", "BOHLEN PIERCE", "296 EQ",
-		"User Scale (null)"
+		"User Scale"
 		};
 
 	NVGcolor colors[NUM_SCALEBANKS] = {
@@ -767,7 +812,7 @@ struct BankWidget : Widget {
         nvgRGBf(  100.0f/1023.0f	, 824.0f/1023.0f	, 9.0f/1023.0f		),
         nvgRGBf(  100.0f/1023.0f	, 724.0f/1023.0f	, 4.0f/1023.0f		),
 
-		nvgRGBf( 700.0f/1023.0f		, 700.0f/1023.0f	, 700.0f/1023.0f)
+		nvgRGBf( 900.0f/1023.0f		, 900.0f/1023.0f	, 900.0f/1023.0f)
 
 	};
 

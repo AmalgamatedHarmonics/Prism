@@ -5,11 +5,18 @@
 #include <iostream>
 #include <inttypes.h>
 
+extern float default_user_scalebank[21];
+
 //Number of components
 #define NUM_FILTS 20
 #define NUM_CHANNELS 6
 #define NUM_SCALES 11
 #define NUM_SCALEBANKS 20
+
+// Number of notes to completely define a scale
+#define NUM_SCALENOTES 21
+#define NUM_BANKNOTES 231
+
 
 // Audio buffer sizing
 #define BUFFER_SIZE 8
@@ -95,6 +102,11 @@ void *memcpy(void *dest, const void *src, size_t n);
 
 uint32_t diff(uint32_t a, uint32_t b);
 
+struct RainbowExpanderMessage {
+	float coeffs[NUM_BANKNOTES];
+	bool updated;
+};
+
 namespace rainbow {
 
 struct Envelope;
@@ -176,7 +188,7 @@ struct Filter {
    	// Filter parameters
 	float qval_b[NUM_CHANNELS]   = {0, 0, 0, 0, 0, 0};	
 	float qval_a[NUM_CHANNELS]   = {0, 0, 0, 0, 0, 0};	
-	float qc[NUM_CHANNELS]   	= {0, 0, 0, 0, 0, 0};
+	float qc[NUM_CHANNELS]   	 = {0, 0, 0, 0, 0, 0};
 
 	uint8_t old_scale_bank[NUM_CHANNELS] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
@@ -193,36 +205,15 @@ struct Filter {
 
     bool filter_type_changed = false;
 
-    float user_scalebank[231];
-    float DEFAULT_user_scalebank[21] = {
-            0.02094395102393198,
-            0.0221893431599245,
-            0.02350879016601388,
-            0.02490669557392844,
-            0.02638772476301919,
-            0.02795682053052971,
-            0.02961921958772248,
-            0.03138047003691591,
-            0.03324644988776009,
-            0.03522338667454755,
-            0.03731787824003011,
-            0.03953691475510571,
-            0.04188790204786397,
-            0.04437868631984903,
-            0.04701758033202778,
-            0.0498133911478569,
-            0.0527754495260384,
-            0.05591364106105944,
-            0.05923843917544499,
-            0.06276094007383184,
-            0.06649289977552018
-    };
+    float user_scale_bank[231];
 
     void configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Q *_q, Tuning *_tuning, Levels *_levels);
 
     void process_scale_bank(void);
 
     void process_bank_change(void);
+    void process_user_scale_change(void);
+
     void filter_twopass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]);
     void filter_onepass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]);
     void filter_bpre(int32_t src[NUM_CHANNELS][NUM_SAMPLES]);
@@ -240,14 +231,14 @@ struct Filter {
 
 struct IO {
 
-    uint16_t MORPH_ADC;
+    uint16_t    MORPH_ADC;
 
-	int16_t     GlobalQLevel;
-	int16_t     GlobalQControl;
-	int16_t     ChannelQLevel[6];
-	int16_t     ChannelQControl[6];
+	int16_t     GLOBAL_Q_LEVEL;
+	int16_t     GLOBAL_Q_CONTROL;
+	int16_t     CHANNEL_Q_LEVEL[NUM_CHANNELS];
+	int16_t     CHANNEL_Q_CONTROL[NUM_CHANNELS];
 
-    float   LEVEL[6];
+    float   LEVEL[NUM_CHANNELS];
 
     uint16_t FREQNUDGE1_ADC;
     uint16_t FREQNUDGE6_ADC;
@@ -267,9 +258,9 @@ struct IO {
     GlideSetting            GLIDE_SWITCH;
     EnvelopeMode            ENV_SWITCH;
 
-    bool                CHANNEL_Q_ON[6];
-    bool                LOCK_ON[6];
-    int8_t              TRANS_DIAL[6];
+    bool                CHANNEL_Q_ON[NUM_CHANNELS];
+    bool                LOCK_ON[NUM_CHANNELS];
+    int8_t              TRANS_DIAL[NUM_CHANNELS];
 
     // CV Rotate
     bool ROTUP_TRIGGER;
@@ -286,6 +277,8 @@ struct IO {
     // Bank select
     bool        CHANGED_BANK;
     uint8_t     NEW_BANK;
+    float       USER_SCALE[NUM_BANKNOTES];
+    bool        USER_SCALE_CHANGED = false;
 
     //FREQ BLOCKS
     std::bitset<20> FREQ_BLOCK;
@@ -296,12 +289,13 @@ struct IO {
     // OUTPUTS
     float env_out[NUM_CHANNELS];
     float voct_out[NUM_CHANNELS];
+    float OUTLEVEL[NUM_SCALES];
 
     // LEDS
     bool    INPUT_CLIP;
     
-   	float ring[20][3];
-   	float scale[11][3];
+   	float ring[NUM_FILTS][3];
+   	float scale[NUM_SCALES][3];
 
     float envelope_leds[NUM_CHANNELS][3];
     float q_leds[NUM_CHANNELS][3];
@@ -309,13 +303,13 @@ struct IO {
 
     float channelLevel[NUM_CHANNELS]; // 0.0 - 1+, 1 = Clipping
 
-    bool    FORCE_RING_UPDATE = true; // TODO force update first time through
-
+    bool FORCE_RING_UPDATE = true;
+ 
+     // Audio
+    int32_t     *in;
     int32_t     *out;
 
     float DEBUG[16];
-
-    float OUTLEVEL[6];
 
 };
 
@@ -337,7 +331,7 @@ struct LEDRing {
     uint8_t flash_ctr = 0;
 	uint8_t elacs_ctr[NUM_SCALES] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     
-    float channel_led_colors[6][3] = {
+    float channel_led_colors[NUM_CHANNELS][3] = {
         {255.0f/255.0f,     100.0f/255.0f,  100.0f/255.0f}, // Red
         {255.0f/255.0f,     255.0f/255.0f,  100.0f/255.0f}, // Yellow
         {100.0f/255.0f,     255.0f/255.0f,  100.0f/255.0f}, // Green
@@ -494,12 +488,12 @@ struct Q {
     float       global_lpf;
 	float       qlockpot_lpf[NUM_CHANNELS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
-	uint32_t q_update_ctr = UINT32_MAX; // Initialise to always fire on first pass 
-   	uint32_t Q_UPDATE_RATE = 15; 
+	uint32_t q_update_ctr       = UINT32_MAX; // Initialise to always fire on first pass 
+   	uint32_t Q_UPDATE_RATE      = 15; 
 
-    uint32_t QPOT_MIN_CHANGE = 100;
-    float QGLOBAL_LPF = 0.95f;
-    float QCHANNEL_LPF = 0.95f;
+    uint32_t QPOT_MIN_CHANGE    = 100;
+    float QGLOBAL_LPF           = 0.95f;
+    float QCHANNEL_LPF          = 0.95f;
 
     void configure(IO *_io);
     void update(void);
@@ -512,7 +506,7 @@ struct Tuning {
     IO *            io;
 
     //FREQ NUDGE/LOCK JACKS
-    float freq_nudge[NUM_CHANNELS] = {1.0, 1.0};
+    float freq_nudge[NUM_CHANNELS] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     float coarse_adj_led[NUM_CHANNELS];
     float coarse_adj[NUM_CHANNELS] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     float freq_shift[NUM_CHANNELS];
@@ -575,6 +569,7 @@ struct State {
     uint8_t note[NUM_CHANNELS];
     uint8_t scale[NUM_CHANNELS];
     uint8_t scale_bank[NUM_CHANNELS];
+    float userscale[NUM_BANKNOTES];
 
 	FilterTypes filter_type;
 	FilterModes filter_mode;

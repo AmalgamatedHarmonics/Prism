@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <bitset>
 
 #include "plugin.hpp"
 #include "componentlibrary.hpp"
@@ -136,6 +137,134 @@ struct PrismLEDIndicator : LEDSlider {
 		setHandleSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismIndicator.svg")));
 	}
 };
+
+struct PrismReadoutParam : app::ParamWidget {
+
+	widget::FramebufferWidget *fb;
+	widget::SvgWidget *sw;
+	std::shared_ptr<Font> font;
+
+	PrismReadoutParam() {
+		fb = new widget::FramebufferWidget;
+		addChild(fb);
+
+		sw = new widget::SvgWidget;
+		fb->addChild(sw);
+
+		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/BarlowCondensed-Bold.ttf"));
+	}
+
+	void setSvg(std::shared_ptr<Svg> svg) {
+		sw->setSvg(svg);
+		fb->box.size = sw->box.size;
+		box.size = sw->box.size;
+	}
+
+	void onChange(const event::Change &e) override {
+		if (paramQuantity) {
+			fb->dirty = true;
+		}
+		ParamWidget::onChange(e);
+	}
+
+	void onHover(const event::Hover &e) override {
+		math::Vec c = box.size.div(2);
+		float dist = e.pos.minus(c).norm();
+		if (dist <= c.x) {
+			ParamWidget::onHover(e);
+		}
+	}
+
+	void onButton(const event::Button &e) override {
+		math::Vec c = box.size.div(2);
+		float dist = e.pos.minus(c).norm();
+		if (dist <= c.x) {
+			ParamWidget::onButton(e);
+		}
+	}
+
+	void reset() override {
+		if (paramQuantity && paramQuantity->isBounded()) {
+			paramQuantity->reset();
+		}
+	}
+
+	void randomize() override {
+		if (paramQuantity && paramQuantity->isBounded()) {
+			float value = math::rescale(random::uniform(), 0.f, 1.f, paramQuantity->getMinValue(), paramQuantity->getMaxValue());
+			paramQuantity->setValue(value);
+		}
+	}
+
+	void draw(const DrawArgs &ctx) override {
+
+		ParamWidget::draw(ctx);
+
+		if (paramQuantity) {
+
+			Vec pos = Vec(5, 15);
+
+			nvgFontSize(ctx.vg, 17.0f);
+			nvgFontFaceId(ctx.vg, font->handle);
+
+			char text[128];
+			snprintf(text, sizeof(text), "%.3f", paramQuantity->getValue());
+			nvgText(ctx.vg, pos.x, pos.y, text, NULL);
+		}
+	}
+
+};
+
+struct FloatReadout : PrismReadoutParam {
+
+	FloatReadout() {
+		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismFloatReadout.svg")));
+	}
+
+	void draw(const DrawArgs &ctx) override {
+
+		ParamWidget::draw(ctx);
+
+		if (paramQuantity) {
+
+			Vec pos = Vec(5, 15);
+
+			nvgFontSize(ctx.vg, 17.0f);
+			nvgFontFaceId(ctx.vg, font->handle);
+
+			char text[128];
+			snprintf(text, sizeof(text), "%.3f", paramQuantity->getValue());
+			nvgText(ctx.vg, pos.x, pos.y, text, NULL);
+		}
+	}
+
+};
+
+struct IntegerReadout : PrismReadoutParam {
+
+	IntegerReadout() {
+		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismIntegerReadout.svg")));
+	}
+
+	void draw(const DrawArgs &ctx) override {
+
+		ParamWidget::draw(ctx);
+
+		if (paramQuantity) {
+
+			Vec pos = Vec(5, 15);
+
+			nvgFontSize(ctx.vg, 17.0f);
+			nvgFontFaceId(ctx.vg, font->handle);
+
+			char text[128];
+			snprintf(text, sizeof(text), "%d", (int)paramQuantity->getValue());
+			nvgText(ctx.vg, pos.x, pos.y, text, NULL);
+		}
+	}
+	
+};
+
 
 } // namespace gui
 

@@ -1,14 +1,19 @@
 
 On-going
 - refactor and clean code
-- revise timing and counters
-- Refine UI
 
 Specific
 - Revise stored_trigger_level timing
-- convert inputs from 12bit int to float
-- User scales and filter centre frequency as tooltip
-- morph out
+- refactor filter code
+
+expander
+- annotated scale with definition, including presets
+- refactor scales
+- JI 5-limit intervals
+- BP scale (needs new section since we have a tritave 3/1 not octave 2/1)
+- Tooltips
+- Separate ET/JI into new modules
+- Check/Handle BpRe mode
 
 
 BUG    system_mode.c:  if (ctr==80000){ //User took too long, start over // bug will never timeout

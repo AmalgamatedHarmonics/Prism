@@ -43,7 +43,7 @@ void Q::update(void) {
 		q_update_ctr = 0;
 
 		//Check jack + LPF
-		int32_t qg = io->GlobalQLevel + io->GlobalQControl;
+		int32_t qg = io->GLOBAL_Q_LEVEL + io->GLOBAL_Q_CONTROL;
 		if (qg < 0) {
 			qg = 0;
 		}
@@ -55,7 +55,7 @@ void Q::update(void) {
 		global_lpf += (1.0f - QGLOBAL_LPF) * qg;
 
 		for (int i = 0; i < NUM_CHANNELS; i++){
-			int32_t qc = io->ChannelQLevel[i] + io->ChannelQControl[i];
+			int32_t qc = io->CHANNEL_Q_LEVEL[i] + io->CHANNEL_Q_CONTROL[i];
 			if (qc < 0) {
 				qc = 0;
 			}
