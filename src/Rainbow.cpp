@@ -147,6 +147,9 @@ struct Rainbow : core::PrismModule {
 	int currBank = 0; // TODO Move to State
 	int nextBank = 0;
 
+	int currFilter = 0; // TODO Move to State
+	int nextFilter = 0;
+
 	const float MIN_12BIT = -16777216.0f;
 	const float MAX_12BIT = 16777215.0f;
 
@@ -654,7 +657,18 @@ void Rainbow::process(const ProcessArgs &args) {
 
 	// Handle bank/filter change
 	nextBank = params[BANK_PARAM].getValue();
-	main.io->FILTER_SWITCH		= (FilterSetting)params[FILTER_PARAM].getValue();
+	nextFilter = (FilterSetting)params[FILTER_PARAM].getValue();
+
+	// Handle filter change
+	if (nextFilter != currFilter && nextFilter == Bpre) {
+		if (currBank == 19) {
+			params[BANK_PARAM].setValue(0);
+			currBank = 0;
+			nextBank = 0;
+	    	main.io->CHANGED_BANK = true;
+			main.io->NEW_BANK = nextBank;
+		}
+	}
 
 	// Handle bank switch press
 	if (changeBankTrigger.process(params[SWITCHBANK_PARAM].getValue())) {
@@ -669,6 +683,8 @@ void Rainbow::process(const ProcessArgs &args) {
 	} else {
     	main.io->CHANGED_BANK = false;
 	}
+
+	main.io->FILTER_SWITCH		= (FilterSetting)params[FILTER_PARAM].getValue();
 
 	int noiseSelected = params[NOISE_PARAM].getValue();
 
