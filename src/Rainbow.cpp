@@ -676,9 +676,9 @@ void Rainbow::process(const ProcessArgs &args) {
 			outputs[POLY_OUT_OUTPUT].setVoltage(outputFrame.samples[i] * 10.0f, i + 3);
 		}
 
-		outputs[POLY_OUT_OUTPUT].setVoltage(mono * 10.0f, 0);
-		outputs[POLY_OUT_OUTPUT].setVoltage(l * 10.0f, 1);
-		outputs[POLY_OUT_OUTPUT].setVoltage(r * 10.0f, 2);
+		outputs[POLY_OUT_OUTPUT].setVoltage(mono * 5.0f, 0);
+		outputs[POLY_OUT_OUTPUT].setVoltage(l * 5.0f, 1);
+		outputs[POLY_OUT_OUTPUT].setVoltage(r * 5.0f, 2);
 	}
 
 	// Populate poly outputs
