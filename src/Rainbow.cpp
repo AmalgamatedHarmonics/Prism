@@ -90,6 +90,7 @@ struct Rainbow : core::PrismModule {
 		NOISE_PARAM,
 		COMPRESS_PARAM,
 		ENUMS(LEVEL_OUT_PARAM,6),
+		OUTCHAN_PARAM,
 		NUM_PARAMS
 	};
 	enum InputIds {
@@ -312,10 +313,11 @@ struct Rainbow : core::PrismModule {
 	}
 
 	float generateNoise(int noiseSelected);
-	void nChannelProcess(int inputChannels, int noiseSelected, float sampleRate);
+	void nChannelProcess(int inputChannels, int outputChannels, int noiseSelected, float sampleRate);
 
 	dsp::Frame<1> nInputFrame[6] = {};
 	dsp::Frame<1> nInputFrames[6][NUM_SAMPLES] = {};
+	dsp::Frame<6> outputFrame = {};
 
   ~Rainbow() {
 		delete pMessage;
@@ -336,6 +338,7 @@ struct Rainbow : core::PrismModule {
 		configParam(PREPOST_PARAM, 0, 1, 0, "Envelope: pre/post"); //pre/post
 		configParam(ENV_PARAM, 0, 2, 0, "Envelope: fast/slow/trigger"); // fast/slow/trigger
 		configParam(NOISE_PARAM, 0, 2, 0, "Noise: brown/pink/white"); // brown/pink/white
+		configParam(OUTCHAN_PARAM, 0, 2, 0, "Output channels"); // mono/stereo/6
 
         configParam(COMPRESS_PARAM, 0, 1, 0, "Compress: off/on"); 
 
@@ -419,7 +422,7 @@ float Rainbow::generateNoise(int noiseSelected) {
 	return nO;
 }
 
-void Rainbow::nChannelProcess(int inputChannels, int noiseSelected, float sampleRate) {
+void Rainbow::nChannelProcess(int inputChannels, int outputChannels, int noiseSelected, float sampleRate) {
 
 	int chan;
 
@@ -499,6 +502,67 @@ void Rainbow::nChannelProcess(int inputChannels, int noiseSelected, float sample
 		outputSrc.process(outputFrames, &inLen, outputBuffer.endData(), &outLen);
 		outputBuffer.endIncr(outLen);
 	}
+
+	// Set output
+	if (!outputBuffer.empty()) {
+		outputFrame = outputBuffer.shift();
+
+		float mono = 0.0f;
+		float l = 0.0f;
+		float r = 0.0;
+		
+		switch(outputChannels) {
+			case 0:
+				outputs[POLY_OUT_OUTPUT].setChannels(1);
+				break;
+			case 1:
+				outputs[POLY_OUT_OUTPUT].setChannels(2);
+				break;
+			case 2:
+				outputs[POLY_OUT_OUTPUT].setChannels(6);
+				break;
+			default:
+				outputs[POLY_OUT_OUTPUT].setChannels(1);
+				break;
+		}
+
+		for (int i = 0; i < NUM_CHANNELS; i++) {
+			switch(outputChannels) {
+				case 0:
+					mono += outputFrame.samples[i];
+					break;
+				case 1:
+					if (i & 1) {
+						r += outputFrame.samples[i];
+					} else {
+						l += outputFrame.samples[i];
+					}
+					break;
+				case 2:
+					outputs[POLY_OUT_OUTPUT].setVoltage(outputFrame.samples[i] * 5.0f, i);
+					break;
+				default:
+					mono += outputFrame.samples[i];
+					break;
+			}
+		}
+
+		switch(outputChannels) {
+			case 0:
+				outputs[POLY_OUT_OUTPUT].setVoltage(mono * 5.0f, 0);
+				break;
+			case 1:
+				outputs[POLY_OUT_OUTPUT].setVoltage(l * 5.0f, 0);
+				outputs[POLY_OUT_OUTPUT].setVoltage(r * 5.0f, 1);
+				break;
+			case 2: // Do nothing
+				break;
+			default:
+				outputs[POLY_OUT_OUTPUT].setVoltage(mono * 5.0f, 0);
+				break;
+		}
+	}
+
 }
 
 void Rainbow::process(const ProcessArgs &args) {
@@ -655,31 +719,9 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.prepare();
 
 	int inputChannels = inputs[POLY_IN_INPUT].getChannels();
-	nChannelProcess(inputChannels, noiseSelected, args.sampleRate);
+	int outputChannels = params[OUTCHAN_PARAM].getValue();
 
-	// Set output
-	dsp::Frame<6> outputFrame = {};
-	if (!outputBuffer.empty()) {
-		outputFrame = outputBuffer.shift();
-
-		outputs[POLY_OUT_OUTPUT].setChannels(9);
-		float mono = 0.0f;
-		float l = 0.0f;
-		float r = 0.0;
-		for (int i = 0; i < NUM_CHANNELS; i++) {
-			mono += outputFrame.samples[i];
-			if (i & 1) {
-				r += outputFrame.samples[i];
-			} else {
-				l += outputFrame.samples[i];
-			}
-			outputs[POLY_OUT_OUTPUT].setVoltage(outputFrame.samples[i] * 10.0f, i + 3);
-		}
-
-		outputs[POLY_OUT_OUTPUT].setVoltage(mono * 5.0f, 0);
-		outputs[POLY_OUT_OUTPUT].setVoltage(l * 5.0f, 1);
-		outputs[POLY_OUT_OUTPUT].setVoltage(r * 5.0f, 2);
-	}
+	nChannelProcess(inputChannels, outputChannels, noiseSelected, args.sampleRate);
 
 	// Populate poly outputs
 	outputs[POLY_VOCT_OUTPUT].setChannels(6);
@@ -856,100 +898,94 @@ struct RainbowWidget : ModuleWidget {
 
 		// addOutput(createOutput<PJ301MPort>(mm2px(Vec(5,5)), module, Rainbow::POLY_DEBUG_OUTPUT));
 
-		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(116.911f, 15.686f)), module, Rainbow::LOCKON_PARAM+0));
-		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(128.057f, 15.686f)), module, Rainbow::LOCKON_PARAM+1));
-		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(139.202f, 15.686f)), module, Rainbow::LOCKON_PARAM+2));
-		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(150.348f, 15.686f)), module, Rainbow::LOCKON_PARAM+3));
-		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(161.494f, 15.686f)), module, Rainbow::LOCKON_PARAM+4));
-		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(172.64f, 15.686f)), module, Rainbow::LOCKON_PARAM+5));
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(25.752f, 16.594f)), module, Rainbow::SLEW_PARAM));
-		addParam(createParam<gui::PrismSSwitch3>(mm2px(Vec(49.765f, 9.144f)), module, Rainbow::NOISE_PARAM));
-		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(69.517f, 9.144f)), module, Rainbow::SCALEROT_PARAM));
-		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(229.051f, 21.33f)), module, Rainbow::ROTCCW_PARAM));
-		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(266.468f, 21.33f)), module, Rainbow::ROTCW_PARAM));
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(100.89f, 35.8f)), module, Rainbow::FREQNUDGE1_PARAM));
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(188.66f, 35.8f)), module, Rainbow::FREQNUDGE6_PARAM));
-		addParam(createParam<gui::PrismLEDSlider>(mm2px(Vec(113.461f, 25.372f)), module, Rainbow::CHANNEL_LEVEL_PARAM+0));
-		addParam(createParam<gui::PrismLEDSlider>(mm2px(Vec(124.607f, 25.372f)), module, Rainbow::CHANNEL_LEVEL_PARAM+1));
-		addParam(createParam<gui::PrismLEDSlider>(mm2px(Vec(135.752f, 25.372f)), module, Rainbow::CHANNEL_LEVEL_PARAM+2));
-		addParam(createParam<gui::PrismLEDSlider>(mm2px(Vec(146.898f, 25.372f)), module, Rainbow::CHANNEL_LEVEL_PARAM+3));
-		addParam(createParam<gui::PrismLEDSlider>(mm2px(Vec(158.044f, 25.372f)), module, Rainbow::CHANNEL_LEVEL_PARAM+4));
-		addParam(createParam<gui::PrismLEDSlider>(mm2px(Vec(169.19f, 25.372f)), module, Rainbow::CHANNEL_LEVEL_PARAM+5));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(116.911, 15.686)), module, Rainbow::LOCKON_PARAM+0));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(128.057, 15.686)), module, Rainbow::LOCKON_PARAM+1));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(139.202, 15.686)), module, Rainbow::LOCKON_PARAM+2));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(150.348, 15.686)), module, Rainbow::LOCKON_PARAM+3));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(161.494, 15.686)), module, Rainbow::LOCKON_PARAM+4));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(172.64, 15.686)), module, Rainbow::LOCKON_PARAM+5));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(25.752, 16.594)), module, Rainbow::SLEW_PARAM));
+		addParam(createParam<gui::PrismSSwitch3>(mm2px(Vec(49.765, 9.144)), module, Rainbow::NOISE_PARAM));
+		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(69.517, 9.144)), module, Rainbow::SCALEROT_PARAM));
+		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(229.051, 21.33)), module, Rainbow::ROTCCW_PARAM));
+		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(266.468, 21.33)), module, Rainbow::ROTCW_PARAM));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(100.89, 35.8)), module, Rainbow::FREQNUDGE1_PARAM));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(188.66, 35.8)), module, Rainbow::FREQNUDGE6_PARAM));
+		addParam(createParam<gui::PrismLEDSlider>(mm2px(Vec(113.461, 25.372)), module, Rainbow::CHANNEL_LEVEL_PARAM+0));
+		addParam(createParam<gui::PrismLEDSlider>(mm2px(Vec(124.607, 25.372)), module, Rainbow::CHANNEL_LEVEL_PARAM+1));
+		addParam(createParam<gui::PrismLEDSlider>(mm2px(Vec(135.752, 25.372)), module, Rainbow::CHANNEL_LEVEL_PARAM+2));
+		addParam(createParam<gui::PrismLEDSlider>(mm2px(Vec(146.898, 25.372)), module, Rainbow::CHANNEL_LEVEL_PARAM+3));
+		addParam(createParam<gui::PrismLEDSlider>(mm2px(Vec(158.044, 25.372)), module, Rainbow::CHANNEL_LEVEL_PARAM+4));
+		addParam(createParam<gui::PrismLEDSlider>(mm2px(Vec(169.19, 25.372)), module, Rainbow::CHANNEL_LEVEL_PARAM+5));
+		addParam(createParam<gui::PrismSSwitch3>(mm2px(Vec(10.261, 40.692)), module, Rainbow::ENV_PARAM));
+		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(30.013, 40.692)), module, Rainbow::PREPOST_PARAM));
+		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(49.765, 40.692)), module, Rainbow::VOCTGLIDE_PARAM));
+		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(69.517, 40.692)), module, Rainbow::COMPRESS_PARAM));
+		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(229.051, 58.747)), module, Rainbow::SCALECCW_PARAM));
+		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(266.468, 58.747)), module, Rainbow::SCALECW_PARAM));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(116.911, 68.355)), module, Rainbow::CHANNEL_Q_ON_PARAM+0));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(128.057, 68.355)), module, Rainbow::CHANNEL_Q_ON_PARAM+1));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(139.202, 68.355)), module, Rainbow::CHANNEL_Q_ON_PARAM+2));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(150.348, 68.355)), module, Rainbow::CHANNEL_Q_ON_PARAM+3));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(161.494, 68.355)), module, Rainbow::CHANNEL_Q_ON_PARAM+4));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(172.64, 68.355)), module, Rainbow::CHANNEL_Q_ON_PARAM+5));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(116.911, 82.174)), module, Rainbow::CHANNEL_Q_PARAM+0));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(128.057, 82.174)), module, Rainbow::CHANNEL_Q_PARAM+1));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(139.202, 82.174)), module, Rainbow::CHANNEL_Q_PARAM+2));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(150.348, 82.174)), module, Rainbow::CHANNEL_Q_PARAM+3));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(161.494, 82.174)), module, Rainbow::CHANNEL_Q_PARAM+4));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(172.64, 82.174)), module, Rainbow::CHANNEL_Q_PARAM+5));
+		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(269.073, 87.016)), module, Rainbow::BANK_PARAM));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(282.213, 87.016)), module, Rainbow::SWITCHBANK_PARAM));
+		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(98.44, 86.261)), module, Rainbow::MOD135_PARAM));
+		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(186.21, 86.261)), module, Rainbow::MOD246_PARAM));
+		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(116.911, 98.611)), module, Rainbow::TRANS_PARAM+0));
+		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(128.057, 98.611)), module, Rainbow::TRANS_PARAM+1));
+		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(139.202, 98.611)), module, Rainbow::TRANS_PARAM+2));
+		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(150.348, 98.611)), module, Rainbow::TRANS_PARAM+3));
+		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(161.494, 98.611)), module, Rainbow::TRANS_PARAM+4));
+		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(172.64, 98.611)), module, Rainbow::TRANS_PARAM+5));
+		addParam(createParam<gui::PrismSSwitch3>(mm2px(Vec(10.261, 91.165)), module, Rainbow::OUTCHAN_PARAM));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(231.28, 106.866)), module, Rainbow::MORPH_PARAM));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(263.144, 106.866)), module, Rainbow::SPREAD_PARAM));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(100.89, 118.183)), module, Rainbow::GLOBAL_Q_PARAM));
+		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(144.775, 118.183)), module, Rainbow::FILTER_PARAM));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(188.66, 118.183)), module, Rainbow::GLOBAL_LEVEL_PARAM));
 
-		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(118.761f, 25.372f)), module, Rainbow::LEVEL_OUT_PARAM+0));
-		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(129.907f, 25.372f)), module, Rainbow::LEVEL_OUT_PARAM+1));
-		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(141.052f, 25.372f)), module, Rainbow::LEVEL_OUT_PARAM+2));
-		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(152.198f, 25.372f)), module, Rainbow::LEVEL_OUT_PARAM+3));
-		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(163.344f, 25.372f)), module, Rainbow::LEVEL_OUT_PARAM+4));
-		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(174.49f, 25.372f)), module, Rainbow::LEVEL_OUT_PARAM+5));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(247.76, 13.58)), module, Rainbow::ROTATECV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(221.301, 40.038)), module, Rainbow::ROTCCW_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(274.218, 40.038)), module, Rainbow::ROTCW_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(100.89, 53.655)), module, Rainbow::FREQCV1_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(188.66, 53.655)), module, Rainbow::FREQCV6_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(247.76, 66.497)), module, Rainbow::SCALE_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(100.89, 72.407)), module, Rainbow::LOCK135_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(188.66, 72.407)), module, Rainbow::LOCK246_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(29.899, 76.69)), module, Rainbow::POLY_IN_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(220.022, 118.124)), module, Rainbow::MORPH_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(274.402, 118.124)), module, Rainbow::SPREAD_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(86.52, 118.182)), module, Rainbow::GLOBAL_Q_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(202.983, 118.182)), module, Rainbow::GLOBAL_LEVEL_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(117.04, 118.183)), module, Rainbow::POLY_Q_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(172.511, 118.183)), module, Rainbow::POLY_LEVEL_INPUT));
 
-		addParam(createParam<gui::PrismSSwitch3>(mm2px(Vec(10.261f, 40.692f)), module, Rainbow::ENV_PARAM));
-		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(30.013f, 40.692f)), module, Rainbow::PREPOST_PARAM));
-		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(49.765f, 40.692f)), module, Rainbow::VOCTGLIDE_PARAM));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(29.899, 99.049)), module, Rainbow::POLY_OUT_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(29.899, 119.686)), module, Rainbow::POLY_ENV_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(54.778, 119.686)), module, Rainbow::POLY_VOCT_OUTPUT));
 
-		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(229.051f, 58.747f)), module, Rainbow::SCALECCW_PARAM));
-		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(266.468f, 58.747f)), module, Rainbow::SCALECW_PARAM));
-		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(116.911f, 68.355f)), module, Rainbow::CHANNEL_Q_ON_PARAM+0));
-		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(128.057f, 68.355f)), module, Rainbow::CHANNEL_Q_ON_PARAM+1));
-		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(139.202f, 68.355f)), module, Rainbow::CHANNEL_Q_ON_PARAM+2));
-		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(150.348f, 68.355f)), module, Rainbow::CHANNEL_Q_ON_PARAM+3));
-		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(161.494f, 68.355f)), module, Rainbow::CHANNEL_Q_ON_PARAM+4));
-		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(172.64f, 68.355f)), module, Rainbow::CHANNEL_Q_ON_PARAM+5));
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(116.911f, 82.174f)), module, Rainbow::CHANNEL_Q_PARAM+0));
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(128.057f, 82.174f)), module, Rainbow::CHANNEL_Q_PARAM+1));
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(139.202f, 82.174f)), module, Rainbow::CHANNEL_Q_PARAM+2));
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(150.348f, 82.174f)), module, Rainbow::CHANNEL_Q_PARAM+3));
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(161.494f, 82.174f)), module, Rainbow::CHANNEL_Q_PARAM+4));
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(172.64f, 82.174f)), module, Rainbow::CHANNEL_Q_PARAM+5));
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(269.073f, 87.016f)), module, Rainbow::BANK_PARAM));
-		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(282.213f, 87.016f)), module, Rainbow::SWITCHBANK_PARAM));
-		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(98.44f, 86.261f)), module, Rainbow::MOD135_PARAM));
-		addParam(createParam<gui::PrismSSwitch>(mm2px(Vec(186.21f, 86.261f)), module, Rainbow::MOD246_PARAM));
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(116.911f, 98.611f)), module, Rainbow::TRANS_PARAM+0));
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(128.057f, 98.611f)), module, Rainbow::TRANS_PARAM+1));
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(139.202f, 98.611f)), module, Rainbow::TRANS_PARAM+2));
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(150.348f, 98.611f)), module, Rainbow::TRANS_PARAM+3));
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(161.494f, 98.611f)), module, Rainbow::TRANS_PARAM+4));
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(172.64f, 98.611f)), module, Rainbow::TRANS_PARAM+5));
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(231.28f, 106.866f)), module, Rainbow::MORPH_PARAM));
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(263.144f, 106.866f)), module, Rainbow::SPREAD_PARAM));
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(100.89f, 118.183f)), module, Rainbow::GLOBAL_Q_PARAM));
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(144.775f, 118.183f)), module, Rainbow::FILTER_PARAM));
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(188.66f, 118.183f)), module, Rainbow::GLOBAL_LEVEL_PARAM));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(116.911, 15.686)), module, Rainbow::LOCK_LIGHT+0));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(128.057, 15.686)), module, Rainbow::LOCK_LIGHT+1));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(139.202, 15.686)), module, Rainbow::LOCK_LIGHT+2));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(150.348, 15.686)), module, Rainbow::LOCK_LIGHT+3));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(161.494, 15.686)), module, Rainbow::LOCK_LIGHT+4));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(172.64, 15.686)), module, Rainbow::LOCK_LIGHT+5));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(116.911, 68.355)), module, Rainbow::QLOCK_LIGHT+0));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(128.057, 68.355)), module, Rainbow::QLOCK_LIGHT+1));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(139.202, 68.355)), module, Rainbow::QLOCK_LIGHT+2));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(150.348, 68.355)), module, Rainbow::QLOCK_LIGHT+3));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(161.494, 68.355)), module, Rainbow::QLOCK_LIGHT+4));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(172.64, 68.355)), module, Rainbow::QLOCK_LIGHT+5));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(40.366, 72.769)), module, Rainbow::CLIP_LIGHT));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(247.76f, 13.58f)), module, Rainbow::ROTATECV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(221.301f, 40.038f)), module, Rainbow::ROTCCW_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(274.218f, 40.038f)), module, Rainbow::ROTCW_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(100.89f, 53.655f)), module, Rainbow::FREQCV1_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(188.66f, 53.655f)), module, Rainbow::FREQCV6_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(247.76f, 66.497f)), module, Rainbow::SCALE_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(100.89f, 72.407f)), module, Rainbow::LOCK135_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(188.66f, 72.407f)), module, Rainbow::LOCK246_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(29.899f, 76.69f)), module, Rainbow::POLY_IN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(220.022f, 118.124f)), module, Rainbow::MORPH_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(274.402f, 118.124f)), module, Rainbow::SPREAD_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(86.52f, 118.182f)), module, Rainbow::GLOBAL_Q_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(202.983f, 118.182f)), module, Rainbow::GLOBAL_LEVEL_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(117.04f, 118.183f)), module, Rainbow::POLY_Q_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(172.511f, 118.183f)), module, Rainbow::POLY_LEVEL_INPUT));
-
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(29.899f, 97.113f)), module, Rainbow::POLY_OUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(29.899f, 119.686f)), module, Rainbow::POLY_ENV_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(54.778f, 119.686f)), module, Rainbow::POLY_VOCT_OUTPUT));
-
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(116.911f, 15.686f)), module, Rainbow::LOCK_LIGHT+0));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(128.057f, 15.686f)), module, Rainbow::LOCK_LIGHT+1));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(139.202f, 15.686f)), module, Rainbow::LOCK_LIGHT+2));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(150.348f, 15.686f)), module, Rainbow::LOCK_LIGHT+3));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(161.494f, 15.686f)), module, Rainbow::LOCK_LIGHT+4));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(172.64f, 15.686f)), module, Rainbow::LOCK_LIGHT+5));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(116.911f, 68.355f)), module, Rainbow::QLOCK_LIGHT+0));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(128.057f, 68.355f)), module, Rainbow::QLOCK_LIGHT+1));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(139.202f, 68.355f)), module, Rainbow::QLOCK_LIGHT+2));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(150.348f, 68.355f)), module, Rainbow::QLOCK_LIGHT+3));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(161.494f, 68.355f)), module, Rainbow::QLOCK_LIGHT+4));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(172.64f, 68.355f)), module, Rainbow::QLOCK_LIGHT+5));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(40.366f, 72.769f)), module, Rainbow::CLIP_LIGHT));
 
 		if(module) {
 
