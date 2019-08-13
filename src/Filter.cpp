@@ -217,7 +217,7 @@ void Filter::process_scale_bank(void) {
 //filter_out[0-5] are the note[]/scale[]/scale_bank[] filters. 
 //filter_out[6-11] are the morph destination values
 //filter_out[channel1-6][buffer_sample]
-void Filter::filter_twopass(void) { 
+void Filter::filter_twopass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) { 
 
 	float filter_out_a[NUM_FILTS][NUM_SAMPLES]; 	// first filter out for two-pass
 	float filter_out_b[NUM_FILTS][NUM_SAMPLES]; 	// second filter out for two-pass
@@ -234,6 +234,8 @@ void Filter::filter_twopass(void) {
     float ratio_b;   // two-pass filter crossfade ratios
 
 	int32_t *ptmp_i32;
+
+	io->INPUT_CLIP = false;
 
 	for (channel_num = 0; channel_num < NUM_CHANNELS; channel_num++) {
 		filter_num = note[channel_num];
@@ -285,14 +287,15 @@ void Filter::filter_twopass(void) {
 		c2    = (0.003f * c1) - (0.1f * c0)   + 0.102f;
 		c2 *= ratio_b;
 
-		if (channel_num & 1) {
-			ptmp_i32 = right_buffer;
-		} else {
-			ptmp_i32 = left_buffer;
-		}
+		ptmp_i32 = src[channel_num];
 
 		int j = channel_num;
 		for (int i = 0; i < NUM_SAMPLES; i++) {
+
+			if (*ptmp_i32 > INPUT_LED_CLIP_LEVEL) {
+				io->INPUT_CLIP = true;
+			} 
+
 			// FIRST PASS (_a)
 			buf_a[channel_num][scale_num][filter_num][2] = (c0_a * buf_a[channel_num][scale_num][filter_num][1] + c1 * buf_a[channel_num][scale_num][filter_num][0]) - c2_a * (*ptmp_i32++);
 			buf_a[channel_num][scale_num][filter_num][0] = buf_a[channel_num][scale_num][filter_num][0] - (c1 * buf_a[channel_num][scale_num][filter_num][2]);
@@ -335,12 +338,7 @@ void Filter::filter_twopass(void) {
 			c2    = (0.003f * c1) - (0.1f * c0)   + 0.102f;
 			c2 	*= ratio_b;
 
-			//Point to the left or right input buffer
-			if (channel_num & 1) {
-				ptmp_i32 = right_buffer;
-			} else {
-				ptmp_i32 = left_buffer;
-			}
+			ptmp_i32 = src[channel_num];
 
 			j = channel_num + 6;
 			for (int i = 0; i < NUM_SAMPLES; i++) {
@@ -373,7 +371,7 @@ void Filter::filter_twopass(void) {
 
 //Calculate filter_out[]
 //filter_out[0-5] are the note[]/scale[]/scale_bank[] filters. filter_out[6-11] are the morph destination values
-void Filter::filter_onepass(void) { 
+void Filter::filter_onepass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) { 
 
 	uint8_t filter_num;
     uint8_t channel_num;
@@ -383,6 +381,8 @@ void Filter::filter_onepass(void) {
 	float c0, c1, c2;
 	float tmp;
 	float iir;
+
+	io->INPUT_CLIP = false;
 
 	for (int j = 0; j < NUM_CHANNELS * 2; j++) {
 
@@ -428,10 +428,11 @@ void Filter::filter_onepass(void) {
 			c2 *= ((4096.0f - q->qval[channel_num]) / 1024.0f) + 1.04f;
 
 			for (int i = 0; i < NUM_SAMPLES; i++) {
-				if (channel_num & 1) {
-					tmp = right_buffer[i];
-				} else {
-					tmp = left_buffer[i];
+
+				tmp = src[channel_num][i];
+
+				if (tmp > INPUT_LED_CLIP_LEVEL) {
+					io->INPUT_CLIP = true;
 				}
 
 				buf[channel_num][scale_num][filter_num][2] = (c0 * buf[channel_num][scale_num][filter_num][1] + c1 * buf[channel_num][scale_num][filter_num][0]) - c2 * tmp;
@@ -454,7 +455,7 @@ void Filter::filter_onepass(void) {
 
 //Calculate filter_out[]
 //filter_out[0-5] are the note[]/scale[]/scale_bank[] filters. filter_out[6-11] are the morph destination values
-void Filter::filter_bpre(void) { 
+void Filter::filter_bpre(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) { 
 
 	uint8_t filter_num;
     uint8_t channel_num;
@@ -471,6 +472,8 @@ void Filter::filter_bpre(void) {
     float inv_var_q;
     float var_f;
     float inv_var_f;
+
+	io->INPUT_CLIP = false;
 
 	for (int j = 0; j < NUM_CHANNELS * 2; j++) {
 
@@ -538,11 +541,10 @@ void Filter::filter_bpre(void) {
 				//Odd input (left) goes to odd filters (1/3/5)
 				//Even input (right) goes to even filters (2/4/6)
 
-                int32_t pTmp;
-                if (filter_num & 1) {
-					pTmp = left_buffer[i];
-				} else {
-					pTmp = right_buffer[i];
+				int32_t pTmp = src[channel_num][i];
+
+				if (pTmp > INPUT_LED_CLIP_LEVEL) {
+					io->INPUT_CLIP = true;
 				}
 
 				iir = pTmp * c0;
@@ -560,16 +562,13 @@ void Filter::filter_bpre(void) {
 	}
 }
 
-void Filter::process_audio_block(int32_t *src, int32_t *dst) {
-	//~78us static, ~104us morphing, every 166us = 6kHz ( = 96k / 16 samples)
+void Filter::process_audio_block(int32_t src[NUM_CHANNELS][NUM_SAMPLES], int32_t *dst) {
+
 	float f_blended;
 
 	if (filter_type_changed) {
         filter_type = new_filter_type;
     }
-
-	// Split 32-bit pairs
-	audio_split(NUM_SAMPLES, src, left_buffer, right_buffer);
 
 	// Populate the filter coefficients
 	process_scale_bank();
@@ -578,12 +577,12 @@ void Filter::process_audio_block(int32_t *src, int32_t *dst) {
 	q->update();
 
 	if (filter_mode == TWOPASS) {
-		filter_twopass();
+		filter_twopass(src);
 	} else {
 		if (filter_type == MAXQ) {
-			filter_onepass();
+			filter_onepass(src);
 		} else { 
-			filter_bpre();
+			filter_bpre(src);
 		}
 	} 	// Filter-mode
 	
@@ -628,26 +627,6 @@ void Filter::process_audio_block(int32_t *src, int32_t *dst) {
 
 	// Processed filter
 	filter_type_changed = false;
-}
-
-void Filter::audio_split(uint16_t size, int32_t *src, int32_t *ldst, int32_t *rdst) {
-
-	for (int i = 0; i < size; i++) {
-		ldst[i] = src[i * 2];
-		rdst[i] = src[i * 2 + 1];
-
-		if (ldst[i] > INPUT_LED_CLIP_LEVEL) {
-			io->CLIP_ODD = true;
-		} else {
-			io->CLIP_ODD = false;
-		}
-
-		if (rdst[i] > INPUT_LED_CLIP_LEVEL) {
-			io->CLIP_EVEN = true;
-		} else {
-			io->CLIP_EVEN = false;
-		}
-	}
 }
 
 void Filter::audio_merge(uint16_t size, int32_t *lsrc, int32_t *rsrc, int32_t *dst) {

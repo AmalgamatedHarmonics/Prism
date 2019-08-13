@@ -158,8 +158,6 @@ struct Filter {
     uint8_t scale[NUM_CHANNELS];
     uint8_t scale_bank[NUM_CHANNELS];
 
-    int32_t	left_buffer[NUM_SAMPLES];
-    int32_t	right_buffer[NUM_SAMPLES];
     int32_t	filtered_buffer[NUM_SAMPLES];
     int32_t	filtered_bufferR[NUM_SAMPLES];
 
@@ -186,7 +184,7 @@ struct Filter {
     float CROSSFADE_WIDTH = 1800.0f;
     float CF_MIN = CROSSFADE_POINT - CROSSFADE_WIDTH / 2.0f;
     float CF_MAX = CROSSFADE_POINT + CROSSFADE_WIDTH / 2.0f;
-    int32_t INPUT_LED_CLIP_LEVEL = 0x58000000;
+    int32_t INPUT_LED_CLIP_LEVEL = 0x58000000 >> 16;
     uint32_t CLIP_LEVEL = 0x04C00000;
 
     FilterTypes filter_type = MAXQ;
@@ -225,12 +223,12 @@ struct Filter {
     void process_scale_bank(void);
 
     void process_bank_change(void);
-    void filter_twopass(void);
-    void filter_onepass(void);
-    void filter_bpre(void);
+    void filter_twopass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]);
+    void filter_onepass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]);
+    void filter_bpre(int32_t src[NUM_CHANNELS][NUM_SAMPLES]);
 
     void change_filter_type(FilterTypes newtype);
-    void process_audio_block(int32_t *src, int32_t *dst);
+    void process_audio_block(int32_t src[NUM_CHANNELS][NUM_SAMPLES], int32_t *dst);
     void set_default_user_scalebank();
 
     void update_slider_leds(void);
@@ -293,16 +291,15 @@ struct IO {
     std::bitset<20> FREQ_BLOCK;
 
     // Audio
-    int32_t     *in;
+   	int32_t in[NUM_CHANNELS][NUM_SAMPLES] = {}; 
 
     // OUTPUTS
     float env_out[NUM_CHANNELS];
     float voct_out[NUM_CHANNELS];
 
     // LEDS
-    bool    CLIP_ODD;
-    bool    CLIP_EVEN;
-
+    bool    INPUT_CLIP;
+    
    	float ring[20][3];
    	float scale[11][3];
 
