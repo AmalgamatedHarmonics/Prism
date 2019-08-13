@@ -315,7 +315,7 @@ void Filter::filter_twopass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
 		int j = channel_num;
 		for (int i = 0; i < NUM_SAMPLES; i++) {
 
-			if (*ptmp_i32 > INPUT_LED_CLIP_LEVEL) {
+			if (*ptmp_i32 >= INPUT_LED_CLIP_LEVEL) {
 				io->INPUT_CLIP = true;
 			} 
 
@@ -459,7 +459,7 @@ void Filter::filter_onepass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
 
 				tmp = src[channel_num][i];
 
-				if (tmp > INPUT_LED_CLIP_LEVEL) {
+				if (tmp >= INPUT_LED_CLIP_LEVEL) {
 					io->INPUT_CLIP = true;
 				}
 
@@ -571,7 +571,7 @@ void Filter::filter_bpre(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
 
 				int32_t pTmp = src[channel_num][i];
 
-				if (pTmp > INPUT_LED_CLIP_LEVEL) {
+				if (pTmp >= INPUT_LED_CLIP_LEVEL) {
 					io->INPUT_CLIP = true;
 				}
 
