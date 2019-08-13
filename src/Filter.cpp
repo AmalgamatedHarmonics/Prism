@@ -227,7 +227,7 @@ void Filter::process_scale_bank(void) {
 //filter_out[0-5] are the note[]/scale[]/scale_bank[] filters. 
 //filter_out[6-11] are the morph destination values
 //filter_out[channel1-6][buffer_sample]
-void Filter::filter_twopass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) { 
+void Filter::filter_twopass() { 
 
 	float filter_out_a[NUM_FILTS][NUM_SAMPLES]; 	// first filter out for two-pass
 	float filter_out_b[NUM_FILTS][NUM_SAMPLES]; 	// second filter out for two-pass
@@ -310,7 +310,7 @@ void Filter::filter_twopass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
 		c2    = (0.003f * c1) - (0.1f * c0)   + 0.102f;
 		c2 *= ratio_b;
 
-		ptmp_i32 = src[channel_num];
+		ptmp_i32 = io->in[channel_num];
 
 		int j = channel_num;
 		for (int i = 0; i < NUM_SAMPLES; i++) {
@@ -366,7 +366,7 @@ void Filter::filter_twopass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
 			c2    = (0.003f * c1) - (0.1f * c0)   + 0.102f;
 			c2 	*= ratio_b;
 
-			ptmp_i32 = src[channel_num];
+			ptmp_i32 = io->in[channel_num];
 
 			j = channel_num + 6;
 			for (int i = 0; i < NUM_SAMPLES; i++) {
@@ -399,7 +399,7 @@ void Filter::filter_twopass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
 
 //Calculate filter_out[]
 //filter_out[0-5] are the note[]/scale[]/scale_bank[] filters. filter_out[6-11] are the morph destination values
-void Filter::filter_onepass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) { 
+void Filter::filter_onepass() { 
 
 	uint8_t filter_num;
     uint8_t channel_num;
@@ -457,7 +457,7 @@ void Filter::filter_onepass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
 
 			for (int i = 0; i < NUM_SAMPLES; i++) {
 
-				tmp = src[channel_num][i];
+				tmp = io->in[channel_num][i];
 
 				if (tmp >= INPUT_LED_CLIP_LEVEL) {
 					io->INPUT_CLIP = true;
@@ -483,7 +483,7 @@ void Filter::filter_onepass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
 
 //Calculate filter_out[]
 //filter_out[0-5] are the note[]/scale[]/scale_bank[] filters. filter_out[6-11] are the morph destination values
-void Filter::filter_bpre(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) { 
+void Filter::filter_bpre() { 
 
 	uint8_t filter_num;
     uint8_t channel_num;
@@ -569,7 +569,7 @@ void Filter::filter_bpre(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
 				//Odd input (left) goes to odd filters (1/3/5)
 				//Even input (right) goes to even filters (2/4/6)
 
-				int32_t pTmp = src[channel_num][i];
+				int32_t pTmp = io->in[channel_num][i];
 
 				if (pTmp >= INPUT_LED_CLIP_LEVEL) {
 					io->INPUT_CLIP = true;
@@ -590,7 +590,7 @@ void Filter::filter_bpre(int32_t src[NUM_CHANNELS][NUM_SAMPLES]) {
 	}
 }
 
-void Filter::process_audio_block(int32_t src[NUM_CHANNELS][NUM_SAMPLES], int32_t *dst) {
+void Filter::process_audio_block() {
 
 	float f_blended;
 
@@ -605,20 +605,17 @@ void Filter::process_audio_block(int32_t src[NUM_CHANNELS][NUM_SAMPLES], int32_t
 	q->update();
 
 	if (filter_mode == TWOPASS) {
-		filter_twopass(src);
+		filter_twopass();
 	} else {
 		if (filter_type == MAXQ) {
-			filter_onepass(src);
+			filter_onepass();
 		} else { 
-			filter_bpre(src);
+			filter_bpre();
 		}
 	} 	// Filter-mode
 	
 	// MORPHING
 	for (int i = 0; i < NUM_SAMPLES; i++) {
-
-		filtered_buffer[i]  = 0;
-		filtered_bufferR[i] = 0;
 		
 		rotation->update_morph();
 
@@ -630,12 +627,8 @@ void Filter::process_audio_block(int32_t src[NUM_CHANNELS][NUM_SAMPLES], int32_t
 				f_blended = (filter_out[j][i] * (1.0f - rotation->motion_morphpos[j])) + (filter_out[j + NUM_CHANNELS][i] * rotation->motion_morphpos[j]); // filter blending
             }
 
-			// APPLY LEVEL TO AUDIO OUT
-			if (j & 1) {
-				filtered_buffer[i]  += (f_blended * levels->channel_level[j]);
-            } else {
-				filtered_bufferR[i] += (f_blended * levels->channel_level[j]);
-            }
+			io->out[j][i] = (f_blended * levels->channel_level[j]);
+
 		}
 	}
 
@@ -651,18 +644,9 @@ void Filter::process_audio_block(int32_t src[NUM_CHANNELS][NUM_SAMPLES], int32_t
 		}
 	}
 	
-	audio_merge(NUM_SAMPLES, filtered_buffer, filtered_bufferR, dst); //1.5us
-
 	filter_type_changed = false;
 	io->USER_SCALE_CHANGED = false;
 
-}
-
-void Filter::audio_merge(uint16_t size, int32_t *lsrc, int32_t *rsrc, int32_t *dst) {
-	for (int i = 0; i < size; i++) {
-		dst[i * 2]     = *lsrc;
-		dst[i * 2 + 1] = *rsrc;
-	}
 }
 
 void Filter::set_default_user_scalebank(void) {

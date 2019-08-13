@@ -118,7 +118,7 @@ void Controller::prepare(void) {
 }
 
 void Controller::process_audio(void) {
-	filter->process_audio_block(io->in, io->out);
+	filter->process_audio_block();
 }
 
 void Controller::set_default_param_values(void) {

@@ -111,8 +111,7 @@ struct Rainbow : core::PrismModule {
 		NUM_INPUTS
 	};
 	enum OutputIds {
-		OUT_LEFT_OUTPUT,
-		OUT_RIGHT_OUTPUT,
+		POLY_OUT_OUTPUT,
 		POLY_ENV_OUTPUT,
 		POLY_VOCT_OUTPUT,
 		POLY_DEBUG_OUTPUT,
@@ -147,18 +146,14 @@ struct Rainbow : core::PrismModule {
 	int currBank = 0; // TODO Move to State
 	int nextBank = 0;
 
-	int32_t out[BUFFER_SIZE] = {};
-
 	const float MIN_12BIT = -16777216.0f;
 	const float MAX_12BIT = 16777215.0f;
 
 	dsp::SampleRateConverter<1> nInputSrc[6];
-
-	dsp::SampleRateConverter<2> outputSrc;
-
 	dsp::DoubleRingBuffer<dsp::Frame<1>, 256> nInputBuffer[6];
 
-	dsp::DoubleRingBuffer<dsp::Frame<2>, 256> outputBuffer;
+	dsp::SampleRateConverter<6> outputSrc;
+	dsp::DoubleRingBuffer<dsp::Frame<6>, 256> outputBuffer;
 
 	bogaudio::dsp::PinkNoiseGenerator pink;
 	bogaudio::dsp::RedNoiseGenerator brown;
@@ -491,10 +486,11 @@ void Rainbow::nChannelProcess(int inputChannels, int noiseSelected, float sample
 		main.process_audio();
 
 		// Convert output buffer
-		dsp::Frame<2> outputFrames[NUM_SAMPLES];
-		for (int i = 0; i < NUM_SAMPLES; i++) {
-			outputFrames[i].samples[0] = out[i * 2] / MAX_12BIT;
-			outputFrames[i].samples[1] = out[i * 2 + 1] / MAX_12BIT;
+		dsp::Frame<6> outputFrames[NUM_SAMPLES];
+		for (int chan = 0; chan < NUM_CHANNELS; chan++) {
+			for (int i = 0; i < NUM_SAMPLES; i++) {
+				outputFrames[i].samples[chan] = main.io->out[chan][i] / MAX_12BIT;
+			}
 		}
 
 		outputSrc.setRates(96000, sampleRate);
@@ -656,24 +652,33 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.io->ENV_SWITCH 		= (EnvelopeMode)params[ENV_PARAM].getValue();
 	main.io->GLIDE_SWITCH		= (GlideSetting)params[VOCTGLIDE_PARAM].getValue();
 
-	main.io->out 				= out;
-	
 	main.prepare();
 
 	int inputChannels = inputs[POLY_IN_INPUT].getChannels();
 	nChannelProcess(inputChannels, noiseSelected, args.sampleRate);
 
 	// Set output
-	dsp::Frame<2> outputFrame = {};
+	dsp::Frame<6> outputFrame = {};
 	if (!outputBuffer.empty()) {
 		outputFrame = outputBuffer.shift();
 
-		if (outputs[OUT_RIGHT_OUTPUT].isConnected()) {
-			outputs[OUT_LEFT_OUTPUT].setVoltage(outputFrame.samples[1] * 5.0f); // TODO THis seems to be reversed for some reason
-			outputs[OUT_RIGHT_OUTPUT].setVoltage(outputFrame.samples[0] * 5.0f);
-		} else {
-			outputs[OUT_LEFT_OUTPUT].setVoltage((outputFrame.samples[0] + outputFrame.samples[1]) * 2.5f);
+		outputs[POLY_OUT_OUTPUT].setChannels(9);
+		float mono = 0.0f;
+		float l = 0.0f;
+		float r = 0.0;
+		for (int i = 0; i < NUM_CHANNELS; i++) {
+			mono += outputFrame.samples[i];
+			if (i & 1) {
+				r += outputFrame.samples[i];
+			} else {
+				l += outputFrame.samples[i];
+			}
+			outputs[POLY_OUT_OUTPUT].setVoltage(outputFrame.samples[i] * 10.0f, i + 3);
 		}
+
+		outputs[POLY_OUT_OUTPUT].setVoltage(mono * 10.0f, 0);
+		outputs[POLY_OUT_OUTPUT].setVoltage(l * 10.0f, 1);
+		outputs[POLY_OUT_OUTPUT].setVoltage(r * 10.0f, 2);
 	}
 
 	// Populate poly outputs
@@ -928,8 +933,7 @@ struct RainbowWidget : ModuleWidget {
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(117.04f, 118.183f)), module, Rainbow::POLY_Q_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(172.511f, 118.183f)), module, Rainbow::POLY_LEVEL_INPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(29.899f, 97.113f)), module, Rainbow::OUT_LEFT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(54.778f, 97.321f)), module, Rainbow::OUT_RIGHT_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(29.899f, 97.113f)), module, Rainbow::POLY_OUT_OUTPUT));
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(29.899f, 119.686f)), module, Rainbow::POLY_ENV_OUTPUT));
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(54.778f, 119.686f)), module, Rainbow::POLY_VOCT_OUTPUT));
 

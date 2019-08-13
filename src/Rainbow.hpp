@@ -170,9 +170,6 @@ struct Filter {
     uint8_t scale[NUM_CHANNELS];
     uint8_t scale_bank[NUM_CHANNELS];
 
-    int32_t	filtered_buffer[NUM_SAMPLES];
-    int32_t	filtered_bufferR[NUM_SAMPLES];
-
     // filter coefficients
     float *c_hiq[NUM_CHANNELS];
     float *c_loq[NUM_CHANNELS];
@@ -214,18 +211,15 @@ struct Filter {
     void process_bank_change(void);
     void process_user_scale_change(void);
 
-    void filter_twopass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]);
-    void filter_onepass(int32_t src[NUM_CHANNELS][NUM_SAMPLES]);
-    void filter_bpre(int32_t src[NUM_CHANNELS][NUM_SAMPLES]);
+    void filter_twopass();
+    void filter_onepass();
+    void filter_bpre();
 
     void change_filter_type(FilterTypes newtype);
-    void process_audio_block(int32_t src[NUM_CHANNELS][NUM_SAMPLES], int32_t *dst);
+    void process_audio_block();
     void set_default_user_scalebank();
 
     void update_slider_leds(void);
-
-    void audio_split(uint16_t sz, int32_t *src, int32_t *ldst, int32_t *rdst);
-    void audio_merge(uint16_t sz, int32_t *lsrc, int32_t *rsrc, int32_t *dst);
 
 };
 
@@ -285,6 +279,7 @@ struct IO {
 
     // Audio
    	int32_t in[NUM_CHANNELS][NUM_SAMPLES] = {}; 
+   	int32_t out[NUM_CHANNELS][NUM_SAMPLES] = {}; 
 
     // OUTPUTS
     float env_out[NUM_CHANNELS];
@@ -305,9 +300,6 @@ struct IO {
 
     bool FORCE_RING_UPDATE = true;
  
-     // Audio
-    int32_t     *out;
-
     float DEBUG[16];
 
 };
