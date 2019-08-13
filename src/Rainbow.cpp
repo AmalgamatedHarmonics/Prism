@@ -318,6 +318,7 @@ struct Rainbow : core::PrismModule {
 	dsp::Frame<1> nInputFrame[6] = {};
 	dsp::Frame<1> nInputFrames[6][NUM_SAMPLES] = {};
 	dsp::Frame<6> outputFrame = {};
+	dsp::Frame<6> outputFrames[NUM_SAMPLES];
 
   ~Rainbow() {
 		delete pMessage;
@@ -489,7 +490,6 @@ void Rainbow::nChannelProcess(int inputChannels, int outputChannels, int noiseSe
 		main.process_audio();
 
 		// Convert output buffer
-		dsp::Frame<6> outputFrames[NUM_SAMPLES];
 		for (int chan = 0; chan < NUM_CHANNELS; chan++) {
 			for (int i = 0; i < NUM_SAMPLES; i++) {
 				outputFrames[i].samples[chan] = main.io->out[chan][i] / MAX_12BIT;
@@ -641,7 +641,6 @@ void Rainbow::process(const ProcessArgs &args) {
 	} 
 
 	for (int n = 0; n < 6; n++) {
-
 		// Process Locks
 		if (lockTriggers[n].process(params[LOCKON_PARAM + n].getValue())) {
 			main.io->LOCK_ON[n] = !main.io->LOCK_ON[n];
@@ -651,7 +650,6 @@ void Rainbow::process(const ProcessArgs &args) {
 		if (qlockTriggers[n].process(params[CHANNEL_Q_ON_PARAM + n].getValue())) {
 			main.io->CHANNEL_Q_ON[n] = !main.io->CHANNEL_Q_ON[n];
 		}
-
 	}
 
 	nextBank = params[BANK_PARAM].getValue();
@@ -676,8 +674,7 @@ void Rainbow::process(const ProcessArgs &args) {
 	bool haveChannelLevelCV		= inputs[POLY_LEVEL_INPUT].isConnected();
 
 	float globalLevelCV 		= haveGlobalLevelCV ?
-		clamp(inputs[GLOBAL_LEVEL_INPUT].getVoltage() / 5.0f, -1.0f, 1.0f) :
-		1.0f;
+		clamp(inputs[GLOBAL_LEVEL_INPUT].getVoltage() / 5.0f, -1.0f, 1.0f) : 1.0f;
 
 	float globalLevelControl 	= params[GLOBAL_LEVEL_PARAM].getValue() / 4095.0f;
 
@@ -690,8 +687,7 @@ void Rainbow::process(const ProcessArgs &args) {
 		main.io->LEVEL[n] 			= globalLevelControl * channelLevelControl;
 
 		float channelLevelCV 		= haveChannelLevelCV ?
-			clamp(inputs[POLY_LEVEL_INPUT].getVoltage(n) / 5.0f, -1.0f, 1.0f) :
-			1.0f;
+			clamp(inputs[POLY_LEVEL_INPUT].getVoltage(n) / 5.0f, -1.0f, 1.0f) :	1.0f;
 
 		if (haveGlobalLevelCV || haveChannelLevelCV) {
 			main.io->LEVEL[n] = main.io->LEVEL[n] + globalLevelCV * channelLevelCV;
