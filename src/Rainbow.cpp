@@ -660,8 +660,9 @@ void Rainbow::process(const ProcessArgs &args) {
 	nextFilter = (FilterSetting)params[FILTER_PARAM].getValue();
 
 	// Handle filter change
-	if (nextFilter != currFilter && nextFilter == Bpre) {
-		if (currBank == 19) {
+	if (nextFilter != currFilter) {
+		currFilter = nextFilter;
+		if (nextFilter == Bpre && currBank == 19) {
 			params[BANK_PARAM].setValue(0);
 			currBank = 0;
 			nextBank = 0;
