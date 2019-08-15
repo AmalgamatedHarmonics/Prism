@@ -1,49 +1,28 @@
 #include "Scales.hpp"
 
-extern Scale major;
-extern Scale minor;
-extern Scale et_intervals;
-extern Scale et_triads;
-extern Scale et_chromatic;
-extern Scale et_wholestep;
-extern Scale ji_intervals;
-extern Scale ji_triads;
-extern Scale ji_wholestep;
-extern Scale indian_penta;
-extern Scale indian_shrutis;
-extern Scale mesopotamian;
-extern Scale gamelan;
-extern Scale wc_alpha1;
-extern Scale wc_alpha2;
-extern Scale wc_gamma;
-extern Scale seventeen;
-extern Scale bp;
-extern Scale buchla296;
-extern Scale userscale;
-extern Scale gamma_notused;
-extern Scale video_notused;
-
-std::vector<Scale> scales = {
-	major,
-	minor,
-	et_intervals,
-	et_triads,
- 	et_chromatic,
-	et_wholestep,
-	ji_intervals,
-	ji_triads,
-	ji_wholestep,
-	indian_penta,
-	indian_shrutis,
-	mesopotamian,
-	gamelan,
-	wc_alpha2,
-	wc_alpha1,
-	wc_gamma,
-	seventeen,
-	bp,
-	buchla296,
-	userscale,
-	gamma_notused,
-	video_notused
-};
+std::vector<Scale> buildScale() {
+	std::vector<Scale> s;
+	s.push_back(major);
+	s.push_back(minor);
+	s.push_back(et_intervals);
+	s.push_back(et_triads);
+	s.push_back(et_chromatic);
+	s.push_back(et_wholestep);
+	s.push_back(ji_intervals);
+	s.push_back(ji_triads);
+	s.push_back(ji_wholestep);
+	s.push_back(indian_penta);
+	s.push_back(indian_shrutis);
+	s.push_back(mesopotamian);
+	s.push_back(gamelan);
+	s.push_back(wc_alpha2);
+	s.push_back(wc_alpha1);
+	s.push_back(wc_gamma);
+	s.push_back(seventeen);
+	s.push_back(bp);
+	s.push_back(buchla296);
+	s.push_back(userscale);
+	s.push_back(gamma_notused);
+	s.push_back(video_notused);
+	return s;
+}

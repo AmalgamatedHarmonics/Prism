@@ -3,7 +3,10 @@
 #include <bitset>
 #include <cmath>
 #include <iostream>
+#include <vector>
 #include <inttypes.h>
+
+#include "scales/Scales.hpp"
 
 extern float default_user_scalebank[21];
 
@@ -164,6 +167,8 @@ struct Filter {
     Tuning *        tuning;
     IO *            io;
     Levels *        levels;
+
+    std::vector<Scale> scales;
 
     //Filters
     uint8_t note[NUM_CHANNELS];

@@ -10,7 +10,6 @@
 #include "dsp/noise.hpp"
 
 extern float exp_1voct[4096];
-extern std::vector<Scale> scales;
 
 using namespace prism;
 
@@ -56,7 +55,11 @@ struct BaseRainbowExpander : core::PrismModule {
 	int currNote = 0;
 	int currBank = 0;
 
-	BaseRainbowExpander(int P, int I, int O, int L) : core::PrismModule(P, I, O, L) {}
+    std::vector<Scale> scales;
+
+	BaseRainbowExpander(int P, int I, int O, int L) : core::PrismModule(P, I, O, L) {
+		scales = buildScale();
+	}
 
 	json_t *dataToJson() override {
 
@@ -463,16 +466,12 @@ struct ExpanderBankWidget : Widget {
 
 	ExpanderBankWidget() {
 		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/BarlowCondensed-Bold.ttf"));
+		scales = buildScale();
 	}
 
-	BaseRainbowExpander *module = NULL;
+    std::vector<Scale> scales;
 
-	std::string banks[NUM_SCALEBANKS] = {"MAJOR (ET)", "MINOR (ET)", "INTERVALS (ET)", "TRIADS (ET)", "CHROMATIC (ET)", "WHOLE STEP (ET)", 
-		"INTERVALS (JI)", "TRIADS (JI)", "WHOLE STEP (JI)", 
-		"INDIAN PENTATONIC", "INDIAN SHRUTIS", "MESOPOTAMIAN", "GAMELAN PELOG",
-		"ALPHA 1", "ALPHA 2", "GAMMA", "17 NOTE/OCT", "BOHLEN PIERCE", "296 EQ",
-		"User Scale"
-	};
+	BaseRainbowExpander *module = NULL;
 
 	NVGcolor colors[NUM_SCALEBANKS] = {
 
@@ -519,7 +518,7 @@ struct ExpanderBankWidget : Widget {
 		char text[128];
 
 		nvgFillColor(ctx.vg, colors[module->currBank]);
-		snprintf(text, sizeof(text), "%s", banks[module->currBank].c_str());
+		snprintf(text, sizeof(text), "%s", scales[module->currBank].name.c_str());
 		nvgText(ctx.vg, 0, box.pos.y, text, NULL);
 
 	}

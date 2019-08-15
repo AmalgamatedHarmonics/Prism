@@ -10,8 +10,6 @@
 
 #include "dsp/noise.hpp"
 
-extern std::vector<Scale> scales;
-
 using namespace prism;
 
 struct frame {
@@ -843,16 +841,12 @@ struct BankWidget : Widget {
 
 	BankWidget() {
 		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/BarlowCondensed-Bold.ttf"));
+		scales = buildScale();
 	}
 
 	Rainbow *module = NULL;
 
-	std::string banks[NUM_SCALEBANKS] = {"MAJOR (ET)", "MINOR (ET)", "INTERVALS (ET)", "TRIADS (ET)", "CHROMATIC (ET)", "WHOLE STEP (ET)", 
-		"INTERVALS (JI)", "TRIADS (JI)", "WHOLE STEP (JI)", 
-		"INDIAN PENTATONIC", "INDIAN SHRUTIS", "MESOPOTAMIAN", "GAMELAN PELOG",
-		"ALPHA 1", "ALPHA 2", "GAMMA", "17 NOTE/OCT", "BOHLEN PIERCE", "296 EQ",
-		"User Scale"
-		};
+    std::vector<Scale> scales;
 
 	NVGcolor colors[NUM_SCALEBANKS] = {
 
@@ -899,15 +893,11 @@ struct BankWidget : Widget {
 
 		char text[128];
 
-		std::cout << module->currBank << " " << module->nextBank << std::endl;
-
 		if (module->currBank == module->nextBank) {
 			nvgFillColor(ctx.vg, colors[module->currBank]);
-			std::cout << scales[module->currBank].name << std::endl;
 			snprintf(text, sizeof(text), "%s", scales[module->currBank].name.c_str());
 		} else {
 			nvgFillColor(ctx.vg, colors[module->nextBank]);
-			std::cout << scales[module->nextBank].name << std::endl;
 			snprintf(text, sizeof(text), "%s*", scales[module->nextBank].name.c_str());
 		}
 

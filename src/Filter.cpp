@@ -36,7 +36,6 @@ extern float exp_4096[4096];
 extern float log_4096[4096];
 extern uint32_t twopass_calibration[3380];
 extern float default_user_scalebank[21];
-extern std::vector<Scale> scales;
 
 using namespace rainbow;
 
@@ -47,6 +46,7 @@ void Filter::configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Q *_q,
 	tuning		= _tuning;
 	io			= _io;
 	levels		= _levels;
+	scales 		= buildScale();
 }
 
 void Filter::process_bank_change(void) {
