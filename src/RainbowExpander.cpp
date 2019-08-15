@@ -5,11 +5,12 @@
 #include "plugin.hpp"
 #include "Common.hpp"
 #include "Rainbow.hpp"
-#include "FilterCoeff.h"
+#include "scales/Scales.hpp"
 
 #include "dsp/noise.hpp"
 
 extern float exp_1voct[4096];
+extern std::vector<Scale> scales;
 
 using namespace prism;
 
@@ -98,70 +99,7 @@ struct BaseRainbowExpander : core::PrismModule {
 	}
 
 	float *bankToCoeff(int bank) {
-
-		float *coeff;
-
-		switch(bank) {
-			case 0:
-				coeff = (float *)(filter_maxq_coefs_Major); 					// Major scale/chords
-				break;
-			case 1:
-				coeff = (float *)(filter_maxq_coefs_Minor); 					// Minor scale/chords
-				break;
-			case 2:
-				coeff = (float *)(filter_maxq_coefs_western_eq);				// Western intervals
-				break;
-			case 3:
-				coeff = (float *)(filter_maxq_coefs_western_twointerval_eq);	// Western triads
-				break;
-			case 4:
-				coeff = (float *)(filter_maxq_coefs_twelvetone);				// Chromatic scale - each of the 12 western semitones spread on multiple octaves
-				break;
-			case 5:
-				coeff = (float *)(filter_maxq_coefs_diatonic_eq);			// Diatonic scale Equal
-				break;
-			case 6:
-				coeff = (float *)(filter_maxq_coefs_western); 				// Western Intervals
-				break;
-			case 7:
-				coeff = (float *)(filter_maxq_coefs_western_twointerval); 	// Western triads (pairs of intervals)
-				break;
-			case 8:
-				coeff = (float *)(filter_maxq_coefs_diatonic_just);			// Diatonic scale Just
-				break;
-			case 9:
-				coeff = (float *)(filter_maxq_coefs_indian);					// Indian pentatonic
-				break;
-			case 10:
-				coeff = (float *)(filter_maxq_coefs_shrutis);				// Indian Shrutis
-				break;
-			case 11:
-				coeff = (float *)(filter_maxq_coefs_mesopotamian);			// Mesopotamian
-				break;
-			case 12:
-				coeff = (float *)(filter_maxq_coefs_gamelan);				// Gamelan Pelog
-				break;
-			case 13:
-				coeff = (float *)(filter_maxq_coefs_alpha_spread2);			// W.C.'s Alpha scale - selected notes A
-				break;
-			case 14:
-				coeff = (float *)(filter_maxq_coefs_alpha_spread1);			// W.C.'s Alpha scale - selected notes B
-				break;
-			case 15:
-				coeff = (float *)(filter_maxq_coefs_gammaspread1);			// W.C.'s Gamma scale - selected notes
-				break;
-			case 16:
-				coeff = (float *)(filter_maxq_coefs_17ET);					// 17 notes/oct
-				break;
-			case 17:
-				coeff = (float *)(filter_maxq_coefs_bohlen_pierce);			// Bohlen Pierce
-				break;
-			case 18:
-				coeff = (float *)(filter_maxq_coefs_B296);					// Buchla 296 EQ
-				break;
-			default:
-				coeff = (float *)(filter_maxq_coefs_Major); 				// Major scale/chords
-		}
+		float *coeff = (float *)(scales[bank].c_maxq);
 		return coeff;
 	}
 };
@@ -204,11 +142,6 @@ struct RainbowExpanderET : BaseRainbowExpander {
 	rack::dsp::SchmittTrigger noteETSetTrigger;
 	rack::dsp::SchmittTrigger updateETSetTrigger;
 	rack::dsp::SchmittTrigger loadPresetTrigger;
-
-	void calculateBankUpdate(int nStepsinBank, int nSemitones, int maxSteps) {
-
-
-	}
 
 	RainbowExpanderET() : BaseRainbowExpander(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
 

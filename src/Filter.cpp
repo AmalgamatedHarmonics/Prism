@@ -30,12 +30,13 @@
 #include <iostream>
 
 #include "Rainbow.hpp"
-#include "FilterCoeff.h"
+#include "scales/Scales.hpp"
 
 extern float exp_4096[4096];
 extern float log_4096[4096];
 extern uint32_t twopass_calibration[3380];
 extern float default_user_scalebank[21];
+extern std::vector<Scale> scales;
 
 using namespace rainbow;
 
@@ -100,127 +101,19 @@ void Filter::process_scale_bank(void) {
 			}
 
 			if (filter_type == MAXQ) {
-				// Equal temperament
-				if (scale_bank[i] 		 == 0)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_Major); 					// Major scale/chords
-				} else if (scale_bank[i] == 1)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_Minor); 					// Minor scale/chords
-				} else if (scale_bank[i] == 2)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_western_eq);				// Western intervals
-				} else if (scale_bank[i] == 3)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_western_twointerval_eq);	// Western triads
-				} else if (scale_bank[i] == 4)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_twelvetone);				// Chromatic scale - each of the 12 western semitones spread on multiple octaves
-				} else if (scale_bank[i] == 5)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_diatonic_eq);			// Diatonic scale Equal
-
-				// Just intonation
-				} else if (scale_bank[i] == 6)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_western); 				// Western Intervals
-				} else if (scale_bank[i] == 7)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_western_twointerval); 	// Western triads (pairs of intervals)
-				} else if (scale_bank[i] == 8)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_diatonic_just);			// Diatonic scale Just
-
-				// Non-Western Tunings
-				} else if (scale_bank[i] == 9)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_indian);					// Indian pentatonic
-				} else if (scale_bank[i] == 10)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_shrutis);				// Indian Shrutis
-				} else if (scale_bank[i] == 11)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_mesopotamian);			// Mesopotamian
-				} else if (scale_bank[i] == 12)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_gamelan);				// Gamelan Pelog
-
-				// Modern tunings
-				} else if (scale_bank[i] == 13)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_alpha_spread2);			// W.C.'s Alpha scale - selected notes A
-				} else if (scale_bank[i] == 14)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_alpha_spread1);			// W.C.'s Alpha scale - selected notes B
-				} else if (scale_bank[i] == 15)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_gammaspread1);			// W.C.'s Gamma scale - selected notes
-				} else if (scale_bank[i] == 16)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_17ET);					// 17 notes/oct
-				} else if (scale_bank[i] == 17)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_bohlen_pierce);			// Bohlen Pierce
-				} else if (scale_bank[i] == 18)	{
-					c_hiq[i] = (float *)(filter_maxq_coefs_B296);					// Buchla 296 EQ
-
-				// User	Scales
-				} else if (scale_bank[i] == NUM_SCALEBANKS - 1) { 		// User scalebank is the last scalebank
+				if (scale_bank[i] == NUM_SCALEBANKS - 1) {
 					c_hiq[i] = (float *)(user_scale_bank);
-				}
-
-			} else if (filter_mode != TWOPASS && filter_type == BPRE) {
-
-				// Equal temperament
-				if (scale_bank[i] 		 == 0)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_Major_800Q); 			// Major scale/chords
-					c_loq[i] = (float *)(filter_bpre_coefs_Major_2Q); 				// Major scale/chords
-				} else if (scale_bank[i] == 1)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_Minor_800Q); 			// Minor scale/chords
-					c_loq[i] = (float *)(filter_bpre_coefs_Minor_2Q); 				// Minor scale/chords
-				} else if (scale_bank[i] == 2)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_western_eq_800Q); 		// Western intervals	
-					c_loq[i] = (float *)(filter_bpre_coefs_western_eq_2Q); 				
-				} else if (scale_bank[i] == 3)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_western_twointerval_eq_800Q); 	// Western triads			
-					c_loq[i] = (float *)(filter_bpre_coefs_western_twointerval_eq_2Q); 				
-				} else if (scale_bank[i] == 4)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_twelvetone_800Q);		// Chromatic scale - each of the 12 western semitones spread on multiple octaves
-					c_loq[i] = (float *)(filter_bpre_coefs_twelvetone_2Q);			// Chromatic scale - each of the 12 western semitones spread on multiple octaves
-				} else if (scale_bank[i] == 5)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_diatonic_eq_800Q);		// Diatonic scale
-					c_loq[i] = (float *)(filter_bpre_coefs_diatonic_eq_2Q);			// Diatonic scale
-
-				// Just intonation
-				} else if (scale_bank[i] == 6)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_western_800Q); 			// Western Intervals
-					c_loq[i] = (float *)(filter_bpre_coefs_western_2Q); 			// Western Intervals
-				} else if (scale_bank[i] == 7)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_western_twointerval_800Q); 	// Western triads (pairs of intervals)
-					c_loq[i] = (float *)(filter_bpre_coefs_western_twointerval_2Q); 	// Western triads (pairs of intervals)
-				} else if (scale_bank[i] == 8)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_diatonic_just_800Q);		// Diatonic scale
-					c_loq[i] = (float *)(filter_bpre_coefs_diatonic_just_2Q);		// Diatonic scale
-
-				// Non-western Tunings
-				} else if (scale_bank[i] == 9)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_indian_800Q);			// Indian pentatonic
-					c_loq[i] = (float *)(filter_bpre_coefs_indian_2Q);				// Indian pentatonic
-				} else if (scale_bank[i] == 10)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_shrutis_800Q);			// Indian Shrutis
-					c_loq[i] = (float *)(filter_bpre_coefs_shrutis_2Q);				// Indian Shrutis
-				} else if (scale_bank[i] == 11)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_mesopotamian_800Q);		// Mesopotamian
-					c_loq[i] = (float *)(filter_bpre_coefs_mesopotamian_2Q);		// Mesopotamian
-				} else if (scale_bank[i] == 12)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_gamelan_800Q);			// Gamelan Pelog
-					c_loq[i] = (float *)(filter_bpre_coefs_gamelan_2Q);				// Gamelan Pelog
-
-				// modern tunings
-				} else if (scale_bank[i] == 13)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_alpha_spread2_800Q);		// W.C.'s Alpha scale - selected notes A
-					c_loq[i] = (float *)(filter_bpre_coefs_alpha_spread2_2Q);		// W.C.'s Alpha scale - selected notes A
-				} else if (scale_bank[i] == 14)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_alpha_spread1_800Q);		// W.C.'s Alpha scale - selected notes B
-					c_loq[i] = (float *)(filter_bpre_coefs_alpha_spread1_2Q);		// W.C.'s Alpha scale - selected notes B
-				} else if (scale_bank[i] == 15)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_gammaspread1_800Q);		// W.C.'s Gamma scale - selected notes
-					c_loq[i] = (float *)(filter_bpre_coefs_gammaspread1_2Q);		// W.C.'s Gamma scale - selected notes
-				} else if (scale_bank[i] == 16)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_17ET_800Q);				// 17 notes/oct
-					c_loq[i] = (float *)(filter_bpre_coefs_17ET_2Q);				// 17 notes/oct
-				} else if (scale_bank[i] == 17)	{
-					c_hiq[i] = (float *)(filter_bpre_coefs_bohlen_pierce_800Q);		// Bohlen Pierce
-					c_loq[i] = (float *)(filter_bpre_coefs_bohlen_pierce_2Q);		// Bohlen Pierce
-				} else if (scale_bank[i] == 18){
-					c_hiq[i] = (float *)(filter_bpre_coefs_B296_800Q);				// Buchla 296 EQ
-					c_loq[i] = (float *)(filter_bpre_coefs_B296_2Q);				// Buchla 296 EQ
 				} else {
-					c_hiq[i] = (float *)(filter_bpre_coefs_Major_800Q); 			// Default to Major scale/chords
-					c_loq[i] = (float *)(filter_bpre_coefs_Major_2Q); 				// Major scale/chords
-				}
+					c_hiq[i] = (float *)(scales[scale_bank[i]].c_maxq);
+				}	
+			} else if (filter_mode != TWOPASS && filter_type == BPRE) {
+				if (scale_bank[i] == NUM_SCALEBANKS - 1) {
+					c_hiq[i] = (float *)(scales[scale_bank[0]].c_bpre_hi); // Default to Major, if this ever happens
+					c_loq[i] = (float *)(scales[scale_bank[0]].c_bpre_lo); // which it shouldn't
+				} else {
+					c_hiq[i] = (float *)(scales[scale_bank[i]].c_bpre_hi);
+					c_loq[i] = (float *)(scales[scale_bank[i]].c_bpre_lo);
+				}	
 			}
 		} 	// new scale bank or filter type changed
 	}	// channels

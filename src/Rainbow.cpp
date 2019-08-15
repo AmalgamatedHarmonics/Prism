@@ -6,7 +6,11 @@
 #include "Common.hpp"
 #include "Rainbow.hpp"
 
+#include "scales/Scales.hpp"
+
 #include "dsp/noise.hpp"
+
+extern std::vector<Scale> scales;
 
 using namespace prism;
 
@@ -895,15 +899,19 @@ struct BankWidget : Widget {
 
 		char text[128];
 
+		std::cout << module->currBank << " " << module->nextBank << std::endl;
+
 		if (module->currBank == module->nextBank) {
 			nvgFillColor(ctx.vg, colors[module->currBank]);
-			snprintf(text, sizeof(text), "%s", banks[module->currBank].c_str());
-			nvgText(ctx.vg, 0, box.pos.y, text, NULL);
+			std::cout << scales[module->currBank].name << std::endl;
+			snprintf(text, sizeof(text), "%s", scales[module->currBank].name.c_str());
 		} else {
 			nvgFillColor(ctx.vg, colors[module->nextBank]);
-			snprintf(text, sizeof(text), "%s*", banks[module->nextBank].c_str());
-			nvgText(ctx.vg, 0, box.pos.y, text, NULL);
+			std::cout << scales[module->nextBank].name << std::endl;
+			snprintf(text, sizeof(text), "%s*", scales[module->nextBank].name.c_str());
 		}
+
+		nvgText(ctx.vg, 0, box.pos.y, text, NULL);
 
 	}
 
