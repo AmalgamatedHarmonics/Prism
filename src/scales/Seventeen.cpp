@@ -3,7 +3,7 @@
 // Not done
 
 Scale seventeen = {
-	.name = "17 Note/Oct",
+	.name = "17 TET",
 	.description = "Scales from C Major",
 	.scalename = {
 		"Major chords C0-",
