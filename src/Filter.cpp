@@ -107,13 +107,8 @@ void Filter::process_scale_bank(void) {
 					c_hiq[i] = (float *)(scales[scale_bank[i]].c_maxq);
 				}	
 			} else if (filter_mode != TWOPASS && filter_type == BPRE) {
-				if (scale_bank[i] == NUM_SCALEBANKS - 1) {
-					c_hiq[i] = (float *)(scales[scale_bank[0]].c_bpre_hi); // Default to Major, if this ever happens
-					c_loq[i] = (float *)(scales[scale_bank[0]].c_bpre_lo); // which it shouldn't
-				} else {
-					c_hiq[i] = (float *)(scales[scale_bank[i]].c_bpre_hi);
-					c_loq[i] = (float *)(scales[scale_bank[i]].c_bpre_lo);
-				}	
+				c_hiq[i] = (float *)(scales[scale_bank[i]].c_bpre_hi);
+				c_loq[i] = (float *)(scales[scale_bank[i]].c_bpre_lo);
 			}
 		} 	// new scale bank or filter type changed
 	}	// channels
