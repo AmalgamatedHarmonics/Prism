@@ -13,6 +13,14 @@ struct Scale {
 	float c_bpre_lo[231][3];
 };
 
+struct ScaleSet {
+
+	std::vector<Scale *> presets;
+	std::vector<Scale *> full;
+	ScaleSet();
+	
+};
+
 extern Scale major;
 extern Scale minor;
 extern Scale et_intervals;
@@ -35,5 +43,3 @@ extern Scale buchla296;
 extern Scale userscale;
 extern Scale gamma_notused;
 extern Scale video_notused;
-
-std::vector<Scale> buildScale();

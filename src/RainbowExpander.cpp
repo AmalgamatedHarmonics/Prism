@@ -55,11 +55,9 @@ struct BaseRainbowExpander : core::PrismModule {
 	int currNote = 0;
 	int currBank = 0;
 
-    std::vector<Scale> scales;
+    ScaleSet scales;
 
-	BaseRainbowExpander(int P, int I, int O, int L) : core::PrismModule(P, I, O, L) {
-		scales = buildScale();
-	}
+	BaseRainbowExpander(int P, int I, int O, int L) : core::PrismModule(P, I, O, L) { }
 
 	json_t *dataToJson() override {
 
@@ -102,7 +100,7 @@ struct BaseRainbowExpander : core::PrismModule {
 	}
 
 	float *bankToCoeff(int bank) {
-		float *coeff = (float *)(scales[bank].c_maxq);
+		float *coeff = (float *)(scales.full[bank]->c_maxq);
 		return coeff;
 	}
 };
@@ -166,7 +164,7 @@ struct RainbowExpanderET : BaseRainbowExpander {
 		configParam(ET_DSEMITONE_PARAM, 0, 11, 0, "Semitone increment");
 		configParam(ET_MAXSTEPS_PARAM, 1, 21, 1, "Max number of steps");
 
-		configParam(BANK_PARAM, 0, 18, 0, "Preset"); 
+		configParam(BANK_PARAM, 0, 21, 0, "Preset"); 
 		configParam(SWITCHBANK_PARAM, 0, 1, 0, "Load preset"); 
 
 		configParam(SET_FROM_ET_PARAM, 0, 1, 0, "Load ET note into slot");
@@ -466,10 +464,9 @@ struct ExpanderBankWidget : Widget {
 
 	ExpanderBankWidget() {
 		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/BarlowCondensed-Bold.ttf"));
-		scales = buildScale();
 	}
 
-    std::vector<Scale> scales;
+    ScaleSet scales;
 
 	BaseRainbowExpander *module = NULL;
 
@@ -502,9 +499,12 @@ struct ExpanderBankWidget : Widget {
         nvgRGBf(  100.0f/1023.0f	, 824.0f/1023.0f	, 9.0f/1023.0f		),
         nvgRGBf(  100.0f/1023.0f	, 724.0f/1023.0f	, 4.0f/1023.0f		),
 
-		nvgRGBf( 900.0f/1023.0f		, 900.0f/1023.0f	, 900.0f/1023.0f)
-
+		// User Scale
+		nvgRGBf( 900.0f/1023.0f		, 900.0f/1023.0f	, 900.0f/1023.0f	)
 	};
+
+	// Gamma
+	NVGcolor extraColour = nvgRGBf(245.0f/255.0f,  245.0f/255.0f, 090.0f/255.0f );
 
 	void draw(const DrawArgs &ctx) override {
 
@@ -516,9 +516,14 @@ struct ExpanderBankWidget : Widget {
 		nvgFontFaceId(ctx.vg, font->handle);
 
 		char text[128];
+		int index = module->currBank;
+		if (index < NUM_SCALEBANKS) {
+			nvgFillColor(ctx.vg, colors[index]);
+		} else {
+			nvgFillColor(ctx.vg, extraColour);
+		}
 
-		nvgFillColor(ctx.vg, colors[module->currBank]);
-		snprintf(text, sizeof(text), "%s", scales[module->currBank].name.c_str());
+		snprintf(text, sizeof(text), "%s", scales.full[index]->name.c_str());
 		nvgText(ctx.vg, 0, box.pos.y, text, NULL);
 
 	}

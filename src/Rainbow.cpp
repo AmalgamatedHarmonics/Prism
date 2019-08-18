@@ -841,12 +841,11 @@ struct BankWidget : Widget {
 
 	BankWidget() {
 		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/BarlowCondensed-Bold.ttf"));
-		scales = buildScale();
 	}
 
 	Rainbow *module = NULL;
 
-    std::vector<Scale> scales;
+    ScaleSet scales;
 
 	NVGcolor colors[NUM_SCALEBANKS] = {
 
@@ -895,10 +894,10 @@ struct BankWidget : Widget {
 
 		if (module->currBank == module->nextBank) {
 			nvgFillColor(ctx.vg, colors[module->currBank]);
-			snprintf(text, sizeof(text), "%s", scales[module->currBank].name.c_str());
+			snprintf(text, sizeof(text), "%s", scales.presets[module->currBank]->name.c_str());
 		} else {
 			nvgFillColor(ctx.vg, colors[module->nextBank]);
-			snprintf(text, sizeof(text), "%s*", scales[module->nextBank].name.c_str());
+			snprintf(text, sizeof(text), "%s*", scales.presets[module->nextBank]->name.c_str());
 		}
 
 		nvgText(ctx.vg, 0, box.pos.y, text, NULL);

@@ -168,7 +168,7 @@ struct Filter {
     IO *            io;
     Levels *        levels;
 
-    std::vector<Scale> scales;
+    ScaleSet scales;
 
     //Filters
     uint8_t note[NUM_CHANNELS];

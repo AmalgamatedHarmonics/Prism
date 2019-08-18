@@ -1,28 +1,49 @@
 #include "Scales.hpp"
 
-std::vector<Scale> buildScale() {
-	std::vector<Scale> s;
-	s.push_back(major);
-	s.push_back(minor);
-	s.push_back(et_intervals);
-	s.push_back(et_triads);
-	s.push_back(et_chromatic);
-	s.push_back(et_wholestep);
-	s.push_back(ji_intervals);
-	s.push_back(ji_triads);
-	s.push_back(ji_wholestep);
-	s.push_back(indian_penta);
-	s.push_back(indian_shrutis);
-	s.push_back(mesopotamian);
-	s.push_back(gamelan);
-	s.push_back(wc_alpha2);
-	s.push_back(wc_alpha1);
-	s.push_back(wc_gamma);
-	s.push_back(seventeen);
-	s.push_back(bp);
-	s.push_back(buchla296);
-	s.push_back(userscale);
-	s.push_back(gamma_notused);
-	s.push_back(video_notused);
-	return s;
+ScaleSet::ScaleSet() {
+
+	presets.push_back(&major);
+	presets.push_back(&minor);
+	presets.push_back(&et_intervals);
+	presets.push_back(&et_triads);
+	presets.push_back(&et_chromatic);
+	presets.push_back(&et_wholestep);
+	presets.push_back(&ji_intervals);
+	presets.push_back(&ji_triads);
+	presets.push_back(&ji_wholestep);
+	presets.push_back(&indian_penta);
+	presets.push_back(&indian_shrutis);
+	presets.push_back(&mesopotamian);
+	presets.push_back(&gamelan);
+	presets.push_back(&wc_alpha2);
+	presets.push_back(&wc_alpha1);
+	presets.push_back(&wc_gamma);
+	presets.push_back(&seventeen);
+	presets.push_back(&bp);
+	presets.push_back(&buchla296);
+	presets.push_back(&userscale);
+
+	full.push_back(&major);
+	full.push_back(&minor);
+	full.push_back(&et_intervals);
+	full.push_back(&et_triads);
+	full.push_back(&et_chromatic);
+	full.push_back(&et_wholestep);
+	full.push_back(&ji_intervals);
+	full.push_back(&ji_triads);
+	full.push_back(&ji_wholestep);
+	full.push_back(&indian_penta);
+	full.push_back(&indian_shrutis);
+	full.push_back(&mesopotamian);
+	full.push_back(&gamelan);
+	full.push_back(&wc_alpha2);
+	full.push_back(&wc_alpha1);
+	full.push_back(&wc_gamma);
+	full.push_back(&seventeen);
+	full.push_back(&bp);
+	full.push_back(&buchla296);
+	full.push_back(&userscale);
+	full.push_back(&gamma_notused);
+	full.push_back(&video_notused);
+
 }
