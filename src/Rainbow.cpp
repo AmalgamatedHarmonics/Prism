@@ -8,8 +8,6 @@
 
 #include "scales/Scales.hpp"
 
-#include "dsp/noise.hpp"
-
 using namespace prism;
 
 struct frame {
@@ -152,19 +150,6 @@ struct Rainbow : core::PrismModule {
 	int currFilter = 0; // TODO Move to State
 	int nextFilter = 0;
 
-	const float MIN_12BIT = -16777216.0f;
-	const float MAX_12BIT = 16777215.0f;
-
-	dsp::SampleRateConverter<1> nInputSrc[6];
-	dsp::DoubleRingBuffer<dsp::Frame<1>, 256> nInputBuffer[6];
-
-	dsp::SampleRateConverter<6> outputSrc;
-	dsp::DoubleRingBuffer<dsp::Frame<6>, 256> outputBuffer;
-
-	bogaudio::dsp::PinkNoiseGenerator pink;
-	bogaudio::dsp::RedNoiseGenerator brown;
-	bogaudio::dsp::WhiteNoiseGenerator white;
-
 	rack::dsp::SchmittTrigger lockTriggers[6];
 	rack::dsp::SchmittTrigger qlockTriggers[6];
 	rack::dsp::SchmittTrigger lock135Trigger;
@@ -180,6 +165,8 @@ struct Rainbow : core::PrismModule {
 	rack::dsp::SchmittTrigger scaleCCWButtonTrigger;
 
 	rack::dsp::SchmittTrigger changeBankTrigger;
+
+	rainbow::Audio audio;
 
 	json_t *dataToJson() override {
 
@@ -317,14 +304,6 @@ struct Rainbow : core::PrismModule {
 
 	}
 
-	float generateNoise(int noiseSelected);
-	void nChannelProcess(int inputChannels, int outputChannels, int noiseSelected, float sampleRate);
-
-	dsp::Frame<1> nInputFrame[6] = {};
-	dsp::Frame<1> nInputFrames[6][NUM_SAMPLES] = {};
-	dsp::Frame<6> outputFrame = {};
-	dsp::Frame<6> outputFrames[NUM_SAMPLES];
-
   ~Rainbow() {
 		delete pMessage;
 		delete cMessage;
@@ -361,6 +340,9 @@ struct Rainbow : core::PrismModule {
 		configParam(SCALECW_PARAM, 0, 1, 0, "Scale CW/Up"); 
 		configParam(SCALECCW_PARAM, 0, 1, 0, "Scale CCW/Down"); 
 
+	std::cout << "Start 1" << std::endl;
+
+
 		for (int n = 0; n < 6; n++) {
 			configParam(CHANNEL_LEVEL_PARAM + n, 0, 4095, 4095, "Channel Level");
 			configParam(LEVEL_OUT_PARAM + n, 0, 1, 1, "Channel Level");
@@ -377,9 +359,14 @@ struct Rainbow : core::PrismModule {
 
 		}
 
+
+	std::cout << "Start 2" << std::endl;
+
 		lightDivider.setDivision(256);
 
 	    main.initialise();
+
+	std::cout << "Start 3" << std::endl;
 
 		rightExpander.producerMessage = pMessage;
 		rightExpander.consumerMessage = cMessage;
@@ -387,6 +374,8 @@ struct Rainbow : core::PrismModule {
 		pMessage->updated = false;
 		cMessage->updated = false;
 
+	std::cout << "Start 4" << std::endl;
+		
 	}
 
 	void onReset() override {
@@ -410,168 +399,8 @@ struct Rainbow : core::PrismModule {
 
 };
 
-float Rainbow::generateNoise(int noiseSelected) {
-	float nO;
-	switch (noiseSelected) {
-		case 0:
-			nO = brown.next() * 10.0f - 5.0f;
-			break;
-		case 1:
-			nO = pink.next() * 10.0f - 5.0f;
-			break;
-		case 2:
-			nO = white.next() * 10.0f - 5.0f;
-			break;
-		default:
-			nO = pink.next() * 10.0f - 5.0f;
-	}
-	return nO;
-}
-
-void Rainbow::nChannelProcess(int inputChannels, int outputChannels, int noiseSelected, float sampleRate) {
-
-	int chan;
-
-	// Must generate 2, 3 or 6 channels
-	switch(inputChannels) {
-		case 0:
-		case 1:
-		case 2:
-			chan = 2;
-			break;
-		case 3:
-			chan = 3;
-			break;
-		default:
-			chan = 6;
-	}
-
-	for (int i = 0; i < chan; i++) {
-		if (!nInputBuffer[i].full()) {
-			if (inputChannels == 0) {
-				nInputFrame[i].samples[0] = generateNoise(noiseSelected) / 5.0f;
-			} else if (inputChannels == 1) {
-				nInputFrame[i].samples[0] = inputs[POLY_IN_INPUT].getVoltage(0) / 5.0f;
-			} else {
-				nInputFrame[i].samples[0] = inputs[POLY_IN_INPUT].getVoltage(i) / 5.0f;
-			}
-			nInputBuffer[i].push(nInputFrame[i]);
-		} 
-	}
-
-	// At this point we have populated 2,3 or 6 buffers
-
-	// Process buffer
-	if (outputBuffer.empty()) {
-
-		for (int i = 0; i < chan; i++) {
-			nInputSrc[i].setRates(sampleRate, 96000);
-
-			int inLen = nInputBuffer[i].size();
-			int outLen = NUM_SAMPLES;
-			nInputSrc[i].process(nInputBuffer[i].startData(), &inLen, nInputFrames[i], &outLen);
-			nInputBuffer[i].startIncr(inLen);
-
-			for (int j = 0; j < NUM_SAMPLES; j++) {
-				int32_t v = (int32_t)clamp(nInputFrames[i][j].samples[0] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
-
-				switch(chan) {
-					case 2:
-						main.io->in[i][j] 		= v;
-						main.io->in[2 + i][j] 	= v;
-						main.io->in[4 + i][j] 	= v;
-						break;
-					case 3:
-						main.io->in[i][j] 		= v;
-						main.io->in[1 + i][j] 	= v;
-						break;
-					default:
-						main.io->in[i][j] 		= v;
-				}
-			}
-		}
-
-		// Pass to module
-		main.process_audio();
-
-		// Convert output buffer
-		for (int chan = 0; chan < NUM_CHANNELS; chan++) {
-			for (int i = 0; i < NUM_SAMPLES; i++) {
-				outputFrames[i].samples[chan] = main.io->out[chan][i] / MAX_12BIT;
-			}
-		}
-
-		outputSrc.setRates(96000, sampleRate);
-		int inLen = NUM_SAMPLES;
-		int outLen = outputBuffer.capacity();
-		outputSrc.process(outputFrames, &inLen, outputBuffer.endData(), &outLen);
-		outputBuffer.endIncr(outLen);
-	}
-
-	// Set output
-	if (!outputBuffer.empty()) {
-		outputFrame = outputBuffer.shift();
-
-		float mono = 0.0f;
-		float l = 0.0f;
-		float r = 0.0;
-		
-		switch(outputChannels) {
-			case 0:
-				outputs[POLY_OUT_OUTPUT].setChannels(1);
-				break;
-			case 1:
-				outputs[POLY_OUT_OUTPUT].setChannels(2);
-				break;
-			case 2:
-				outputs[POLY_OUT_OUTPUT].setChannels(6);
-				break;
-			default:
-				outputs[POLY_OUT_OUTPUT].setChannels(1);
-				break;
-		}
-
-		for (int i = 0; i < NUM_CHANNELS; i++) {
-			switch(outputChannels) {
-				case 0:
-					mono += outputFrame.samples[i];
-					break;
-				case 1:
-					if (i & 1) {
-						r += outputFrame.samples[i];
-					} else {
-						l += outputFrame.samples[i];
-					}
-					break;
-				case 2:
-					outputs[POLY_OUT_OUTPUT].setVoltage(outputFrame.samples[i] * 5.0f, i);
-					break;
-				default:
-					mono += outputFrame.samples[i];
-					break;
-			}
-		}
-
-		switch(outputChannels) {
-			case 0:
-				outputs[POLY_OUT_OUTPUT].setVoltage(mono * 5.0f, 0);
-				break;
-			case 1:
-				outputs[POLY_OUT_OUTPUT].setVoltage(l * 5.0f, 0);
-				outputs[POLY_OUT_OUTPUT].setVoltage(r * 5.0f, 1);
-				break;
-			case 2: // Do nothing
-				break;
-			default:
-				outputs[POLY_OUT_OUTPUT].setVoltage(mono * 5.0f, 0);
-				break;
-		}
-	}
-
-}
-
 void Rainbow::process(const ProcessArgs &args) {
-	
+
 	PrismModule::step();
 
 	main.io->USER_SCALE_CHANGED = false;
@@ -740,10 +569,12 @@ void Rainbow::process(const ProcessArgs &args) {
 
 	main.prepare();
 
-	int inputChannels = inputs[POLY_IN_INPUT].getChannels();
-	int outputChannels = params[OUTCHAN_PARAM].getValue();
+	audio.inputChannels = inputs[POLY_IN_INPUT].getChannels();
+	audio.outputChannels = params[OUTCHAN_PARAM].getValue(); 
+	audio.noiseSelected = noiseSelected;
+	audio.sampleRate = args.sampleRate;
 
-	nChannelProcess(inputChannels, outputChannels, noiseSelected, args.sampleRate);
+	audio.nChannelProcess(main, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT]);
 
 	// Populate poly outputs
 	outputs[POLY_VOCT_OUTPUT].setChannels(6);

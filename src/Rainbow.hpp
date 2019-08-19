@@ -6,6 +6,9 @@
 #include <vector>
 #include <inttypes.h>
 
+#include "common.hpp"
+
+#include "dsp/noise.hpp"
 #include "scales/Scales.hpp"
 
 extern float default_user_scalebank[21];
@@ -98,11 +101,6 @@ enum GlideSetting {
 	GlideOn,
 };
 
-// Utility functions
-void *memset(void *s, int c, size_t n);
-
-void *memcpy(void *dest, const void *src, size_t n);
-
 uint32_t diff(uint32_t a, uint32_t b);
 
 struct RainbowExpanderMessage {
@@ -112,6 +110,7 @@ struct RainbowExpanderMessage {
 
 namespace rainbow {
 
+struct Audio;
 struct Envelope;
 struct Filter;
 struct IO;
@@ -124,6 +123,36 @@ struct Q;
 struct Tuning;
 struct Levels;
 struct State;
+
+struct Audio {
+
+	const float MIN_12BIT = -16777216.0f;
+	const float MAX_12BIT = 16777215.0f;
+
+    int inputChannels;
+    int outputChannels;
+    int noiseSelected;
+    float sampleRate;
+
+	dsp::SampleRateConverter<1> nInputSrc[6] = {};
+	dsp::DoubleRingBuffer<dsp::Frame<1>, 256> nInputBuffer[6] = {};
+
+	dsp::SampleRateConverter<6> outputSrc;
+	dsp::DoubleRingBuffer<dsp::Frame<6>, 256> outputBuffer;
+
+	bogaudio::dsp::PinkNoiseGenerator pink;
+	bogaudio::dsp::RedNoiseGenerator brown;
+	bogaudio::dsp::WhiteNoiseGenerator white;
+
+	dsp::Frame<1> nInputFrame[6] = {};
+	dsp::Frame<1> nInputFrames[6][NUM_SAMPLES] = {};
+	dsp::Frame<6> outputFrame = {};
+	dsp::Frame<6> outputFrames[NUM_SAMPLES] = {};
+
+   	float generateNoise();
+    void nChannelProcess(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output);
+
+};
 
 struct Envelope {
 
