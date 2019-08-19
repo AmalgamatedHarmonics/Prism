@@ -11,8 +11,6 @@
 #include "dsp/noise.hpp"
 #include "scales/Scales.hpp"
 
-extern float default_user_scalebank[21];
-
 //Number of components
 #define NUM_FILTS 20
 #define NUM_CHANNELS 6
@@ -22,7 +20,6 @@ extern float default_user_scalebank[21];
 // Number of notes to completely define a scale
 #define NUM_SCALENOTES 21
 #define NUM_BANKNOTES 231
-
 
 // Audio buffer sizing
 #define BUFFER_SIZE 8

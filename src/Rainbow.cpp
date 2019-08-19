@@ -304,7 +304,7 @@ struct Rainbow : core::PrismModule {
 
 	}
 
-  ~Rainbow() {
+	~Rainbow() {
 		delete pMessage;
 		delete cMessage;
 	}
@@ -340,9 +340,6 @@ struct Rainbow : core::PrismModule {
 		configParam(SCALECW_PARAM, 0, 1, 0, "Scale CW/Up"); 
 		configParam(SCALECCW_PARAM, 0, 1, 0, "Scale CCW/Down"); 
 
-	std::cout << "Start 1" << std::endl;
-
-
 		for (int n = 0; n < 6; n++) {
 			configParam(CHANNEL_LEVEL_PARAM + n, 0, 4095, 4095, "Channel Level");
 			configParam(LEVEL_OUT_PARAM + n, 0, 1, 1, "Channel Level");
@@ -359,14 +356,9 @@ struct Rainbow : core::PrismModule {
 
 		}
 
-
-	std::cout << "Start 2" << std::endl;
-
 		lightDivider.setDivision(256);
 
 	    main.initialise();
-
-	std::cout << "Start 3" << std::endl;
 
 		rightExpander.producerMessage = pMessage;
 		rightExpander.consumerMessage = cMessage;
@@ -374,8 +366,6 @@ struct Rainbow : core::PrismModule {
 		pMessage->updated = false;
 		cMessage->updated = false;
 
-	std::cout << "Start 4" << std::endl;
-		
 	}
 
 	void onReset() override {
@@ -391,11 +381,11 @@ struct Rainbow : core::PrismModule {
 		main.initialise();
 	}
 
-	void process(const ProcessArgs &args) override;
-
 	void toggleFreqblock(int id) {
 		main.io->FREQ_BLOCK.flip(id);
 	}
+
+	void process(const ProcessArgs &args) override;
 
 };
 
@@ -588,11 +578,6 @@ void Rainbow::process(const ProcessArgs &args) {
 		vuMeters[n].process(args.sampleTime, main.io->channelLevel[n]);
 	}
 
-	// outputs[POLY_DEBUG_OUTPUT].setChannels(16);
-	// for (int n = 0; n < 16; n++) {
-	// 	outputs[POLY_DEBUG_OUTPUT].setVoltage(main.io->DEBUG[n], n);
-	// }
-
 	// Set VCV LEDs
 	for (int n = 0; n < 6; n++) {
 		main.io->LOCK_ON[n] ? lights[LOCK_LIGHT + n].setBrightness(1.0f) : lights[LOCK_LIGHT + n].setBrightness(0.0f); 
@@ -669,15 +654,8 @@ void LED::onButton(const event::Button &e) {
 struct BankWidget : Widget {
 
 	std::shared_ptr<Font> font;
-
-	BankWidget() {
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/BarlowCondensed-Bold.ttf"));
-	}
-
 	Rainbow *module = NULL;
-
     ScaleSet scales;
-
 	NVGcolor colors[NUM_SCALEBANKS] = {
 
         // Shades of Blue
@@ -711,6 +689,10 @@ struct BankWidget : Widget {
 
 	};
 
+	BankWidget() {
+		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/BarlowCondensed-Bold.ttf"));
+	}
+
 	void draw(const DrawArgs &ctx) override {
 
 		if (module == NULL) {
@@ -743,8 +725,6 @@ struct RainbowWidget : ModuleWidget {
 
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Rainbow.svg")));
-
-		// addOutput(createOutput<PJ301MPort>(mm2px(Vec(5,5)), module, Rainbow::POLY_DEBUG_OUTPUT));
 
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(116.911, 15.686)), module, Rainbow::LOCKON_PARAM+0));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(128.057, 15.686)), module, Rainbow::LOCKON_PARAM+1));
