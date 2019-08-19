@@ -22,23 +22,39 @@ float Audio::generateNoise() {
 
 void Audio::nChannelProcess(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output) {
 
-	int chan;
+    int inChannels;
+    int outChannels;
 
-	// Must generate 2, 3 or 6 channels
-	switch(inputChannels) {
-		case 0:
-		case 1:
-		case 2:
-			chan = 2;
-			break;
-		case 3:
-			chan = 3;
-			break;
-		default:
-			chan = 6;
-	}
+    // Must generate 2, 3 or 6 input streams
+    switch(inputChannels) {
+            case 0:
+            case 1:
+            case 2:
+                    inChannels = 2;
+                    break;
+            case 3:
+                    inChannels = 3;
+                    break;
+            default:
+                    inChannels = 6;
+    }
 
-	for (int i = 0; i < chan; i++) {
+    // Must generate 1, 2 or 6 output streams
+    switch(outputChannels) {
+            case 0:
+                    outChannels = 1;
+                    break;
+            case 1:
+                    outChannels = 2;
+                    break;
+            case 2:
+                    outChannels = 6;
+                    break;
+            default:
+                    outChannels = 1;
+    }
+
+	for (int i = 0; i < inChannels; i++) {
 		if (!nInputBuffer[i].full()) {
 			if (inputChannels == 0) {
 				nInputFrame[i].samples[0] = generateNoise() / 5.0f;
@@ -56,7 +72,7 @@ void Audio::nChannelProcess(rainbow::Controller &main, rack::engine::Input &inpu
 	// Process buffer
 	if (outputBuffer.empty()) {
 
-		for (int i = 0; i < chan; i++) {
+		for (int i = 0; i < inChannels; i++) {
 			nInputSrc[i].setRates(sampleRate, 96000);
 
 			int inLen = nInputBuffer[i].size();
@@ -67,7 +83,7 @@ void Audio::nChannelProcess(rainbow::Controller &main, rack::engine::Input &inpu
 			for (int j = 0; j < NUM_SAMPLES; j++) {
 				int32_t v = (int32_t)clamp(nInputFrames[i][j].samples[0] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
 
-				switch(chan) {
+				switch(inChannels) {
 					case 2:
 						main.io->in[i][j] 		= v;
 						main.io->in[2 + i][j] 	= v;
@@ -107,35 +123,22 @@ void Audio::nChannelProcess(rainbow::Controller &main, rack::engine::Input &inpu
 		float mono = 0.0f;
 		float l = 0.0f;
 		float r = 0.0;
-		
-		switch(outputChannels) {
-			case 0:
-				output.setChannels(1);
-				break;
-			case 1:
-				output.setChannels(2);
-				break;
-			case 2:
-				output.setChannels(6);
-				break;
-			default:
-				output.setChannels(1);
-				break;
-		}
+
+		output.setChannels(outChannels);
 
 		for (int i = 0; i < NUM_CHANNELS; i++) {
-			switch(outputChannels) {
-				case 0:
+			switch(outChannels) {
+				case 1:
 					mono += outputFrame.samples[i];
 					break;
-				case 1:
+				case 2:
 					if (i & 1) {
 						r += outputFrame.samples[i];
 					} else {
 						l += outputFrame.samples[i];
 					}
 					break;
-				case 2:
+				case 6:
 					output.setVoltage(outputFrame.samples[i] * 5.0f, i);
 					break;
 				default:
@@ -144,15 +147,15 @@ void Audio::nChannelProcess(rainbow::Controller &main, rack::engine::Input &inpu
 			}
 		}
 
-		switch(outputChannels) {
-			case 0:
+		switch(outChannels) {
+			case 1:
 				output.setVoltage(mono * 5.0f, 0);
 				break;
-			case 1:
+			case 2:
 				output.setVoltage(l * 5.0f, 0);
 				output.setVoltage(r * 5.0f, 1);
 				break;
-			case 2: // Do nothing
+			case 6: // Do nothing
 				break;
 			default:
 				output.setVoltage(mono * 5.0f, 0);
