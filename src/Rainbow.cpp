@@ -564,7 +564,21 @@ void Rainbow::process(const ProcessArgs &args) {
 	audio.noiseSelected = noiseSelected;
 	audio.sampleRate = args.sampleRate;
 
-	audio.nChannelProcess(main, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT]);
+    switch(audio.outputChannels) {
+		case 0:
+			audio.ChannelProcess1(main, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT]);
+			break;
+		case 1:
+			audio.ChannelProcess2(main, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT]);
+			break;
+		case 2:
+			audio.ChannelProcess6(main, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT]);
+			break;
+		default:
+			audio.ChannelProcess1(main, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT]);
+    }
+
+	// audio.nChannelProcess(main, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT]);
 
 	// Populate poly outputs
 	outputs[POLY_VOCT_OUTPUT].setChannels(6);

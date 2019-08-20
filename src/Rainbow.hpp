@@ -131,23 +131,41 @@ struct Audio {
     int noiseSelected;
     float sampleRate;
 
-	dsp::SampleRateConverter<1> nInputSrc[6] = {};
-	dsp::DoubleRingBuffer<dsp::Frame<1>, 256> nInputBuffer[6] = {};
-
-	dsp::SampleRateConverter<6> outputSrc;
-	dsp::DoubleRingBuffer<dsp::Frame<6>, 256> outputBuffer;
-
 	bogaudio::dsp::PinkNoiseGenerator pink;
 	bogaudio::dsp::RedNoiseGenerator brown;
 	bogaudio::dsp::WhiteNoiseGenerator white;
 
+	dsp::SampleRateConverter<1> nInputSrc[6] = {};
+	dsp::DoubleRingBuffer<dsp::Frame<1>, 256> nInputBuffer[6] = {};
 	dsp::Frame<1> nInputFrame[6] = {};
 	dsp::Frame<1> nInputFrames[6][NUM_SAMPLES] = {};
+
+	dsp::SampleRateConverter<6> outputSrc;
+	dsp::DoubleRingBuffer<dsp::Frame<6>, 256> outputBuffer;
 	dsp::Frame<6> outputFrame = {};
 	dsp::Frame<6> outputFrames[NUM_SAMPLES] = {};
 
+	dsp::SampleRateConverter<1> outputSrc1;
+	dsp::DoubleRingBuffer<dsp::Frame<1>, 256> outputBuffer1;
+	dsp::Frame<1> outputFrame1 = {};
+	dsp::Frame<1> outputFrames1[NUM_SAMPLES] = {};
+
+	dsp::SampleRateConverter<2> outputSrc2;
+	dsp::DoubleRingBuffer<dsp::Frame<2>, 256> outputBuffer2;
+	dsp::Frame<2> outputFrame2 = {};
+	dsp::Frame<2> outputFrames2[NUM_SAMPLES] = {};
+
+	dsp::SampleRateConverter<6> outputSrc6;
+	dsp::DoubleRingBuffer<dsp::Frame<6>, 256> outputBuffer6;
+	dsp::Frame<6> outputFrame6 = {};
+	dsp::Frame<6> outputFrames6[NUM_SAMPLES] = {};
+
+
    	float generateNoise();
     void nChannelProcess(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output);
+    void ChannelProcess1(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output);
+    void ChannelProcess2(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output);
+    void ChannelProcess6(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output);
 
 };
 
