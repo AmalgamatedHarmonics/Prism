@@ -35,8 +35,8 @@ using namespace rainbow;
 extern float exp_1voct[4096];
 
 void Tuning::configure(IO *_io, Filter * _filter) {
-    filter      = _filter;
-	io			= _io;
+	filter	= _filter;
+	io		= _io;
 }
 
 void Tuning::update(void) {
@@ -104,7 +104,7 @@ void Tuning::update(void) {
 						coarse_adj[i] = 1.05946309436f;
 						break;
 					case 2:
-						coarse_adj[i] = 1.12246204831f;       
+						coarse_adj[i] = 1.12246204831f;
 						break;
 					case 3:
 						coarse_adj[i] = 1.189207115f;
@@ -119,7 +119,7 @@ void Tuning::update(void) {
 						coarse_adj[i] = 1.41421356237f;
 						break;
 					default:
-						coarse_adj[i] = 1.0f;       
+						coarse_adj[i] = 1.0f;
 						break;
 				}
 			}
@@ -201,14 +201,14 @@ void Tuning::update(void) {
 				t_fe = 1.0f;
 			}
 
-			f_shift_odds  = 1.0f;
-			f_shift_evens = 1.0f;
+			f_shift_odds	= 1.0f;
+			f_shift_evens	= 1.0f;
 			
-			f_nudge_odds  *= FREQNUDGE_LPF;
-			f_nudge_odds  += (1.0f - FREQNUDGE_LPF) * t_fo;
+			f_nudge_odds	*= FREQNUDGE_LPF;
+			f_nudge_odds	+= (1.0f - FREQNUDGE_LPF) * t_fo;
 
-			f_nudge_evens *= FREQNUDGE_LPF;
-			f_nudge_evens += (1.0f - FREQNUDGE_LPF) * t_fe;
+			f_nudge_evens	*= FREQNUDGE_LPF;
+			f_nudge_evens	+= (1.0f - FREQNUDGE_LPF) * t_fe;
 
 			if (!io->LOCK_ON[0]) {
 				freq_nudge[0] = f_nudge_odds;
@@ -268,15 +268,15 @@ void Tuning::update(void) {
 }
 
 void Tuning::initialise(void) {
-	freq_jack_conditioning[0].polarity 		= AP_UNIPOLAR;
-	freq_jack_conditioning[0].fir_lpf_size 	= 40;
+	freq_jack_conditioning[0].polarity		= AP_UNIPOLAR;
+	freq_jack_conditioning[0].fir_lpf_size	= 40;
 	freq_jack_conditioning[0].iir_lpf_size	= 0;
-	freq_jack_conditioning[0].bracket_size 	= 2;
+	freq_jack_conditioning[0].bracket_size	= 2;
 
-	freq_jack_conditioning[1].polarity 		= AP_UNIPOLAR;
-	freq_jack_conditioning[1].fir_lpf_size 	= 40;
+	freq_jack_conditioning[1].polarity		= AP_UNIPOLAR;
+	freq_jack_conditioning[1].fir_lpf_size	= 40;
 	freq_jack_conditioning[1].iir_lpf_size	= 0;
-	freq_jack_conditioning[1].bracket_size 	= 2;
+	freq_jack_conditioning[1].bracket_size	= 2;
 
 	freq_jack_conditioning[0].setup_fir_filter();
 	freq_jack_conditioning[1].setup_fir_filter();

@@ -109,7 +109,7 @@ struct PrismSSwitch : app::SvgSwitch {
 	PrismSSwitch() {
 		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSSwitch_0.svg")));
 		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSSwitch_2.svg")));
-    }
+	}
 };
 
 struct PrismSSwitch3 : app::SvgSwitch {
@@ -117,7 +117,7 @@ struct PrismSSwitch3 : app::SvgSwitch {
 		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSSwitch_0.svg")));
 		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSSwitch_1.svg")));
 		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSSwitch_2.svg")));
-    }
+	}
 };
 
 struct PrismLEDSlider : LEDSlider {

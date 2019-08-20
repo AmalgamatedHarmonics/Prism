@@ -4,7 +4,7 @@
 
 Scale mesopotamian = {
 	.name = "Mesopotamian",
-	.description = "The Mesopotamian tuning systems have reconstructed from cuneiform tablet from the Sumerian civilisation describing a Babylonian harp. The original work was made in 1960-70s by Duchesne-Guillemin, Kilmer, Gurney and Wulstan deriving a heptatonic ascending scale. Subsequent work by Vitale and Drumbill indicated that a descending scale was used. The reader is referred to 'NEW LIGHT ON THE BABYLONIAN TONAL SYSTEM, Leon Crickmore for an up-to-date summary of the discussion. Here the module used a Pythagorian tuning and step size suggested by West in THE BABYLONIAN MUSICAL NOTATION AND THE HURRIAN MELODIC TEXTS, p164. The frequencies have been recalculated using more accurate frequency ratios",
+	.description = "The Mesopotamian tuning systems have reconstructed from cuneiform tablet from the Sumerian civilisation describing a Babylonian harp. The original work was made in 1960-70s by Duchesne-Guillemin, Kilmer, Gurney and Wulstan deriving a heptatonic ascending scale. Subsequent work by Vitale and Dumbrill indicated that a descending scale was used. The reader is referred to 'NEW LIGHT ON THE BABYLONIAN TONAL SYSTEM, Leon Crickmore for an up-to-date summary of the discussion. Here the module used a Pythagorian tuning and step size suggested by West in THE BABYLONIAN MUSICAL NOTATION AND THE HURRIAN MELODIC TEXTS, p164. The frequencies have been recalculated using more accurate frequency ratios",
 	.scalename = {
 		"Ishartum; A1-",
 		"Ishartum; A4-",

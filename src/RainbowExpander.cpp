@@ -55,24 +55,24 @@ struct BaseRainbowExpander : core::PrismModule {
 	int currNote = 0;
 	int currBank = 0;
 
-    ScaleSet scales;
+	ScaleSet scales;
 
 	BaseRainbowExpander(int P, int I, int O, int L) : core::PrismModule(P, I, O, L) { }
 
 	json_t *dataToJson() override {
 
-        json_t *rootJ = json_object();
+		json_t *rootJ = json_object();
 
 		// userscale
 		json_t *userscale_array = json_array();
 		for (int i = 0; i < NUM_BANKNOTES; i++) {
-			json_t *noteJ   	= json_real(currFreqs[i]);
-			json_array_append_new(userscale_array,   	noteJ);
+			json_t *noteJ = json_real(currFreqs[i]);
+			json_array_append_new(userscale_array, noteJ);
 		}
 		json_object_set_new(rootJ, "userscale",	userscale_array);
 
-        return rootJ;
-    }
+		return rootJ;
+	}
 
 	void dataFromJson(json_t *rootJ) override {
 
@@ -466,38 +466,38 @@ struct ExpanderBankWidget : Widget {
 		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/BarlowCondensed-Bold.ttf"));
 	}
 
-    ScaleSet scales;
+	ScaleSet scales;
 
 	BaseRainbowExpander *module = NULL;
 
 	NVGcolor colors[NUM_SCALEBANKS] = {
 
-        // Shades of Blue
-        nvgRGBf( 255.0f/255.0f,     070.0f/255.0f,  255.0f/255.0f ),
-        nvgRGBf( 250.0f/255.0f,     080.0f/255.0f,  250.0f/255.0f ),
-        nvgRGBf( 245.0f/255.0f,     090.0f/255.0f,  245.0f/255.0f ),
-        nvgRGBf( 240.0f/255.0f,     100.0f/255.0f,  240.0f/255.0f ),
-        nvgRGBf( 235.0f/255.0f,     110.0f/255.0f,  235.0f/255.0f ),
-        nvgRGBf( 230.0f/255.0f,     120.0f/255.0f,  230.0f/255.0f ),
-                        
-        // Shades of Cyan
-        nvgRGBf( 150.0f/255.0f,     255.0f/255.0f,  255.0f/255.0f ),
-        nvgRGBf( 130.0f/255.0f,     245.0f/255.0f,  245.0f/255.0f ),
-        nvgRGBf( 120.0f/255.0f,     235.0f/255.0f,  235.0f/255.0f ),
+		// Shades of Blue
+		nvgRGBf( 255.0f/255.0f,	 070.0f/255.0f,  255.0f/255.0f ),
+		nvgRGBf( 250.0f/255.0f,	 080.0f/255.0f,  250.0f/255.0f ),
+		nvgRGBf( 245.0f/255.0f,	 090.0f/255.0f,  245.0f/255.0f ),
+		nvgRGBf( 240.0f/255.0f,	 100.0f/255.0f,  240.0f/255.0f ),
+		nvgRGBf( 235.0f/255.0f,	 110.0f/255.0f,  235.0f/255.0f ),
+		nvgRGBf( 230.0f/255.0f,	 120.0f/255.0f,  230.0f/255.0f ),
+						
+		// Shades of Cyan
+		nvgRGBf( 150.0f/255.0f,	 255.0f/255.0f,  255.0f/255.0f ),
+		nvgRGBf( 130.0f/255.0f,	 245.0f/255.0f,  245.0f/255.0f ),
+		nvgRGBf( 120.0f/255.0f,	 235.0f/255.0f,  235.0f/255.0f ),
 
-        // Shades of Yellow
-        nvgRGBf( 255.0f/255.0f,     255.0f/255.0f,  150.0f/255.0f ),
-        nvgRGBf( 255.0f/255.0f,     245.0f/255.0f,  130.0f/255.0f ),
-        nvgRGBf( 255.0f/255.0f,     235.0f/255.0f,  120.0f/255.0f ),
-        nvgRGBf( 255.0f/255.0f,     225.0f/255.0f,  110.0f/255.0f ),
+		// Shades of Yellow
+		nvgRGBf( 255.0f/255.0f,	 255.0f/255.0f,  150.0f/255.0f ),
+		nvgRGBf( 255.0f/255.0f,	 245.0f/255.0f,  130.0f/255.0f ),
+		nvgRGBf( 255.0f/255.0f,	 235.0f/255.0f,  120.0f/255.0f ),
+		nvgRGBf( 255.0f/255.0f,	 225.0f/255.0f,  110.0f/255.0f ),
 
-        // Shades of Green	
-        nvgRGBf(  588.0f/1023.0f	, 954.0f/1023.0f	, 199.0f/1023.0f	),
-        nvgRGBf(  274.0f/1023.0f	, 944.0f/1023.0f	, 67.0f/1023.0f		),
-        nvgRGBf(  83.0f/1023.0f		, 934.0f/1023.0f	, 1.0f/1023.0f		),
-        nvgRGBf(  1.0f/1023.0f		, 924.0f/1023.0f	, 1.0f/1023.0f		),
-        nvgRGBf(  100.0f/1023.0f	, 824.0f/1023.0f	, 9.0f/1023.0f		),
-        nvgRGBf(  100.0f/1023.0f	, 724.0f/1023.0f	, 4.0f/1023.0f		),
+		// Shades of Green	
+		nvgRGBf(  588.0f/1023.0f	, 954.0f/1023.0f	, 199.0f/1023.0f	),
+		nvgRGBf(  274.0f/1023.0f	, 944.0f/1023.0f	, 67.0f/1023.0f		),
+		nvgRGBf(  83.0f/1023.0f		, 934.0f/1023.0f	, 1.0f/1023.0f		),
+		nvgRGBf(  1.0f/1023.0f		, 924.0f/1023.0f	, 1.0f/1023.0f		),
+		nvgRGBf(  100.0f/1023.0f	, 824.0f/1023.0f	, 9.0f/1023.0f		),
+		nvgRGBf(  100.0f/1023.0f	, 724.0f/1023.0f	, 4.0f/1023.0f		),
 
 		// User Scale
 		nvgRGBf( 900.0f/1023.0f		, 900.0f/1023.0f	, 900.0f/1023.0f	)
@@ -510,7 +510,7 @@ struct ExpanderBankWidget : Widget {
 
 		if (module == NULL) {
 			return;
-	    }
+		}
 
 		nvgFontSize(ctx.vg, 17.0f);
 		nvgFontFaceId(ctx.vg, font->handle);

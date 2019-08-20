@@ -35,13 +35,12 @@
 extern float exp_4096[4096];
 extern float log_4096[4096];
 extern uint32_t twopass_calibration[3380];
-// extern float default_user_scalebank[21];
 
 using namespace rainbow;
 
 void Filter::configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Q *_q, Tuning *_tuning, Levels *_levels) {
-	rotation 	= _rotation;
-	envelope 	= _envelope; 
+	rotation	= _rotation;
+	envelope	= _envelope; 
 	q			= _q;
 	tuning		= _tuning;
 	io			= _io;
@@ -49,13 +48,13 @@ void Filter::configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Q *_q,
 }
 
 void Filter::process_bank_change(void) {
-    if (io->CHANGED_BANK) {
-        for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-            if (!io->LOCK_ON[i]) {
-                scale_bank[i] = io->NEW_BANK; //Set all unlocked scale_banks to the same value
-            }
-        }
-    }
+	if (io->CHANGED_BANK) {
+		for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
+			if (!io->LOCK_ON[i]) {
+				scale_bank[i] = io->NEW_BANK; //Set all unlocked scale_banks to the same value
+			}
+		}
+	}
 }
 
 void Filter::process_user_scale_change() {
@@ -80,12 +79,12 @@ void Filter::process_scale_bank(void) {
 	for (int i = 0; i < NUM_CHANNELS; i++) {
 
 		if (scale_bank[i] >= NUM_SCALEBANKS && scale_bank[i] != 0xFF) {
-            scale_bank[i] = NUM_SCALEBANKS - 1;
-        }
+			scale_bank[i] = NUM_SCALEBANKS - 1;
+		}
 
 		if (scale[i] >= NUM_SCALES) {
-            scale[i] = NUM_SCALES - 1;
-        }
+			scale[i] = NUM_SCALES - 1;
+		}
 
 		if (scale_bank[i] != old_scale_bank[i] || filter_type_changed || io->USER_SCALE_CHANGED) {
 
@@ -93,9 +92,9 @@ void Filter::process_scale_bank(void) {
 
 			float *ff = (float *)buf[i];
 			for (int j = 0; j < (NUM_SCALES * NUM_FILTS); j++) {
-				*(ff+j)   = 0.0f;
-				*(ff+j+1) = 0.0f;
-				*(ff+j+2) = 0.0f;
+				*(ff+j)		= 0.0f;
+				*(ff+j+1)	= 0.0f;
+				*(ff+j+2)	= 0.0f;
 			}
 
 			if (filter_type == MAXQ) {
@@ -108,29 +107,29 @@ void Filter::process_scale_bank(void) {
 				c_hiq[i] = (float *)(scales.presets[scale_bank[i]]->c_bpre_hi);
 				c_loq[i] = (float *)(scales.presets[scale_bank[i]]->c_bpre_lo);
 			}
-		} 	// new scale bank or filter type changed
+		}	// new scale bank or filter type changed
 	}	// channels
 }
 
-// CALCULATE FILTER OUTPUTS		
-//filter_out[0-5] are the note[]/scale[]/scale_bank[] filters. 
+// CALCULATE FILTER OUTPUTS
+//filter_out[0-5] are the note[]/scale[]/scale_bank[] filters.
 //filter_out[6-11] are the morph destination values
 //filter_out[channel1-6][buffer_sample]
 void Filter::filter_twopass() { 
 
-	float filter_out_a[NUM_FILTS][NUM_SAMPLES]; 	// first filter out for two-pass
-	float filter_out_b[NUM_FILTS][NUM_SAMPLES]; 	// second filter out for two-pass
+	float filter_out_a[NUM_FILTS][NUM_SAMPLES];	// first filter out for two-pass
+	float filter_out_b[NUM_FILTS][NUM_SAMPLES];	// second filter out for two-pass
 
 	uint8_t filter_num;
-    uint8_t channel_num;
+	uint8_t channel_num;
 	uint8_t scale_num;
 
 	float c0, c1, c2;
 	float c0_a, c2_a;
 
-	float pos_in_cf; // % of Qknob position within crossfade region
+	float pos_in_cf;	// % of Qknob position within crossfade region
 	float ratio_a;
-    float ratio_b;   // two-pass filter crossfade ratios
+	float ratio_b;		// two-pass filter crossfade ratios
 
 	int32_t *ptmp_i32;
 
@@ -168,7 +167,7 @@ void Filter::filter_twopass() {
 		}
 
 		// CROSSFADE between the two filters
-		if  (qc[channel_num] < CF_MIN) {
+		if (qc[channel_num] < CF_MIN) {
 			ratio_a = 1.0f;
 		} else if (qc[channel_num] > CF_MAX) {
 			ratio_a = 0.0f;
@@ -183,7 +182,7 @@ void Filter::filter_twopass() {
 		
 		// AMPLITUDE: Boost high freqs and boost low resonance
 		c2_a  = (0.003f * c1) - (0.1f * c0_a) + 0.102f;
-		c2    = (0.003f * c1) - (0.1f * c0)   + 0.102f;
+		c2	= (0.003f * c1) - (0.1f * c0)   + 0.102f;
 		c2 *= ratio_b;
 
 		ptmp_i32 = io->in[channel_num];
@@ -234,7 +233,7 @@ void Filter::filter_twopass() {
 
 			//AMPLITUDE: Boost high freqs and boost low resonance
 			c2_a  = (0.003f * c1) - (0.1f * c0_a) + 0.102f;
-			c2    = (0.003f * c1) - (0.1f * c0)   + 0.102f;
+			c2	= (0.003f * c1) - (0.1f * c0)   + 0.102f;
 			c2 	*= ratio_b;
 
 			ptmp_i32 = io->in[channel_num];
@@ -273,7 +272,7 @@ void Filter::filter_twopass() {
 void Filter::filter_onepass() { 
 
 	uint8_t filter_num;
-    uint8_t channel_num;
+	uint8_t channel_num;
 	uint8_t scale_num;
 	uint8_t nudge_filter_num;
 
@@ -357,7 +356,7 @@ void Filter::filter_onepass() {
 void Filter::filter_bpre() { 
 
 	uint8_t filter_num;
-    uint8_t channel_num;
+	uint8_t channel_num;
 	uint8_t scale_num;
 	uint8_t nudge_filter_num;
 
@@ -368,9 +367,9 @@ void Filter::filter_bpre() {
 	float fir;
 
 	float var_q;
-    float inv_var_q;
-    float var_f;
-    float inv_var_f;
+	float inv_var_q;
+	float var_f;
+	float inv_var_f;
 
 	io->INPUT_CLIP = false;
 
@@ -421,10 +420,10 @@ void Filter::filter_bpre() {
 
 			//Q vector
 			if (q->qval[channel_num] > 4065) {
-				var_q     = 1.0f;
+				var_q	 = 1.0f;
 				inv_var_q = 0.0f;
 			} else {
-				var_q     = log_4096[q->qval[channel_num]];
+				var_q	 = log_4096[q->qval[channel_num]];
 				inv_var_q = 1.0f - var_q;
 			}
 
@@ -466,8 +465,8 @@ void Filter::process_audio_block() {
 	float f_blended;
 
 	if (filter_type_changed) {
-        filter_type = new_filter_type;
-    }
+		filter_type = new_filter_type;
+	}
 
 	// Populate the filter coefficients
 	process_scale_bank();
@@ -494,9 +493,9 @@ void Filter::process_audio_block() {
 		
 			if (rotation->motion_morphpos[j] == 0.0f) {
 				f_blended = filter_out[j][i];
-            } else {
+			} else {
 				f_blended = (filter_out[j][i] * (1.0f - rotation->motion_morphpos[j])) + (filter_out[j + NUM_CHANNELS][i] * rotation->motion_morphpos[j]); // filter blending
-            }
+			}
 
 			io->out[j][i] = (f_blended * levels->channel_level[j]);
 

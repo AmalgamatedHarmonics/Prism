@@ -31,11 +31,11 @@
 using namespace rainbow;
 
 void LEDRing::configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Filter *_filter, Q *_q) {
-	rotation 	= _rotation;
-	envelope 	= _envelope;
-	io 			= _io;
+	rotation	= _rotation;
+	envelope	= _envelope;
+	io			= _io;
 	filter		= _filter;
-	q 			= _q;
+	q			= _q;
 }
 
 void LEDRing::calculate_envout_leds() {
@@ -105,7 +105,7 @@ void LEDRing::calculate_envout_leds() {
 void LEDRing::display_filter_rotation() {
 
 	float inv_fade[NUM_CHANNELS];
-    float fade[NUM_CHANNELS];
+	float fade[NUM_CHANNELS];
 
 	for (int i = 0; i < NUM_FILTS; i++) {
 		io->ring[i][0] = 0.0f;
@@ -121,29 +121,29 @@ void LEDRing::display_filter_rotation() {
 	// --inv_fade[chan] is the brightness of the start point LED
 
 	if (filter_flash_ctr++ > 16) {
-        filter_flash_ctr = 0;
-    }
+		filter_flash_ctr = 0;
+	}
 
 	for (int chan = 0; chan < NUM_CHANNELS; chan++) {
 		if (!io->LOCK_ON[chan]) {
 			inv_fade[chan] = (1.0f - rotation->motion_morphpos[chan]);
-			fade[chan]     = rotation->motion_morphpos[chan];
+			fade[chan]	 = rotation->motion_morphpos[chan];
 		} else {
 			fade[chan] = 0.0f;
 			if (filter_flash_ctr) {
-                inv_fade[chan] = 1.0f;
-            } else {
-                inv_fade[chan] = 0.0f;
-            }
+				inv_fade[chan] = 1.0f;
+			} else {
+				inv_fade[chan] = 0.0f;
+			}
 		}
 	}
 
 	for (int i = 0; i < NUM_FILTS; i++) {
 		for (int chan = 0; chan < NUM_CHANNELS; chan++) {
 			int next_i = rotation->motion_fadeto_note[chan];
-			
+
 			if (filter->note[chan] == i) {
-			    // PROCESS REST OF LED RING
+				// PROCESS REST OF LED RING
 				if (inv_fade[chan] > 0.0f) {
 					if (io->ring[i][0] + io->ring[i][1] + io->ring[i][2] == 0.0f) {
 						io->ring[i][0] = channel_led_colors[chan][0] * inv_fade[chan];
@@ -156,14 +156,14 @@ void LEDRing::display_filter_rotation() {
 					}
 
 					if (io->ring[i][0] > 1.0f) {
-                        io->ring[i][0] = 1.0f;
-                    }
+						io->ring[i][0] = 1.0f;
+					}
 					if (io->ring[i][1] > 1.0f) {
-                        io->ring[i][1] = 1.0f;
-                    }
+						io->ring[i][1] = 1.0f;
+					}
 					if (io->ring[i][2] > 1.0f) {
-                        io->ring[i][2] = 1.0f;
-                    }
+						io->ring[i][2] = 1.0f;
+					}
 				}
 				if (fade[chan] > 0.0f) {
 					if (io->ring[next_i][0] + io->ring[next_i][1] + io->ring[next_i][2] == 0.0f) {
@@ -177,17 +177,17 @@ void LEDRing::display_filter_rotation() {
 					}
 
 					if (io->ring[next_i][0] > 1.0f) {
-                        io->ring[next_i][0] = 1.0f;
-                    }
+						io->ring[next_i][0] = 1.0f;
+					}
 					if (io->ring[next_i][1] > 1.0f) {
-                        io->ring[next_i][1] = 1.0f;
-                    }
+						io->ring[next_i][1] = 1.0f;
+					}
 					if (io->ring[next_i][2] > 1.0f) {
-                        io->ring[next_i][2] = 1.0f;
-                    }
+						io->ring[next_i][2] = 1.0f;
+					}
 				}
 				chan = 6; //break;
-            }
+			}
 		}
 	}
 }
@@ -198,8 +198,8 @@ void LEDRing::display_scale() {
 	uint8_t elacs_num[NUM_SCALES];
 
 	if (flash_ctr++ > 3) {
-        flash_ctr = 0;
-    }
+		flash_ctr = 0;
+	}
 
 	//Destination of fade:
 	// --Blank out the reverse-hash scale table
@@ -224,8 +224,8 @@ void LEDRing::display_scale() {
 		if (flash_ctr == 0) {
 			elacs_ctr[i]++;
 			if (elacs_ctr[i] >= elacs_num[i]) {
-                elacs_ctr[i] = 0;
-            }
+				elacs_ctr[i] = 0;
+			}
 		}
 
 		// --Blank out the channel if there are no entries

@@ -32,21 +32,21 @@ using namespace rainbow;
 
 Controller::Controller(void) {
 
-    rotation    = new Rotation();
-    envelope    = new Envelope();
-    ring        = new LEDRing();
-    filter      = new Filter();
-    io          = new IO();
+	rotation	= new Rotation();
+	envelope	= new Envelope();
+	ring		= new LEDRing();
+	filter		= new Filter();
+	io			= new IO();
 	q			= new Q();
 	tuning		= new Tuning();
 	levels		= new Levels();	
 	input		= new Inputs();
 	state		= new State();
 
-    rotation->configure(io, filter);
-    envelope->configure(io, levels);
-    ring->configure(io, rotation, envelope, filter, q);
-    filter->configure(io, rotation, envelope, q, tuning, levels);
+	rotation->configure(io, filter);
+	envelope->configure(io, levels);
+	ring->configure(io, rotation, envelope, filter, q);
+	filter->configure(io, rotation, envelope, q, tuning, levels);
 	q->configure(io);
 	tuning->configure(io, filter);
 	levels->configure(io);
@@ -71,43 +71,43 @@ void Controller::initialise(void) {
 
 void Controller::prepare(void) {
 
-    input->param_read_switches();
+	input->param_read_switches();
 
-    tuning->update();
+	tuning->update();
 
-    ring->update_led_ring();
+	ring->update_led_ring();
 	
-    rotation->update_motion();
+	rotation->update_motion();
 
 	envelope->update();
 
-    int32_t t_spread = input->read_spread();
-    if (t_spread != -1) {
-        rotation->update_spread(t_spread);
-    }
+	int32_t t_spread = input->read_spread();
+	if (t_spread != -1) {
+		rotation->update_spread(t_spread);
+	}
 
-    filter->process_bank_change();
+	filter->process_bank_change();
 
 	filter->process_user_scale_change();
 
-    if (io->ROTUP_TRIGGER || io->ROTUP_BUTTON) {
-        rotation->rotate_up();
-    }
+	if (io->ROTUP_TRIGGER || io->ROTUP_BUTTON) {
+		rotation->rotate_up();
+	}
 
-    if (io->ROTDOWN_TRIGGER || io->ROTDOWN_BUTTON) {
-        rotation->rotate_down();
-    }
+	if (io->ROTDOWN_TRIGGER || io->ROTDOWN_BUTTON) {
+		rotation->rotate_down();
+	}
 
-    if (io->SCALEUP_BUTTON) {
+	if (io->SCALEUP_BUTTON) {
 		rotation->change_scale_up();
-    }
+	}
 
-    if (io->SCALEDOWN_BUTTON) {
+	if (io->SCALEDOWN_BUTTON) {
 		rotation->change_scale_down();
-    }
+	}
 
-    input->process_rotateCV();
-    input->process_scaleCV();
+	input->process_rotateCV();
+	input->process_scaleCV();
 
 	levels->update();
 
@@ -125,20 +125,20 @@ void Controller::set_default_param_values(void) {
 	for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
 		filter->note[i]  					= i + 8;
 		filter->scale[i] 					= 0;
-		rotation->motion_fadeto_scale[i] 	= filter->scale[i];
-		rotation->motion_scale_dest[i]   	= filter->scale[i];
+		rotation->motion_fadeto_scale[i]	= filter->scale[i];
+		rotation->motion_scale_dest[i]		= filter->scale[i];
 		filter->scale_bank[i] 				= 0;
-		rotation->motion_spread_dir[i]  	= 0;
-		rotation->motion_spread_dest[i] 	= filter->note[i];
-		rotation->motion_fadeto_note[i] 	= filter->note[i];
+		rotation->motion_spread_dir[i]		= 0;
+		rotation->motion_spread_dest[i]		= filter->note[i];
+		rotation->motion_fadeto_note[i]		= filter->note[i];
 
-		rotation->motion_morphpos[i]        = 0.0f;
-		tuning->freq_shift[i]     			= 0.0f;
-		rotation->motion_scalecv_overage[i] = 0;
+		rotation->motion_morphpos[i]		= 0.0f;
+		tuning->freq_shift[i]	 			= 0.0f;
+		rotation->motion_scalecv_overage[i]	= 0;
 	}
 
-	rotation->motion_notejump 	= 0;
-	rotation->motion_rotate   	= 0;
+	rotation->motion_notejump	= 0;
+	rotation->motion_rotate		= 0;
 
 	filter->filter_type = MAXQ;
 	filter->filter_mode = TWOPASS;
@@ -153,17 +153,17 @@ void Controller::load_from_state(void) {
 
 		//Set default parameter values
 		for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-			filter->note[i]  					= state->note[i];
-			filter->scale[i] 					= state->scale[i];
-			rotation->motion_fadeto_scale[i] 	= filter->scale[i];
-			rotation->motion_scale_dest[i]   	= filter->scale[i];
-			filter->scale_bank[i] 				= state->scale_bank[i];
-			rotation->motion_spread_dir[i]  	= 0;
-			rotation->motion_spread_dest[i] 	= filter->note[i];
-			rotation->motion_fadeto_note[i] 	= filter->note[i];
+			filter->note[i]						= state->note[i];
+			filter->scale[i]					= state->scale[i];
+			rotation->motion_fadeto_scale[i]	= filter->scale[i];
+			rotation->motion_scale_dest[i]		= filter->scale[i];
+			filter->scale_bank[i]				= state->scale_bank[i];
+			rotation->motion_spread_dir[i]		= 0;
+			rotation->motion_spread_dest[i]		= filter->note[i];
+			rotation->motion_fadeto_note[i]		= filter->note[i];
 
-			rotation->motion_morphpos[i]        = 0.0f;
-			tuning->freq_shift[i]     			= 0.0f;
+			rotation->motion_morphpos[i]		= 0.0f;
+			tuning->freq_shift[i]				= 0.0f;
 			rotation->motion_scalecv_overage[i] = 0;
 		}
 
@@ -171,8 +171,8 @@ void Controller::load_from_state(void) {
 			filter->user_scale_bank[i] = state->userscale[i];
 		}
 
-		rotation->motion_notejump 	= 0;
-		rotation->motion_rotate   	= 0;
+		rotation->motion_notejump	= 0;
+		rotation->motion_rotate		= 0;
 
 		state->initialised = true;
 
@@ -184,9 +184,9 @@ void Controller::populate_state(void) {
 
 	if(state != NULL && state->initialised) {
 		for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-			state->note[i] 						= filter->note[i];
-			state->scale[i]						= filter->scale[i];
-			state->scale_bank[i]				= filter->scale_bank[i];
+			state->note[i]			= filter->note[i];
+			state->scale[i]			= filter->scale[i];
+			state->scale_bank[i]	= filter->scale_bank[i];
 		}
 	}
 

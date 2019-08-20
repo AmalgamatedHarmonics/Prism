@@ -22,37 +22,37 @@ float Audio::generateNoise() {
 
 void Audio::nChannelProcess(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output) {
 
-    int inChannels;
-    int outChannels;
+	int inChannels;
+	int outChannels;
 
-    // Must generate 2, 3 or 6 input streams
-    switch(inputChannels) {
-            case 0:
-            case 1:
-            case 2:
-                    inChannels = 2;
-                    break;
-            case 3:
-                    inChannels = 3;
-                    break;
-            default:
-                    inChannels = 6;
-    }
+	// Must generate 2, 3 or 6 input streams
+	switch(inputChannels) {
+			case 0:
+			case 1:
+			case 2:
+					inChannels = 2;
+					break;
+			case 3:
+					inChannels = 3;
+					break;
+			default:
+					inChannels = 6;
+	}
 
-    // Must generate 1, 2 or 6 output streams
-    switch(outputChannels) {
-            case 0:
-                    outChannels = 1;
-                    break;
-            case 1:
-                    outChannels = 2;
-                    break;
-            case 2:
-                    outChannels = 6;
-                    break;
-            default:
-                    outChannels = 1;
-    }
+	// Must generate 1, 2 or 6 output streams
+	switch(outputChannels) {
+			case 0:
+					outChannels = 1;
+					break;
+			case 1:
+					outChannels = 2;
+					break;
+			case 2:
+					outChannels = 6;
+					break;
+			default:
+					outChannels = 1;
+	}
 
 	for (int i = 0; i < inChannels; i++) {
 		if (!nInputBuffer[i].full()) {
@@ -167,21 +167,21 @@ void Audio::nChannelProcess(rainbow::Controller &main, rack::engine::Input &inpu
 
 void Audio::ChannelProcess1(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output) {
 
-    int inChannels;
+	int inChannels;
 
-    // Must generate 2, 3 or 6 input streams
-    switch(inputChannels) {
-            case 0:
-            case 1:
-            case 2:
-                    inChannels = 2;
-                    break;
-            case 3:
-                    inChannels = 3;
-                    break;
-            default:
-                    inChannels = 6;
-    }
+	// Must generate 2, 3 or 6 input streams
+	switch(inputChannels) {
+			case 0:
+			case 1:
+			case 2:
+					inChannels = 2;
+					break;
+			case 3:
+					inChannels = 3;
+					break;
+			default:
+					inChannels = 6;
+	}
 
 	for (int i = 0; i < inChannels; i++) {
 		if (!nInputBuffer[i].full()) {
@@ -262,21 +262,21 @@ void Audio::ChannelProcess1(rainbow::Controller &main, rack::engine::Input &inpu
 
 void Audio::ChannelProcess2(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output) {
 
-    int inChannels;
+	int inChannels;
 
-    // Must generate 2, 3 or 6 input streams
-    switch(inputChannels) {
-            case 0:
-            case 1:
-            case 2:
-                    inChannels = 2;
-                    break;
-            case 3:
-                    inChannels = 3;
-                    break;
-            default:
-                    inChannels = 6;
-    }
+	// Must generate 2, 3 or 6 input streams
+	switch(inputChannels) {
+			case 0:
+			case 1:
+			case 2:
+					inChannels = 2;
+					break;
+			case 3:
+					inChannels = 3;
+					break;
+			default:
+					inChannels = 6;
+	}
 
 	for (int i = 0; i < inChannels; i++) {
 		if (!nInputBuffer[i].full()) {
@@ -364,21 +364,21 @@ void Audio::ChannelProcess2(rainbow::Controller &main, rack::engine::Input &inpu
 
 void Audio::ChannelProcess6(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output) {
 
-    int inChannels;
+	int inChannels;
 
-    // Must generate 2, 3 or 6 input streams
-    switch(inputChannels) {
-            case 0:
-            case 1:
-            case 2:
-                    inChannels = 2;
-                    break;
-            case 3:
-                    inChannels = 3;
-                    break;
-            default:
-                    inChannels = 6;
-    }
+	// Must generate 2, 3 or 6 input streams
+	switch(inputChannels) {
+			case 0:
+			case 1:
+			case 2:
+					inChannels = 2;
+					break;
+			case 3:
+					inChannels = 3;
+					break;
+			default:
+					inChannels = 6;
+	}
 
 	for (int i = 0; i < inChannels; i++) {
 		if (!nInputBuffer[i].full()) {

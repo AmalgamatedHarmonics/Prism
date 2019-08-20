@@ -35,8 +35,8 @@ extern float exp_4096[4096];
 using namespace rainbow;
 
 void Rotation::configure(IO *_io, Filter *_filter) {
-	filter 		= _filter;
-	io 			= _io;
+	filter		= _filter;
+	io			= _io;
 }
 
 void Rotation::change_scale_up(void) {
@@ -44,7 +44,7 @@ void Rotation::change_scale_up(void) {
 		if (!io->LOCK_ON[i]) {
 			if (motion_scale_dest[i] < (NUM_SCALES - 1)) {
 				motion_scale_dest[i]++;
-            }
+			}
 		}
 	}
 }
@@ -95,18 +95,18 @@ void Rotation::jump_scale_with_cv(int8_t shift_amt) {
 void Rotation::rotate_down(void) {
 	//if we were rotating down, reverse direction. Otherwise add to current direction
 	if (motion_rotate >= 0) {
-        motion_rotate = -1;
-    } else { 
-        motion_rotate--;
-    }
+		motion_rotate = -1;
+	} else { 
+		motion_rotate--;
+	}
 }
 
 void Rotation::rotate_up(void) {
 	if (motion_rotate <= 0) {
-        motion_rotate = 1;
-    } else {
-        motion_rotate++;
-    }
+		motion_rotate = 1;
+	} else {
+		motion_rotate++;
+	}
 }
 
 bool Rotation::is_spreading(void) {
@@ -134,10 +134,10 @@ void Rotation::update_spread(int8_t t_spread) {
 	float spread_out;
 	spread = t_spread;
 	if (spread > old_spread) {
-        spread_out = 1;
-    } else {
-        spread_out = -1;
-    }
+		spread_out = 1;
+	} else {
+		spread_out = -1;
+	}
 	old_spread = spread;
 
 	for (int ii = 0 ; ii < NUM_CHANNELS; ii++) {
@@ -153,11 +153,11 @@ void Rotation::update_spread(int8_t t_spread) {
 		} else {
 			//Set spread direction. Note spread_dir[2] remains 0 (stationary)
 			if (i < 2) {
-                motion_spread_dir[i] = -1 * spread_out;
-            }
+				motion_spread_dir[i] = -1 * spread_out;
+			}
 			if (i > 2) {
-                motion_spread_dir[i] = spread_out;
-            }
+				motion_spread_dir[i] = spread_out;
+			}
 
 			//Find an open filter channel:
 			//Our starting point is based on the location of channel 2, and spread outward from there
@@ -187,7 +187,7 @@ void Rotation::update_spread(int8_t t_spread) {
 					//...if the test spot is already assigned to a locked or stationary channel (2), or a channel we already spread'ed, or a blocked frequency then try again
 					if ((i != j && ((test_spot == test_motion[j] && j < i) || (test_spot == motion_fadeto_note[j] && (io->LOCK_ON[j] || j == 2)))) || io->FREQ_BLOCK[test_spot]) {
 						is_distinct = false;
-                    }
+					}
 				}
 				k++;
 			}
@@ -212,10 +212,10 @@ void Rotation::update_morph(void) {
 	for (int chan = 0; chan < NUM_CHANNELS; chan++)	{
 		if (motion_morphpos[chan] > 0.0f) {
 			motion_morphpos[chan] += f_morph;
-        }
+		}
 		if (motion_morphpos[chan] >= 1.0f) {
-            motion_morphpos[chan] = 1.0f;
-        }
+			motion_morphpos[chan] = 1.0f;
+		}
 	}
 
 }
@@ -478,8 +478,8 @@ void Rotation::update_motion(void) {
 							//Check that it's not already taken by a locked channel, channel with a higher priority, a blocked freq, or a non-moving channel
 							if (io->FREQ_BLOCK[motion_fadeto_note[chan]]) {
 								is_distinct = false;
-							} else {				
-								is_distinct = true;		
+							} else {
+								is_distinct = true;
 								for (int test_chan = 0; test_chan < NUM_CHANNELS; test_chan++) {
 									if (chan != test_chan && (motion_fadeto_note[chan] == motion_fadeto_note[test_chan]) && (io->LOCK_ON[test_chan] || test_chan < chan)) { 
 										is_distinct = false;

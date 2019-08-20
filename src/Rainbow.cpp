@@ -67,8 +67,8 @@ struct Rainbow : core::PrismModule {
 		SPREAD_PARAM,
 		ENUMS(CHANNEL_Q_PARAM,6),
 		ENUMS(CHANNEL_LEVEL_PARAM,6),
-	    FREQNUDGE1_PARAM,
-    	FREQNUDGE6_PARAM,
+		FREQNUDGE1_PARAM,
+		FREQNUDGE6_PARAM,
 		SLEW_PARAM,
 		SLEWON_PARAM,
 		ENUMS(CHANNEL_Q_ON_PARAM,6),
@@ -139,7 +139,7 @@ struct Rainbow : core::PrismModule {
 	NVGcolor defaultBorder = nvgRGB(50, 150, 50);
 	NVGcolor blockedBorder = nvgRGB(255, 0, 0);
 
-    rainbow::Controller main;
+	rainbow::Controller main;
 
 	RainbowExpanderMessage *pMessage = new RainbowExpanderMessage;
 	RainbowExpanderMessage *cMessage = new RainbowExpanderMessage;
@@ -170,7 +170,7 @@ struct Rainbow : core::PrismModule {
 
 	json_t *dataToJson() override {
 
-        json_t *rootJ = json_object();
+		json_t *rootJ = json_object();
 
 		// bank
 		json_t *bankJ = json_integer((int) currBank);
@@ -193,17 +193,17 @@ struct Rainbow : core::PrismModule {
 		json_object_set_new(rootJ, "locks", locksJ);
 
 		// engine state
-		json_t *note_array      	= json_array();
-		json_t *scale_array         = json_array();
+		json_t *note_array	  	= json_array();
+		json_t *scale_array		 = json_array();
 		json_t *scale_bank_array	= json_array();
 
 		for (int i = 0; i < NUM_CHANNELS; i++) {
 			json_t *noteJ   		= json_integer(main.state->note[i]);
-			json_t *scaleJ      	= json_integer(main.state->scale[i]);
-			json_t *scale_bankJ    	= json_integer(main.state->scale_bank[i]);
+			json_t *scaleJ	  	= json_integer(main.state->scale[i]);
+			json_t *scale_bankJ		= json_integer(main.state->scale_bank[i]);
 
 			json_array_append_new(note_array,   	noteJ);
-			json_array_append_new(scale_array,      scaleJ);
+			json_array_append_new(scale_array,	  scaleJ);
 			json_array_append_new(scale_bank_array,	scale_bankJ);
 		}
 
@@ -214,15 +214,15 @@ struct Rainbow : core::PrismModule {
 		json_t *blockJ = json_string(main.io->FREQ_BLOCK.to_string().c_str());
 		json_object_set_new(rootJ, "freqblock", blockJ);
 
-		json_t *userscale_array      	= json_array();
+		json_t *userscale_array	  	= json_array();
 		for (int i = 0; i < NUM_BANKNOTES; i++) {
 			json_t *noteJ   		= json_real(main.state->userscale[i]);
 			json_array_append_new(userscale_array,   	noteJ);
 		}
 		json_object_set_new(rootJ, "userscale",	userscale_array);
 
-        return rootJ;
-    }
+		return rootJ;
+	}
 
 	void dataFromJson(json_t *rootJ) override {
 
@@ -325,10 +325,10 @@ struct Rainbow : core::PrismModule {
 		configParam(NOISE_PARAM, 0, 2, 0, "Noise: brown/pink/white"); // brown/pink/white
 		configParam(OUTCHAN_PARAM, 0, 2, 0, "Output channels"); // mono/stereo/6
 
-        configParam(COMPRESS_PARAM, 0, 1, 0, "Compress: off/on"); 
+		configParam(COMPRESS_PARAM, 0, 1, 0, "Compress: off/on"); 
 
-	    configParam(FREQNUDGE1_PARAM, 0, 4095, 0, "Freq Nudge odds");
-    	configParam(FREQNUDGE6_PARAM, 0, 4095, 0, "Freq Nudge evens");
+		configParam(FREQNUDGE1_PARAM, 0, 4095, 0, "Freq Nudge odds");
+		configParam(FREQNUDGE6_PARAM, 0, 4095, 0, "Freq Nudge evens");
 		configParam(MOD135_PARAM, 0, 1, 0, "Mod 1/135"); // 1/135
 		configParam(MOD246_PARAM, 0, 1, 0, "Mod 2/246"); // 6/246
 
@@ -358,7 +358,7 @@ struct Rainbow : core::PrismModule {
 
 		lightDivider.setDivision(256);
 
-	    main.initialise();
+		main.initialise();
 
 		rightExpander.producerMessage = pMessage;
 		rightExpander.consumerMessage = cMessage;
@@ -420,27 +420,27 @@ void Rainbow::process(const ProcessArgs &args) {
 	}
 
 	if (rotCWButtonTrigger.process(params[ROTCW_PARAM].getValue())) {
-    	main.io->ROTUP_BUTTON = true;
+		main.io->ROTUP_BUTTON = true;
 	} else {
-    	main.io->ROTUP_BUTTON = false;
+		main.io->ROTUP_BUTTON = false;
 	}
 
 	if (rotCCWButtonTrigger.process(params[ROTCCW_PARAM].getValue())) {
-    	main.io->ROTDOWN_BUTTON = true;
+		main.io->ROTDOWN_BUTTON = true;
 	} else {
-    	main.io->ROTDOWN_BUTTON = false;
+		main.io->ROTDOWN_BUTTON = false;
 	}
 
 	if (scaleCWButtonTrigger.process(params[SCALECW_PARAM].getValue())) {
-    	main.io->SCALEUP_BUTTON = true;
+		main.io->SCALEUP_BUTTON = true;
 	} else {
-    	main.io->SCALEUP_BUTTON = false;
+		main.io->SCALEUP_BUTTON = false;
 	}
 
 	if (scaleCCWButtonTrigger.process(params[SCALECCW_PARAM].getValue())) {
-    	main.io->SCALEDOWN_BUTTON = true;
+		main.io->SCALEDOWN_BUTTON = true;
 	} else {
-    	main.io->SCALEDOWN_BUTTON = false;
+		main.io->SCALEDOWN_BUTTON = false;
 	}
 
 	main.io->MOD135_SWITCH 		= (Mod135Setting)params[MOD135_PARAM].getValue();
@@ -487,7 +487,7 @@ void Rainbow::process(const ProcessArgs &args) {
 			params[BANK_PARAM].setValue(0);
 			currBank = 0;
 			nextBank = 0;
-	    	main.io->CHANGED_BANK = true;
+			main.io->CHANGED_BANK = true;
 			main.io->NEW_BANK = nextBank;
 		}
 	}
@@ -495,7 +495,7 @@ void Rainbow::process(const ProcessArgs &args) {
 	// Handle bank switch press
 	if (changeBankTrigger.process(params[SWITCHBANK_PARAM].getValue())) {
 		if (main.io->FILTER_SWITCH == Bpre && nextBank == 19) {
-	    	main.io->CHANGED_BANK = false;
+			main.io->CHANGED_BANK = false;
 			params[BANK_PARAM].setValue(currBank);
 		} else {
 			main.io->CHANGED_BANK = true;
@@ -503,58 +503,58 @@ void Rainbow::process(const ProcessArgs &args) {
 			currBank = nextBank;
 		}
 	} else {
-    	main.io->CHANGED_BANK = false;
+		main.io->CHANGED_BANK = false;
 	}
 
 	main.io->FILTER_SWITCH		= (FilterSetting)params[FILTER_PARAM].getValue();
 
 	int noiseSelected = params[NOISE_PARAM].getValue();
 
-	main.io->MORPH_ADC 			= (uint16_t)clamp(params[MORPH_PARAM].getValue() + inputs[MORPH_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
-	main.io->SPREAD_ADC 		= (uint16_t)clamp(params[SPREAD_PARAM].getValue() + inputs[SPREAD_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
+	main.io->MORPH_ADC			= (uint16_t)clamp(params[MORPH_PARAM].getValue() + inputs[MORPH_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
+	main.io->SPREAD_ADC			= (uint16_t)clamp(params[SPREAD_PARAM].getValue() + inputs[SPREAD_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
 
-	main.io->GLOBAL_Q_LEVEL 	= (int16_t)clamp(inputs[GLOBAL_Q_INPUT].getVoltage() * 409.5f, -4095.0f, 4095.0f);
-	main.io->GLOBAL_Q_CONTROL 	= (int16_t)params[GLOBAL_Q_PARAM].getValue();
+	main.io->GLOBAL_Q_LEVEL		= (int16_t)clamp(inputs[GLOBAL_Q_INPUT].getVoltage() * 409.5f, -4095.0f, 4095.0f);
+	main.io->GLOBAL_Q_CONTROL	= (int16_t)params[GLOBAL_Q_PARAM].getValue();
 
 	bool haveGlobalLevelCV		= inputs[GLOBAL_LEVEL_INPUT].isConnected();
 	bool haveChannelLevelCV		= inputs[POLY_LEVEL_INPUT].isConnected();
 
-	float globalLevelCV 		= haveGlobalLevelCV ?
+	float globalLevelCV			= haveGlobalLevelCV ?
 		clamp(inputs[GLOBAL_LEVEL_INPUT].getVoltage() / 5.0f, -1.0f, 1.0f) : 1.0f;
 
-	float globalLevelControl 	= params[GLOBAL_LEVEL_PARAM].getValue() / 4095.0f;
+	float globalLevelControl	= params[GLOBAL_LEVEL_PARAM].getValue() / 4095.0f;
 
 	for (int n = 0; n < 6; n++) {
 
-		main.io->CHANNEL_Q_LEVEL[n] 	= (int16_t)clamp(inputs[POLY_Q_INPUT].getVoltage() * 409.5f, -4095.0, 4095.0f);
-		main.io->CHANNEL_Q_CONTROL[n] = (int16_t)params[CHANNEL_Q_PARAM + n].getValue();
+		main.io->CHANNEL_Q_LEVEL[n]		= (int16_t)clamp(inputs[POLY_Q_INPUT].getVoltage() * 409.5f, -4095.0, 4095.0f);
+		main.io->CHANNEL_Q_CONTROL[n]	= (int16_t)params[CHANNEL_Q_PARAM + n].getValue();
 
-		float channelLevelControl 	= params[CHANNEL_LEVEL_PARAM + n].getValue() / 4095.0f;
-		main.io->LEVEL[n] 			= globalLevelControl * channelLevelControl;
+		float channelLevelControl		= params[CHANNEL_LEVEL_PARAM + n].getValue() / 4095.0f;
+		main.io->LEVEL[n]				= globalLevelControl * channelLevelControl;
 
-		float channelLevelCV 		= haveChannelLevelCV ?
+		float channelLevelCV			= haveChannelLevelCV ?
 			clamp(inputs[POLY_LEVEL_INPUT].getVoltage(n) / 5.0f, -1.0f, 1.0f) :	1.0f;
 
 		if (haveGlobalLevelCV || haveChannelLevelCV) {
-			main.io->LEVEL[n] = main.io->LEVEL[n] + globalLevelCV * channelLevelCV;
+			main.io->LEVEL[n]			= main.io->LEVEL[n] + globalLevelCV * channelLevelCV;
 		}
 
-		main.io->TRANS_DIAL[n] 		= params[TRANS_PARAM + n].getValue();
+		main.io->TRANS_DIAL[n]			= params[TRANS_PARAM + n].getValue();
 	}
 
-	main.io->FREQNUDGE1_ADC 	= (uint16_t)params[FREQNUDGE1_PARAM].getValue();
-	main.io->FREQNUDGE6_ADC 	= (uint16_t)params[FREQNUDGE6_PARAM].getValue();
-	main.io->SCALE_ADC 			= (uint16_t)clamp(inputs[SCALE_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
+	main.io->FREQNUDGE1_ADC		= (uint16_t)params[FREQNUDGE1_PARAM].getValue();
+	main.io->FREQNUDGE6_ADC		= (uint16_t)params[FREQNUDGE6_PARAM].getValue();
+	main.io->SCALE_ADC			= (uint16_t)clamp(inputs[SCALE_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
 
-	main.io->ROTCV_ADC 			= (uint16_t)clamp(inputs[ROTATECV_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
-	main.io->FREQCV1_ADC 		= (uint16_t)clamp(inputs[FREQCV1_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
-	main.io->FREQCV6_ADC 		= (uint16_t)clamp(inputs[FREQCV6_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
+	main.io->ROTCV_ADC			= (uint16_t)clamp(inputs[ROTATECV_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
+	main.io->FREQCV1_ADC		= (uint16_t)clamp(inputs[FREQCV1_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
+	main.io->FREQCV6_ADC		= (uint16_t)clamp(inputs[FREQCV6_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
 
-	main.io->SLEW_ADC			= (uint16_t)params[SLEW_PARAM].getValue();							
+	main.io->SLEW_ADC			= (uint16_t)params[SLEW_PARAM].getValue();
 
-	main.io->SCALEROT_SWITCH 	= (ScaleRotationSetting)params[SCALEROT_PARAM].getValue();
-	main.io->PREPOST_SWITCH 	= (PrePostSetting)params[PREPOST_PARAM].getValue();
-	main.io->ENV_SWITCH 		= (EnvelopeMode)params[ENV_PARAM].getValue();
+	main.io->SCALEROT_SWITCH	= (ScaleRotationSetting)params[SCALEROT_PARAM].getValue();
+	main.io->PREPOST_SWITCH		= (PrePostSetting)params[PREPOST_PARAM].getValue();
+	main.io->ENV_SWITCH			= (EnvelopeMode)params[ENV_PARAM].getValue();
 	main.io->GLIDE_SWITCH		= (GlideSetting)params[VOCTGLIDE_PARAM].getValue();
 
 	main.prepare();
@@ -564,7 +564,7 @@ void Rainbow::process(const ProcessArgs &args) {
 	audio.noiseSelected = noiseSelected;
 	audio.sampleRate = args.sampleRate;
 
-    switch(audio.outputChannels) {
+	switch(audio.outputChannels) {
 		case 0:
 			audio.ChannelProcess1(main, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT]);
 			break;
@@ -576,7 +576,7 @@ void Rainbow::process(const ProcessArgs &args) {
 			break;
 		default:
 			audio.ChannelProcess1(main, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT]);
-    }
+	}
 
 	// audio.nChannelProcess(main, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT]);
 
@@ -609,7 +609,7 @@ void Rainbow::process(const ProcessArgs &args) {
 				main.io->ring[i][0], 
 				main.io->ring[i][1],
 				main.io->ring[i][2]);
-			ringLEDs[i]->colorBorder = defaultBorder;			
+			ringLEDs[i]->colorBorder = defaultBorder;
 		}
 	}
 
@@ -618,7 +618,7 @@ void Rainbow::process(const ProcessArgs &args) {
 			main.io->scale[i][0], 
 			main.io->scale[i][1],
 			main.io->scale[i][2]);
-		scaleLEDs[i]->colorBorder = defaultBorder;		
+		scaleLEDs[i]->colorBorder = defaultBorder;
 	}
 
 	bool procVu = lightDivider.process();
@@ -630,26 +630,26 @@ void Rainbow::process(const ProcessArgs &args) {
 
 		if (channelClipCnt[i] & 32) {
 			envelopeLEDs[i]->color = nvgRGBf(0.0f, 0.0f, 0.0f);
-			envelopeLEDs[i]->colorBorder = defaultBorder;		
+			envelopeLEDs[i]->colorBorder = defaultBorder;
 		} else {
 			envelopeLEDs[i]->color = nvgRGBf(
 				main.io->envelope_leds[i][0], 
 				main.io->envelope_leds[i][1],
 				main.io->envelope_leds[i][2]);
-			envelopeLEDs[i]->colorBorder = defaultBorder;		
+			envelopeLEDs[i]->colorBorder = defaultBorder;
 		}
 
 		qLEDs[i]->color = nvgRGBf(
 			main.io->q_leds[i][0], 
 			main.io->q_leds[i][1],
 			main.io->q_leds[i][2]);
-		qLEDs[i]->colorBorder = defaultBorder;		
+		qLEDs[i]->colorBorder = defaultBorder;
 
 		tuningLEDs[i]->color = nvgRGBf(
 			main.io->tuning_out_leds[i][0], 
 			main.io->tuning_out_leds[i][1],
 			main.io->tuning_out_leds[i][2]);
-		tuningLEDs[i]->colorBorder = defaultBorder;		
+		tuningLEDs[i]->colorBorder = defaultBorder;
 
 		params[Rainbow::LEVEL_OUT_PARAM+i].setValue(main.io->OUTLEVEL[i]);
 
@@ -669,37 +669,37 @@ struct BankWidget : Widget {
 
 	std::shared_ptr<Font> font;
 	Rainbow *module = NULL;
-    ScaleSet scales;
+	ScaleSet scales;
 	NVGcolor colors[NUM_SCALEBANKS] = {
 
-        // Shades of Blue
-        nvgRGBf( 255.0f/255.0f,     070.0f/255.0f,  255.0f/255.0f ),
-        nvgRGBf( 250.0f/255.0f,     080.0f/255.0f,  250.0f/255.0f ),
-        nvgRGBf( 245.0f/255.0f,     090.0f/255.0f,  245.0f/255.0f ),
-        nvgRGBf( 240.0f/255.0f,     100.0f/255.0f,  240.0f/255.0f ),
-        nvgRGBf( 235.0f/255.0f,     110.0f/255.0f,  235.0f/255.0f ),
-        nvgRGBf( 230.0f/255.0f,     120.0f/255.0f,  230.0f/255.0f ),
-                        
-        // Shades of Cyan
-        nvgRGBf( 150.0f/255.0f,     255.0f/255.0f,  255.0f/255.0f ),
-        nvgRGBf( 130.0f/255.0f,     245.0f/255.0f,  245.0f/255.0f ),
-        nvgRGBf( 120.0f/255.0f,     235.0f/255.0f,  235.0f/255.0f ),
+		// Shades of Blue
+		nvgRGBf( 255.0f/255.0f,		070.0f/255.0f,	255.0f/255.0f	),
+		nvgRGBf( 250.0f/255.0f,		080.0f/255.0f,	250.0f/255.0f	),
+		nvgRGBf( 245.0f/255.0f,		090.0f/255.0f,	245.0f/255.0f	),
+		nvgRGBf( 240.0f/255.0f,		100.0f/255.0f,	240.0f/255.0f	),
+		nvgRGBf( 235.0f/255.0f,		110.0f/255.0f,	235.0f/255.0f	),
+		nvgRGBf( 230.0f/255.0f,		120.0f/255.0f,	230.0f/255.0f	),
+						
+		// Shades of Cyan
+		nvgRGBf( 150.0f/255.0f,		255.0f/255.0f,	255.0f/255.0f	),
+		nvgRGBf( 130.0f/255.0f,		245.0f/255.0f,	245.0f/255.0f	),
+		nvgRGBf( 120.0f/255.0f,		235.0f/255.0f,	235.0f/255.0f	),
 
-        // Shades of Yellow
-        nvgRGBf( 255.0f/255.0f,     255.0f/255.0f,  150.0f/255.0f ),
-        nvgRGBf( 255.0f/255.0f,     245.0f/255.0f,  130.0f/255.0f ),
-        nvgRGBf( 255.0f/255.0f,     235.0f/255.0f,  120.0f/255.0f ),
-        nvgRGBf( 255.0f/255.0f,     225.0f/255.0f,  110.0f/255.0f ),
+		// Shades of Yellow
+		nvgRGBf( 255.0f/255.0f,		255.0f/255.0f,	150.0f/255.0f	),
+		nvgRGBf( 255.0f/255.0f,		245.0f/255.0f,	130.0f/255.0f	),
+		nvgRGBf( 255.0f/255.0f,		235.0f/255.0f,	120.0f/255.0f	),
+		nvgRGBf( 255.0f/255.0f,		225.0f/255.0f,	110.0f/255.0f	),
 
-        // Shades of Green	
-        nvgRGBf(  588.0f/1023.0f	, 954.0f/1023.0f	, 199.0f/1023.0f	),
-        nvgRGBf(  274.0f/1023.0f	, 944.0f/1023.0f	, 67.0f/1023.0f		),
-        nvgRGBf(  83.0f/1023.0f		, 934.0f/1023.0f	, 1.0f/1023.0f		),
-        nvgRGBf(  1.0f/1023.0f		, 924.0f/1023.0f	, 1.0f/1023.0f		),
-        nvgRGBf(  100.0f/1023.0f	, 824.0f/1023.0f	, 9.0f/1023.0f		),
-        nvgRGBf(  100.0f/1023.0f	, 724.0f/1023.0f	, 4.0f/1023.0f		),
+		// Shades of Green	
+		nvgRGBf( 588.0f/1023.0f,	954.0f/1023.0f,	199.0f/1023.0f	),
+		nvgRGBf( 274.0f/1023.0f,	944.0f/1023.0f,	67.0f/1023.0f	),
+		nvgRGBf( 83.0f/1023.0f,		934.0f/1023.0f,	1.0f/1023.0f	),
+		nvgRGBf( 1.0f/1023.0f,		924.0f/1023.0f,	1.0f/1023.0f	),
+		nvgRGBf( 100.0f/1023.0f,	824.0f/1023.0f,	9.0f/1023.0f	),
+		nvgRGBf( 100.0f/1023.0f,	724.0f/1023.0f,	4.0f/1023.0f	),
 
-		nvgRGBf( 900.0f/1023.0f		, 900.0f/1023.0f	, 900.0f/1023.0f)
+		nvgRGBf( 900.0f/1023.0f,	900.0f/1023.0f,	900.0f/1023.0f	)
 
 	};
 
@@ -711,7 +711,7 @@ struct BankWidget : Widget {
 
 		if (module == NULL) {
 			return;
-	    }
+		}
 
 		nvgFontSize(ctx.vg, 17.0f);
 		nvgFontFaceId(ctx.vg, font->handle);

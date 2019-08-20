@@ -33,18 +33,18 @@ extern float exp_4096[4096];
 using namespace rainbow;
 
 void Inputs::configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Filter *_filter, Tuning *_tuning, Levels *_levels) {
-	rotation 	= _rotation;
-	envelope 	= _envelope;
-	io 			= _io;
+	rotation	= _rotation;
+	envelope	= _envelope;
+	io			= _io;
 	filter		= _filter;
 	tuning		= _tuning;
-	levels 		= _levels;
+	levels		= _levels;
 }
 
 void Inputs::param_read_switches(void) {
 	uint32_t lag_val;
 
-    /*** Read Switches ***/
+	/*** Read Switches ***/
 	envelope->env_prepost_mode = io->PREPOST_SWITCH;
 
 	if (io->MOD246_SWITCH == Mod_6) {
@@ -114,7 +114,7 @@ void Inputs::param_read_switches(void) {
 int8_t Inputs::read_spread(void) {
 
 	uint8_t  test_spread = 0;
-    uint8_t  hys_spread  = 0;
+	uint8_t  hys_spread  = 0;
 	uint16_t temp_u16;
 
 	// Hysteresis is used to ignore noisy ADC values.
@@ -126,17 +126,17 @@ int8_t Inputs::read_spread(void) {
 	if (test_spread < rotation->spread) {
 		if (io->SPREAD_ADC <= (4095 - SPREAD_ADC_HYSTERESIS)) {
 			temp_u16 = io->SPREAD_ADC + SPREAD_ADC_HYSTERESIS;
-        } else {
+		} else {
 			temp_u16 = 4095;
-        }
+		}
 
 		hys_spread = (temp_u16 >> 8) + 1;
 	} else if (test_spread > rotation->spread) {
 		if (io->SPREAD_ADC > SPREAD_ADC_HYSTERESIS) {
 			temp_u16 = io->SPREAD_ADC - SPREAD_ADC_HYSTERESIS;
-        } else {
+		} else {
 			temp_u16 = 0;
-        }
+		}
 		hys_spread = (temp_u16 >> 8) + 1;
 
 	} else {
@@ -147,15 +147,15 @@ int8_t Inputs::read_spread(void) {
 		return(hys_spread); //spread has changed
 	}
 	else {
-        return(-1); //spread has not changed
-    }
+		return(-1); //spread has not changed
+	}
 }
 
 void Inputs::process_rotateCV(void) {
 	int32_t t = (int16_t)io->ROTCV_ADC - (int16_t)old_rotcv_adc;
 	if (t < -100 || t > 100) {
 		old_rotcv_adc = io->ROTCV_ADC;
-		rot_offset    = io->ROTCV_ADC / 205; //0..19
+		rot_offset	= io->ROTCV_ADC / 205; //0..19
 
 		rotation->jump_rotate_with_cv(rot_offset - old_rot_offset);
 

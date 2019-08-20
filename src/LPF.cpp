@@ -66,18 +66,18 @@ void LPF::apply_fir_lpf() {
 
 	//Increment the index, wrapping around the whole buffer
 	if (++fir_lpf_i >= fir_lpf_size) {
-        fir_lpf_i = 0;
-    }
+		fir_lpf_i = 0;
+	}
 
 	//Calculate the arithmetic average (FIR LPF)
 	lpf_val = (float)((lpf_val * fir_lpf_size) - old_value + new_value) / (float)(fir_lpf_size);
 
 	//Range check 
 	if (lpf_val < 0.0f) {
-        lpf_val = 0.0f;
-    } else if (lpf_val > 4095.0f) {
-        lpf_val = 4095.0f;
-    }
+		lpf_val = 0.0f;
+	} else if (lpf_val > 4095.0f) {
+		lpf_val = 4095.0f;
+	}
 }
 
 //
@@ -94,10 +94,10 @@ void LPF::apply_bracket() {
 	}
 
 	if (bracketed_val < 0) {
-        bracketed_val = 0;
-    } else if (bracketed_val > 4095) {
-        bracketed_val = 4095;
-    }
+		bracketed_val = 0;
+	} else if (bracketed_val > 4095) {
+		bracketed_val = 4095;
+	}
 
 }
 
