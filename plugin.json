@@ -9,7 +9,7 @@
 	"authorUrl": "https://github.com/AmalgamatedHarmonics/Prism/wiki",
 	"sourceUrl": "https://github.com/AmalgamatedHarmonics/Prism",
 	"changelogUrl": "https://github.com/AmalgamatedHarmonics/Prism/blob/master/CHANGELOG.md",
-	"version": "1.0.3",
+	"version": "1.1.0",
 	"modules": [
 		{
 			"slug": "Rainbow",
@@ -18,18 +18,11 @@
 			"tags": ["Physical modeling", "VCF"]
 		},
 		{
-			"slug": "RainbowExpanderET",
-			"name": "ETRainbowExpander",
-			"description": "Expander for Rainbow",
-			"tags": ["Expander"]
-		},
-		{
-			"slug": "RainbowExpanderJI",
-			"name": "JIRainbowExpander",
-			"description": "Expander for Rainbow",
+			"slug": "RainbowScaleExpander",
+			"name": "Rainbow Scale Expander",
+			"description": "Expander for Rainbow for programming of user-defined scales",
 			"tags": ["Expander"]
 		}
-
 	]
 }
 

@@ -141,8 +141,8 @@ struct Rainbow : core::PrismModule {
 
 	rainbow::Controller main;
 
-	RainbowExpanderMessage *pMessage = new RainbowExpanderMessage;
-	RainbowExpanderMessage *cMessage = new RainbowExpanderMessage;
+	RainbowScaleExpanderMessage *pMessage = new RainbowScaleExpanderMessage;
+	RainbowScaleExpanderMessage *cMessage = new RainbowScaleExpanderMessage;
 
 	int currBank = 0; // TODO Move to State
 	int nextBank = 0;
@@ -395,9 +395,8 @@ void Rainbow::process(const ProcessArgs &args) {
 
 	main.io->USER_SCALE_CHANGED = false;
 	if (rightExpander.module) {
-		if (rightExpander.module->model == modelRainbowExpanderET ||
-			rightExpander.module->model == modelRainbowExpanderJI ) {
-			RainbowExpanderMessage *cM = (RainbowExpanderMessage*)rightExpander.consumerMessage;
+		if (rightExpander.module->model == modelRainbowScaleExpander) {
+			RainbowScaleExpanderMessage *cM = (RainbowScaleExpanderMessage*)rightExpander.consumerMessage;
 			if (cM->updated) {
 				for (int i = 0; i < NUM_BANKNOTES; i++) {
 					main.io->USER_SCALE[i] = cM->coeffs[i];

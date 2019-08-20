@@ -100,7 +100,7 @@ enum GlideSetting {
 
 uint32_t diff(uint32_t a, uint32_t b);
 
-struct RainbowExpanderMessage {
+struct RainbowScaleExpanderMessage {
 	float coeffs[NUM_BANKNOTES];
 	bool updated;
 };
