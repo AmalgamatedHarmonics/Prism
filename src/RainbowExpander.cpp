@@ -46,6 +46,8 @@ struct RainbowScaleExpander : core::PrismModule {
 		NUM_LIGHTS
 	};
 
+	float parameterValues[3][8] = {};
+
 	const float octaves[MAX_OCTAVE] = {1,2,4,8,16,32,64,128,256,512,1024};
 	const float CtoF = 96000.0f / (2.0f * core::PI);
 	const float FtoC = (2.0f * core::PI) / 96000.0f;
@@ -57,7 +59,7 @@ struct RainbowScaleExpander : core::PrismModule {
 	int currBank = 0;
 
 	int currPage = 0; // Freq = 0, ET = 1, JI = 2
-	int nextPage = 0;
+	int prevPage = 0;
 
 	float rootA;
 
@@ -174,12 +176,69 @@ struct RainbowScaleExpander : core::PrismModule {
 			currFreqs[j] = scales.presets[NUM_SCALEBANKS - 1]->c_maxq[j];
 			currState[j] = FRESH;
 		}
+
+		// P0 Octave		/ Octave	/ Octave
+		// P1 Frequency 	/ Root 		/ Key
+		// P2 				/ Interval 	/ Upper
+		// P3  				/ EDO		/ Lower
+		// P4 Cents 		/ Cents 	/ Cents
+		// P5 Slot step 	/ 			/ 
+		// P6 Interval step	/ 			/ 
+		// P7 Max steps		/			/
+
+		// Frequency page
+		parameterValues[0][0] = 0.0f;		// -
+		parameterValues[0][1] = 261.6256f;	// Frequency
+		parameterValues[0][2] = 0.0f;		// -
+		parameterValues[0][3] = 0.0f;		// -
+		parameterValues[0][4] = 0.0f;		// Cents
+		parameterValues[0][5] = 1.0f;		// Slot step
+		parameterValues[0][6] = 100.0f;		// Interval step (cents)
+		parameterValues[0][7] = 20.0f;		// Max steps
+
+		// ET page
+		parameterValues[1][0] = 3.0f;		// Octave
+		parameterValues[1][1] = 0.0f;		// Root
+		parameterValues[1][2] = 1.0f;		// Inteval
+		parameterValues[1][3] = 12.0f;		// EDO
+		parameterValues[1][4] = 0.0f;		// Cents
+		parameterValues[1][5] = 1.0f;		// Slot step
+		parameterValues[1][6] = 1.0f;		// Interval step (semitone)
+		parameterValues[1][7] = 20.0f;		// Max steps
+
+		// JI page
+		parameterValues[2][0] = 3.0f;		// Octave
+		parameterValues[2][1] = 0.0f;		// Root
+		parameterValues[2][2] = 3.0f;		// Upper
+		parameterValues[2][3] = 2.0f;		// Lower
+		parameterValues[2][4] = 0.0f;		// Cents
+		parameterValues[2][5] = 1.0f;		// Slot step
+		parameterValues[2][6] = 0.0f;		// -
+		parameterValues[2][7] = 20.0f;		// Max steps
+
+
+		for (int j = 0; j < 3; j++) {
+			for (int i = 0; i < 8; i++) {
+				params[PARAMETER_PARAM + i].setValue(parameterValues[j][i]);
+			}
+		}
 	}
 
-	float *bankToCoeff(int bank) {
-		float *coeff = (float *)(scales.full[bank]->c_maxq);
-		return coeff;
-	}
+	float JI5LimitIntervals[13] = {
+		1.0f,				// P1
+		16.0f/15.0f,		// m2
+		9.0f/8.0f,			// M2
+		6.0f/5.0f,			// m3
+		5.0f/4.0f,			// M3
+		4.0f/3.0f,			// P4
+		45.0f/32.0f,		// A4
+		64.0f/45.0f,		// d5
+		3.0f/2.0f,			// P5
+		8.0f/5.0f,			// m6
+		5.0f/3.0f,			// M6
+		16.0f/9.0f,			// m7
+		15.0f/8.0f			// M7
+	};
 
 	rack::dsp::SchmittTrigger transferTrigger;
 	rack::dsp::SchmittTrigger loadBankTrigger;
@@ -195,7 +254,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		configParam(BANK_PARAM, 0, 21, 0, "Preset Bank"); 
 		configParam(BANKLOAD_PARAM, 0, 1, 0, "Load preset"); 
 
-		configParam(PAGE_PARAM, 0, 3, 0, "Select page"); 
+		configParam(PAGE_PARAM, 0, 2, 1, "Select page"); 
 		configParam(SET_PARAM, 0, 1, 0, "Set frequency"); 
 		configParam(EXECUTE_PARAM, 0, 1, 0, "Set multiple frequencies"); 
 
@@ -223,7 +282,9 @@ struct RainbowScaleExpander : core::PrismModule {
 	// P7 Max steps		/			/
 
 	void setFromFrequency() {
-		currFreqs[currNote + currScale * NUM_SCALENOTES] = params[PARAMETER_PARAM + 1].getValue();
+		float freq 	= params[PARAMETER_PARAM + 1].getValue();
+		float cent	= params[PARAMETER_PARAM + 4].getValue();
+		currFreqs[currNote + currScale * NUM_SCALENOTES] = freq * pow(2.0f, cent / 1200.0f);
 		currState[currNote + currScale * NUM_SCALENOTES] = EDITED;
 	}
 
@@ -240,6 +301,11 @@ struct RainbowScaleExpander : core::PrismModule {
 		currFreqs[currNote + currScale * NUM_SCALENOTES] = freq;
 		currState[currNote + currScale * NUM_SCALENOTES] = EDITED;
 
+		params[PARAMETER_PARAM + 0].setValue(oct);
+		params[PARAMETER_PARAM + 1].setValue(root);
+		params[PARAMETER_PARAM + 2].setValue(semi);
+		params[PARAMETER_PARAM + 3].setValue(edo);
+
 		this->moveNote();
 	}
 
@@ -250,11 +316,21 @@ struct RainbowScaleExpander : core::PrismModule {
 		float lower	= params[PARAMETER_PARAM + 3].getValue();
 		float cents	= params[PARAMETER_PARAM + 4].getValue();
 		
-		float freq0 = rootA * pow(2,root/12.0);		
+		if (root < 0) {
+			root = 0;
+		}
+		if (root > 11) {
+			root = 11;
+		}
+
+		float freq0 = rootA * JI5LimitIntervals[root];
 		float freq = freq0 * octaves[oct] * (upper / lower) * pow(2.0f, cents / 1200.0f);
 
 		currFreqs[currNote + currScale * NUM_SCALENOTES] = freq;
 		currState[currNote + currScale * NUM_SCALENOTES] = EDITED;
+
+		params[PARAMETER_PARAM + 0].setValue(oct);
+		params[PARAMETER_PARAM + 1].setValue(root);
 
 		this->moveNote();
 	}
@@ -262,9 +338,9 @@ struct RainbowScaleExpander : core::PrismModule {
 	void executeFromFrequency() {
 		int currPosinBank = currNote + currScale * NUM_SCALENOTES;
 
-		int frequency	 	= params[PARAMETER_PARAM + 1].getValue();
+		float frequency	 	= params[PARAMETER_PARAM + 1].getValue();
+		float nCents		= params[PARAMETER_PARAM + 6].getValue();
 		int nStepsinBank 	= params[PARAMETER_PARAM + 5].getValue();
-		int nCents	 		= params[PARAMETER_PARAM + 6].getValue();
 		int maxSteps 		= params[PARAMETER_PARAM + 7].getValue();
 
 		// Only update within current scale
@@ -272,18 +348,21 @@ struct RainbowScaleExpander : core::PrismModule {
 		int maxSlot = std::min((currScale + 1) * NUM_SCALENOTES - 1, NUM_BANKNOTES);
 
 		for (int i = 0; i < maxSteps; i++) {
-			float f2 = frequency * pow(2.0f, nCents / 1200.0f);
+			float f2 = frequency * pow(2.0f, nCents * i / 1200.0f);
 
 			currFreqs[currPosinBank] = f2;
 			currState[currPosinBank] = EDITED;
 
-			frequency += f2;				
 			currPosinBank += nStepsinBank;
 
 			if (currPosinBank < minSlot || currPosinBank > maxSlot) {
 				break;
 			} 
 		}
+
+		params[PARAMETER_PARAM + 5].setValue(nStepsinBank);
+		params[PARAMETER_PARAM + 7].setValue(maxSteps);
+
 	}
 
 	void executeFromET() {
@@ -315,6 +394,14 @@ struct RainbowScaleExpander : core::PrismModule {
 				break;
 			} 
 		}
+
+		params[PARAMETER_PARAM + 0].setValue(oct);
+		params[PARAMETER_PARAM + 1].setValue(root);
+		params[PARAMETER_PARAM + 3].setValue(edo);
+		params[PARAMETER_PARAM + 5].setValue(nStepsinBank);
+		params[PARAMETER_PARAM + 6].setValue(nSemitones);
+		params[PARAMETER_PARAM + 7].setValue(maxSteps);
+
 	}
 
 	void executeFromJI() {
@@ -332,9 +419,16 @@ struct RainbowScaleExpander : core::PrismModule {
 		int minSlot = currScale * NUM_SCALENOTES;
 		int maxSlot = std::min((currScale + 1) * NUM_SCALENOTES - 1, NUM_BANKNOTES);
 
+		if (root < 0) {
+			root = 0;
+		}
+		if (root > 11) {
+			root = 11;
+		}
+		float freq0 = rootA * JI5LimitIntervals[root];
+
 		for (int i = 0; i < maxSteps; i++) {
 
-			float freq0 = rootA * pow(2,root/12.0);		
 			float freq = freq0 * octaves[oct] * (upper / lower) * pow(2.0f, cents / 1200.0f);
 
 			currFreqs[currPosinBank] = freq;
@@ -347,6 +441,12 @@ struct RainbowScaleExpander : core::PrismModule {
 				break;
 			} 
 		}
+
+		params[PARAMETER_PARAM + 0].setValue(oct);
+		params[PARAMETER_PARAM + 1].setValue(root);
+		params[PARAMETER_PARAM + 5].setValue(nStepsinBank);
+		params[PARAMETER_PARAM + 7].setValue(maxSteps);
+
 	}
 
 	void process(const ProcessArgs &args) override {
@@ -367,8 +467,7 @@ struct RainbowScaleExpander : core::PrismModule {
 			for (int i = 0; i < NUM_BANKNOTES; i++) {
 				currFreqs[i] = scales.full[bank]->c_maxq[i] * CtoF;
 				currState[i] = FRESH;
-				notedesc[i] = "Hello!";
-				// notedesc[i] = scales.full[bank]->notedesc[i];
+				notedesc[i] = scales.full[bank]->notedesc[i];
 			}
 
 			for (int i = 0; i < NUM_SCALES; i++) {
@@ -378,6 +477,16 @@ struct RainbowScaleExpander : core::PrismModule {
 		}
 
 		currPage = params[PAGE_PARAM].getValue();
+		if (prevPage != currPage) {
+			for (int i = 0; i < 8; i++) {
+				params[PARAMETER_PARAM + i].setValue(parameterValues[currPage][i]);
+			}
+			prevPage = currPage;
+		} else {
+			for (int i = 0; i < 8; i++) {
+				parameterValues[currPage][i] = params[PARAMETER_PARAM + i].getValue();
+			}
+		}
 
 		if (setTrigger.process(params[SET_PARAM].getValue())) {
 			switch(currPage) {
