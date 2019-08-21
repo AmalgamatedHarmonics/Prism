@@ -269,3 +269,7 @@ struct IntegerReadout : PrismReadoutParam {
 } // namespace gui
 
 } // namespace ah
+
+inline math::Vec ink2vcv(float x, float y) {
+	return Vec(x * 1.5f, (128.5f - y) * 1.5f);
+}

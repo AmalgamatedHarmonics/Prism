@@ -61,6 +61,11 @@ struct RainbowScaleExpander : core::PrismModule {
 
 	float rootA;
 
+	std::string name;
+	std::string description;
+	std::string scalename[11];
+	std::string notedesc[231];
+
     ScaleSet scales;
 
 	json_t *dataToJson() override {
@@ -283,12 +288,22 @@ struct RainbowScaleExpander : core::PrismModule {
 		rootA = params[ROOTA_PARAM].getValue() / 32.0f;
 
 		if (loadBankTrigger.process(params[BANKLOAD_PARAM].getValue())) {
-			float *coeff = bankToCoeff(params[BANK_PARAM].getValue());
+			int bank = params[BANK_PARAM].getValue();
+
+			name = scales.full[bank]->name;
+			description = scales.full[bank]->description;
 
 			for (int i = 0; i < NUM_BANKNOTES; i++) {
-				currFreqs[i] = coeff[i] * CtoF;
+				currFreqs[i] = scales.full[bank]->c_maxq[i] * CtoF;
 				currState[i] = FRESH;
+				notedesc[i] = "Hello!";
+				// notedesc[i] = scales.full[bank]->notedesc[i];
 			}
+
+			for (int i = 0; i < NUM_SCALES; i++) {
+				scalename[i] = scales.full[bank]->scalename[i];
+			}
+
 		}
 
 		currPage = params[PAGE_PARAM].getValue();
@@ -364,9 +379,15 @@ struct FrequencyDisplay : TransparentWidget {
 
 		nvgFontSize(ctx.vg, 14);
 		nvgFontFaceId(ctx.vg, font->handle);
-		nvgTextLetterSpacing(ctx.vg, -1);
+		// nvgTextLetterSpacing(ctx.vg, -1);
 
 		char text[128];
+
+		snprintf(text, sizeof(text), "Bank: %s", module->name.c_str());
+		nvgText(ctx.vg, box.pos.x + 7, box.pos.y + 0, text, NULL);
+
+		snprintf(text, sizeof(text), "Scale: %s", module->scalename[module->currScale].c_str());
+		nvgText(ctx.vg, box.pos.x + 7, box.pos.y + 15, text, NULL);
 
 		for (int i = 0; i < NUM_SCALENOTES; i++) {
 			int index = i + module->currScale * NUM_SCALENOTES;
@@ -386,12 +407,22 @@ struct FrequencyDisplay : TransparentWidget {
 			}
 
 			if (module->currNote == i) {
-				snprintf(text, sizeof(text), "> %02d   %.3f", i+1, module->currFreqs[index]);
-			} else { 
-				snprintf(text, sizeof(text), "%02d   %.3f", i+1, module->currFreqs[index]);
+				snprintf(text, sizeof(text), ">");
+				nvgText(ctx.vg, box.pos.x + 2, (box.pos.y + 30) + (i * 15), text, NULL);
 			}
 
-			nvgText(ctx.vg, box.pos.x, box.pos.y + i * 15, text, NULL);
+			snprintf(text, sizeof(text), "%02d", i+1);
+			nvgText(ctx.vg, box.pos.x + 9, (box.pos.y + 30) + (i * 15), text, NULL);
+
+			if (module->currFreqs[index] > 100000.0f) {
+				snprintf(text, sizeof(text), "%e", module->currFreqs[index]);
+			} else {
+				snprintf(text, sizeof(text), "%.3f", module->currFreqs[index]);
+			}
+			nvgText(ctx.vg, box.pos.x + 24, (box.pos.y + 30) + (i * 15), text, NULL);
+
+			snprintf(text, sizeof(text), "%s", module->notedesc[index].c_str());
+			nvgText(ctx.vg, box.pos.x + 90, (box.pos.y + 30) + (i * 15), text, NULL);
 
 		}
 	}
@@ -464,7 +495,7 @@ struct ExpanderBankWidget : Widget {
 		}
 
 		snprintf(text, sizeof(text), "%s", scales.full[index]->name.c_str());
-		nvgText(ctx.vg, 0, box.pos.y, text, NULL);
+		nvgText(ctx.vg, box.pos.x, box.pos.y + 15, text, NULL);
 
 	}
 
@@ -477,33 +508,33 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/RainbowScaleExpander.svg")));
 
-		// ENUMS(PARAMETER_PARAM, 8),
-
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(5.849, 123.401)), module, RainbowScaleExpander::SLOT_PARAM));
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(24.121, 123.401)), module, RainbowScaleExpander::SCALE_PARAM));
-		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(43.246, 123.401)), module, RainbowScaleExpander::TRANSFER_PARAM));
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(77.326, 123.401)), module, RainbowScaleExpander::BANK_PARAM));
-		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(127.863, 123.401)), module, RainbowScaleExpander::BANKLOAD_PARAM));
-		addParam(createParam<gui::IntegerReadout>(mm2px(Vec(35.686, 16.963)), module, RainbowScaleExpander::ROOTA_PARAM));
-
-		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(127.863, 83.401)), module, RainbowScaleExpander::SET_PARAM));
-		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(127.863, 103.401)), module, RainbowScaleExpander::EXECUTE_PARAM));
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(127.863, 63.401)), module, RainbowScaleExpander::PAGE_PARAM));
-
-		for (int i = 0; i < 8; i++) {
-			addParam(createParamCentered<gui::FloatReadout>(mm2px(Vec(70, 10 + 10 * i)), module, RainbowScaleExpander::PARAMETER_PARAM + i));
-		}
+		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(9.89, 19.118)), module, RainbowScaleExpander::SLOT_PARAM));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 15.868)), module, RainbowScaleExpander::PARAMETER_PARAM+0));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 15.868)), module, RainbowScaleExpander::PARAMETER_PARAM+4));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 30.837)), module, RainbowScaleExpander::PARAMETER_PARAM+1));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 30.837)), module, RainbowScaleExpander::PARAMETER_PARAM+5));
+		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(9.89, 49.118)), module, RainbowScaleExpander::SCALE_PARAM));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 45.868)), module, RainbowScaleExpander::PARAMETER_PARAM+2));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 45.868)), module, RainbowScaleExpander::PARAMETER_PARAM+6));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 60.868)), module, RainbowScaleExpander::PARAMETER_PARAM+3));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 60.868)), module, RainbowScaleExpander::PARAMETER_PARAM+7));
+		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(9.89, 79.118)), module, RainbowScaleExpander::TRANSFER_PARAM));
+		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(107.39, 79.118)), module, RainbowScaleExpander::PAGE_PARAM));
+		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(122.287, 79.118)), module, RainbowScaleExpander::SET_PARAM));
+		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(137.39, 79.118)), module, RainbowScaleExpander::EXECUTE_PARAM));
+		addParam(createParam<gui::IntegerReadout>(mm2px(Vec(3.69, 105.868)), module, RainbowScaleExpander::ROOTA_PARAM));
+		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(98.328, 109.118)), module, RainbowScaleExpander::BANK_PARAM));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(107.59, 109.118)), module, RainbowScaleExpander::BANKLOAD_PARAM));
 
 		if (module != NULL) {
-			FrequencyDisplay *displayW = createWidget<FrequencyDisplay>(mm2px(Vec(5.0f, 3.5f)));
-			displayW->box.size = mm2px(Vec(20.0f, 110.6f));
+			FrequencyDisplay *displayW = createWidget<FrequencyDisplay>(ink2vcv(19.5f, 123.0f));
+			displayW->box.size = mm2px(Vec(0.0f, 120.0f));
 			displayW->module = module;
 			addChild(displayW);
 
-			ExpanderBankWidget *bankW = new ExpanderBankWidget();
-			bankW->module = module;
-			bankW->box.pos = mm2px(Vec(86.5f, 62.5f));
+			ExpanderBankWidget *bankW = createWidget<ExpanderBankWidget>(ink2vcv(111.722f,24.382f));
 			bankW->box.size = Vec(80.0, 20.0f);
+			bankW->module = module;
 			addChild(bankW);
 		}
 	}
