@@ -72,27 +72,98 @@ struct RainbowScaleExpander : core::PrismModule {
 
         json_t *rootJ = json_object();
 
-		// userscale
-		json_t *userscale_array = json_array();
-		for (int i = 0; i < NUM_BANKNOTES; i++) {
-			json_t *noteJ = json_real(currFreqs[i]);
-			json_array_append_new(userscale_array, noteJ);
+		// page
+		json_t *pageJ = json_integer(currPage);
+		json_object_set_new(rootJ, "page", pageJ);
+
+		// name
+		json_t *nameJ = json_string(name.c_str());
+		json_object_set_new(rootJ, "name", nameJ);
+
+		// description
+		json_t *descriptionJ = json_string(description.c_str());
+		json_object_set_new(rootJ, "description", descriptionJ);
+
+		// scalename
+		json_t *scalename_array = json_array();
+		for (int i = 0; i < NUM_SCALES; i++) {
+			json_t *scalenameJ = json_string(scalename[i].c_str());
+			json_array_append_new(scalename_array, scalenameJ);
 		}
-		json_object_set_new(rootJ, "userscale",	userscale_array);
+		json_object_set_new(rootJ, "scalename",	scalename_array);
+
+		// frequency
+		json_t *frequency_array = json_array();
+		for (int i = 0; i < NUM_BANKNOTES; i++) {
+			json_t *frequencyJ = json_real(currFreqs[i]);
+			json_array_append_new(frequency_array, frequencyJ);
+		}
+		json_object_set_new(rootJ, "frequency",	frequency_array);
+
+		// notedesc
+		json_t *notedesc_array = json_array();
+		for (int i = 0; i < NUM_BANKNOTES; i++) {
+			json_t *notedescJ = json_string(notedesc[i].c_str());
+			json_array_append_new(notedesc_array, notedescJ);
+		}
+		json_object_set_new(rootJ, "notedesc",	notedesc_array);
 
         return rootJ;
     }
 
 	void dataFromJson(json_t *rootJ) override {
 
-		// userscale
-		json_t *uscale_array = json_object_get(rootJ, "userscale");
-		if (uscale_array) {
+		// page
+		json_t *pageJ = json_object_get(rootJ, "page");
+		if (pageJ)
+			currPage = json_integer_value(pageJ);
+
+		// name
+		json_t *nameJ = json_object_get(rootJ, "name");
+		if (nameJ)
+			name = json_string_value(nameJ);
+
+		// description
+		json_t *descriptionJ = json_object_get(rootJ, "description");
+		if (descriptionJ)
+			description = json_string_value(descriptionJ);
+
+		// frequency
+		json_t *frequency_array = json_object_get(rootJ, "frequency");
+		if (frequency_array) {
 			for (int i = 0; i < NUM_BANKNOTES; i++) {
-				json_t *noteJ = json_array_get(uscale_array, i);
-				if (noteJ) {
-					currFreqs[i] = json_real_value(noteJ);
-					currState[i] = FRESH;
+				json_t *frequencyJ = json_array_get(frequency_array, i);
+				if (frequencyJ) {
+					float f = json_real_value(frequencyJ);
+					if (f < 13.75f || f > 30000.0f) {
+						currFreqs[i] = clamp(f, 13.75f, 30000.0f);
+						currState[i] = EDITED;
+					} else {
+						currFreqs[i] = f;
+						currState[i] = FRESH;
+					}
+				}
+			}
+		}
+
+		// scalename
+		json_t *scalename_array = json_object_get(rootJ, "scalename");
+		if (scalename_array) {
+			for (int i = 0; i < NUM_SCALES; i++) {
+				json_t *scalenameJ = json_array_get(scalename_array, i);
+				if (scalenameJ) {
+					scalename[i] = json_string_value(scalenameJ);
+				}
+			}
+		}
+
+		// notedesc
+		json_t *notedesc_array = json_object_get(rootJ, "notedesc");
+		if (notedesc_array) {
+			for (int i = 0; i < NUM_BANKNOTES; i++) {
+				json_t *notedescJ = json_array_get(notedesc_array, i);
+				if (notedescJ) {
+					notedesc[i] = json_string_value(notedescJ);
 				}
 			}
 		}
