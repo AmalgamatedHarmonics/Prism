@@ -16,6 +16,7 @@ using namespace prism;
 struct RainbowScaleExpander : core::PrismModule {
 
 	const static int MAX_OCTAVE = 11;
+	const static int NUM_PARAMETERS = 10;
 
 	enum slotState {
 		LOADED,
@@ -32,8 +33,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		PAGE_PARAM,
 		SET_PARAM,
 		EXECUTE_PARAM,
-		ROOTA_PARAM,
-		ENUMS(PARAMETER_PARAM, 8),
+		ENUMS(PARAMETER_PARAM, 10),
 		NUM_PARAMS
 	};
 	enum InputIds {
@@ -46,9 +46,8 @@ struct RainbowScaleExpander : core::PrismModule {
 		NUM_LIGHTS
 	};
 
-	float parameterValues[3][8] = {};
+	float parameterValues[3][NUM_PARAMETERS] = {};
 
-	const float octaves[MAX_OCTAVE] = {1,2,4,8,16,32,64,128,256,512,1024};
 	const float CtoF = 96000.0f / (2.0f * core::PI);
 	const float FtoC = (2.0f * core::PI) / 96000.0f;
 
@@ -177,48 +176,52 @@ struct RainbowScaleExpander : core::PrismModule {
 			currState[j] = FRESH;
 		}
 
-		// P0 Octave		/ Octave	/ Octave
-		// P1 Frequency 	/ Root 		/ Key
-		// P2 				/ Interval 	/ Upper
-		// P3  				/ EDO		/ Lower
-		// P4 Cents 		/ Cents 	/ Cents
-		// P5 Slot step 	/ 			/ 
-		// P6 Interval step	/ 			/ 
-		// P7 Max steps		/			/
+		// P0 Frequency		/ A			/ f0		P5				/ EDO			/				
+		// P1 				/ Octave	/ Octave	P6	Cents		/ Cents			/ Cents	
+		// P2  				/ Base 		/ Base		P7	Slot Step	/ Slot Step		/ Slot step
+		// P3 				/ Interval 	/ Upper		P8				/ Interval Step	/ Cent step
+		// P4  				/ 			/ Lower		p9	Max steps	/ Max Steps		/ Max Steps
+
+
 
 		// Frequency page
-		parameterValues[0][0] = 0.0f;		// -
-		parameterValues[0][1] = 261.6256f;	// Frequency
+		parameterValues[0][0] = 261.6256f;	// Frequency
+		parameterValues[0][1] = 0.0f;		// -
 		parameterValues[0][2] = 0.0f;		// -
 		parameterValues[0][3] = 0.0f;		// -
-		parameterValues[0][4] = 0.0f;		// Cents
-		parameterValues[0][5] = 1.0f;		// Slot step
-		parameterValues[0][6] = 100.0f;		// Interval step (cents)
-		parameterValues[0][7] = 20.0f;		// Max steps
+		parameterValues[0][4] = 0.0f;		// -
+		parameterValues[0][5] = 0.0f;		// -
+		parameterValues[0][6] = 0.0f;		// Cents
+		parameterValues[0][7] = 1.0f;		// Slot step
+		parameterValues[0][8] = 100.0f;		// Interval step (cents)
+		parameterValues[0][9] = 21.0f;		// Max steps
 
 		// ET page
-		parameterValues[1][0] = 3.0f;		// Octave
-		parameterValues[1][1] = 0.0f;		// Root
-		parameterValues[1][2] = 1.0f;		// Inteval
-		parameterValues[1][3] = 12.0f;		// EDO
-		parameterValues[1][4] = 0.0f;		// Cents
-		parameterValues[1][5] = 1.0f;		// Slot step
-		parameterValues[1][6] = 1.0f;		// Interval step (semitone)
-		parameterValues[1][7] = 20.0f;		// Max steps
+		parameterValues[1][0] = 440.0f;		// Root A
+		parameterValues[1][1] = 4.0f;		// Octave
+		parameterValues[1][2] = 0.0f;		// Root Interval
+		parameterValues[1][3] = 12.0f;		// Interval
+		parameterValues[1][4] = 0.0f;		// -
+		parameterValues[1][5] = 12.0f;		// EDO
+		parameterValues[1][6] = 0.0f;		// Cents
+		parameterValues[1][7] = 1.0f;		// Slot step
+		parameterValues[1][8] = 1.0f;		// Interval step (semitone)
+		parameterValues[1][9] = 21.0f;		// Max steps
 
 		// JI page
-		parameterValues[2][0] = 3.0f;		// Octave
-		parameterValues[2][1] = 1.0f;		// Root
-		parameterValues[2][2] = 3.0f;		// Upper
-		parameterValues[2][3] = 2.0f;		// Lower
-		parameterValues[2][4] = 0.0f;		// Cents
-		parameterValues[2][5] = 1.0f;		// Slot step
-		parameterValues[2][6] = 0.0f;		// -
-		parameterValues[2][7] = 20.0f;		// Max steps
-
+		parameterValues[2][0] = 16.35f;		// f0
+		parameterValues[2][1] = 4.0f;		// Octave
+		parameterValues[2][2] = 1.0f;		// Base
+		parameterValues[2][3] = 3.0f;		// Upper
+		parameterValues[2][4] = 2.0f;		// Lower
+		parameterValues[2][5] = 0.0f;		// -
+		parameterValues[2][6] = 0.0f;		// Cents
+		parameterValues[2][7] = 1.0f;		// Slot step
+		parameterValues[2][8] = 0.0f;		// -
+		parameterValues[2][9] = 21.0f;		// Max steps
 
 		for (int j = 0; j < 3; j++) {
-			for (int i = 0; i < 8; i++) {
+			for (int i = 0; i < NUM_PARAMETERS; i++) {
 				params[PARAMETER_PARAM + i].setValue(parameterValues[j][i]);
 			}
 		}
@@ -258,9 +261,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		configParam(SET_PARAM, 0, 1, 0, "Set frequency"); 
 		configParam(EXECUTE_PARAM, 0, 1, 0, "Set multiple frequencies"); 
 
-		configParam(ROOTA_PARAM, -100000, 100000, 440, "Base tuning of A, Fundamental frequency");
-
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < NUM_PARAMETERS; i++) {
 			configParam(PARAMETER_PARAM + i, -100000, 100000, 0, "Parameter");
 		}
 
@@ -272,18 +273,9 @@ struct RainbowScaleExpander : core::PrismModule {
 		initialise();
 	}
 
-	// P0 Octave		/ Octave	/ Octave
-	// P1 Frequency 	/ Root 		/ Key
-	// P2 				/ Interval 	/ Upper
-	// P3  				/ EDO		/ Lower
-	// P4 Cents 		/ Cents 	/ Cents
-	// P5 Slot step 	/ 			/ 
-	// P6 Interval step	/ 			/ 
-	// P7 Max steps		/			/
-
 	void setFromFrequency() {
-		float freq 	= params[PARAMETER_PARAM + 1].getValue();
-		float cents	= params[PARAMETER_PARAM + 4].getValue();
+		float freq 	= params[PARAMETER_PARAM + 0].getValue();
+		float cents	= params[PARAMETER_PARAM + 6].getValue();
 		currFreqs[currNote + currScale * NUM_SCALENOTES] = freq * pow(2.0f, cents / 1200.0f);
 		currState[currNote + currScale * NUM_SCALENOTES] = EDITED;
 
@@ -298,23 +290,18 @@ struct RainbowScaleExpander : core::PrismModule {
 	}
 
 	void setFromET() {
-		int oct 	= params[PARAMETER_PARAM + 0].getValue();
-		int root 	= params[PARAMETER_PARAM + 1].getValue();
-		int semi	= params[PARAMETER_PARAM + 2].getValue();
-		int edo		= params[PARAMETER_PARAM + 3].getValue();
-		float cents	= params[PARAMETER_PARAM + 4].getValue();
-		float rootA	= params[ROOTA_PARAM].getValue() / 32.0f;
+		float rootA	= params[PARAMETER_PARAM + 0].getValue() / 32.0f;
+		int oct 	= params[PARAMETER_PARAM + 1].getValue();
+		int root 	= params[PARAMETER_PARAM + 2].getValue();
+		int semi	= params[PARAMETER_PARAM + 3].getValue();
+		int edo		= params[PARAMETER_PARAM + 5].getValue();
+		float cents	= params[PARAMETER_PARAM + 6].getValue();
 
 		float root2 = pow(2.0, (root + semi) / (float)edo);
-		float freq = rootA * octaves[oct] * root2 * pow(2.0f, cents / 1200.0f);
+		float freq = rootA * pow(2, oct) * root2 * pow(2.0f, cents / 1200.0f);
 
 		currFreqs[currNote + currScale * NUM_SCALENOTES] = freq;
 		currState[currNote + currScale * NUM_SCALENOTES] = EDITED;
-
-		// params[PARAMETER_PARAM + 0].setValue(oct);
-		// params[PARAMETER_PARAM + 1].setValue(root);
-		// params[PARAMETER_PARAM + 2].setValue(semi);
-		// params[PARAMETER_PARAM + 3].setValue(edo);
 
 		char aText[20];
 		char oText[20];
@@ -322,7 +309,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		char sText[20];
 		char eText[20];
 		char cText[20];
-		snprintf(aText, sizeof(aText), "%.1f", params[ROOTA_PARAM].getValue());
+		snprintf(aText, sizeof(aText), "%.1f", params[PARAMETER_PARAM + 0].getValue());
 		snprintf(oText, sizeof(oText), "%d", oct);
 		snprintf(rText, sizeof(rText), "%d", root);
 		snprintf(sText, sizeof(sText), "%d", semi);
@@ -348,14 +335,14 @@ struct RainbowScaleExpander : core::PrismModule {
 	}
 
 	void setFromJI() {
-		int oct 	= params[PARAMETER_PARAM + 0].getValue();
-		float root 	= params[PARAMETER_PARAM + 1].getValue();
-		float upper	= params[PARAMETER_PARAM + 2].getValue();
-		float lower	= params[PARAMETER_PARAM + 3].getValue();
-		float cents	= params[PARAMETER_PARAM + 4].getValue();
-		float f0	= params[ROOTA_PARAM].getValue();
-	
-		float freq = f0 * octaves[oct] * root * (upper / lower) * pow(2.0f, cents / 1200.0f);
+		float f0	= params[PARAMETER_PARAM + 0].getValue();
+		int oct 	= params[PARAMETER_PARAM + 1].getValue();
+		float root 	= params[PARAMETER_PARAM + 2].getValue();
+		float upper	= params[PARAMETER_PARAM + 3].getValue();
+		float lower	= params[PARAMETER_PARAM + 4].getValue();
+		float cents	= params[PARAMETER_PARAM + 6].getValue();
+		
+		float freq = f0 * pow(2, oct) * root * (upper / lower) * pow(2.0f, cents / 1200.0f);
 
 		currFreqs[currNote + currScale * NUM_SCALENOTES] = freq;
 		currState[currNote + currScale * NUM_SCALENOTES] = EDITED;
@@ -381,18 +368,17 @@ struct RainbowScaleExpander : core::PrismModule {
 			notedesc[currNote + currScale * NUM_SCALENOTES] += "/c=" + std::string(cText);
 		}
 
-		// params[PARAMETER_PARAM + 0].setValue(oct);
-
 		this->moveNote();
 	}
 
 	void executeFromFrequency() {
 		int currPosinBank = currNote + currScale * NUM_SCALENOTES;
 
-		float frequency	 	= params[PARAMETER_PARAM + 1].getValue();
+		float frequency	 	= params[PARAMETER_PARAM + 0].getValue();
 		float cents			= params[PARAMETER_PARAM + 6].getValue();
-		int nStepsinBank 	= params[PARAMETER_PARAM + 5].getValue();
-		int maxSteps 		= params[PARAMETER_PARAM + 7].getValue();
+		int nStepsinBank 	= params[PARAMETER_PARAM + 7].getValue();
+		float dCents		= params[PARAMETER_PARAM + 8].getValue();
+		int maxSteps 		= params[PARAMETER_PARAM + 9].getValue();
 
 		// Only update within current scale
 		int minSlot = currScale * NUM_SCALENOTES;
@@ -402,15 +388,15 @@ struct RainbowScaleExpander : core::PrismModule {
 		char cText[100];
 
 		for (int i = 0; i < maxSteps; i++) {
-			float f2 = frequency * pow(2.0f, cents * i / 1200.0f);
+			float f2 = frequency * pow(2.0f, cents / 1200.0f) * pow(2.0f, dCents * i / 1200.0f);
 
 			currFreqs[currPosinBank] = f2;
 			currState[currPosinBank] = EDITED;
 			snprintf(fText, sizeof(fText), "%.2f", frequency);
-			snprintf(cText, sizeof(cText), "%.2f", cents * i);
+			snprintf(cText, sizeof(cText), "%.2f", cents + dCents * i);
 
 			notedesc[currPosinBank] = "f=" + std::string(fText);
-			if (cents != 0.0) {
+			if (cents + dCents * i != 0.0) {
 				notedesc[currPosinBank] += "/c=" + std::string(cText);
 			}
 
@@ -420,23 +406,19 @@ struct RainbowScaleExpander : core::PrismModule {
 				break;
 			} 
 		}
-
-		// params[PARAMETER_PARAM + 5].setValue(nStepsinBank);
-		// params[PARAMETER_PARAM + 7].setValue(maxSteps);
-
 	}
 
 	void executeFromET() {
 		int currPosinBank = currNote + currScale * NUM_SCALENOTES;
 
-		int oct 			= params[PARAMETER_PARAM + 0].getValue();
-		int base 			= params[PARAMETER_PARAM + 1].getValue();
-		int edo				= params[PARAMETER_PARAM + 3].getValue();
-		float cents			= params[PARAMETER_PARAM + 4].getValue();
-		float rootA			= params[ROOTA_PARAM].getValue() / 32.0f;
-		int nStepsinBank 	= params[PARAMETER_PARAM + 5].getValue();
-		int nSemitones 		= params[PARAMETER_PARAM + 6].getValue();
-		int maxSteps 		= params[PARAMETER_PARAM + 7].getValue();
+		float rootA			= params[PARAMETER_PARAM + 0].getValue() / 32.0f;
+		int oct 			= params[PARAMETER_PARAM + 1].getValue();
+		int base 			= params[PARAMETER_PARAM + 2].getValue();
+		int edo				= params[PARAMETER_PARAM + 5].getValue();
+		float cents			= params[PARAMETER_PARAM + 6].getValue();
+		int nStepsinBank 	= params[PARAMETER_PARAM + 7].getValue();
+		int nSemitones 		= params[PARAMETER_PARAM + 8].getValue();
+		int maxSteps 		= params[PARAMETER_PARAM + 9].getValue();
 
 		// Only update within current scale
 		int minSlot = currScale * NUM_SCALENOTES;
@@ -453,12 +435,12 @@ struct RainbowScaleExpander : core::PrismModule {
 
 		for (int i = 0; i < maxSteps; i++) {
 			float r2 = pow(2.0, interval / (float)edo);
-			float f2 = rootA * octaves[oct] * r2 * pow(2.0f, cents / 1200.0f);
+			float f2 = rootA * pow(2, oct) * r2 * pow(2.0f, cents / 1200.0f);
 
 			currFreqs[currPosinBank] = f2;
 			currState[currPosinBank] = EDITED;
 
-			snprintf(aText, sizeof(aText), "%.1f", params[ROOTA_PARAM].getValue());
+			snprintf(aText, sizeof(aText), "%.1f", params[PARAMETER_PARAM + 0].getValue());
 			snprintf(oText, sizeof(oText), "%d", oct);
 			snprintf(bText, sizeof(bText), "%d", base);
 			snprintf(iText, sizeof(iText), "%d", interval);
@@ -487,26 +469,19 @@ struct RainbowScaleExpander : core::PrismModule {
 				break;
 			} 
 		}
-
-		// params[PARAMETER_PARAM + 0].setValue(oct);
-		// params[PARAMETER_PARAM + 3].setValue(edo);
-		// params[PARAMETER_PARAM + 5].setValue(nStepsinBank);
-		// params[PARAMETER_PARAM + 6].setValue(nSemitones);
-		// params[PARAMETER_PARAM + 7].setValue(maxSteps);
-
 	}
 
 	void executeFromJI() {
 		int currPosinBank = currNote + currScale * NUM_SCALENOTES;
 
-		int oct 			= params[PARAMETER_PARAM + 0].getValue();
-		float root 			= params[PARAMETER_PARAM + 1].getValue();
-		float upper			= params[PARAMETER_PARAM + 2].getValue();
-		float lower			= params[PARAMETER_PARAM + 3].getValue();
-		float cents			= params[PARAMETER_PARAM + 4].getValue();
-		float f0			= params[ROOTA_PARAM].getValue();
-		int nStepsinBank 	= params[PARAMETER_PARAM + 5].getValue();
-		int maxSteps 		= params[PARAMETER_PARAM + 7].getValue();
+		float f0			= params[PARAMETER_PARAM + 0].getValue();
+		int oct 			= params[PARAMETER_PARAM + 1].getValue();
+		float root 			= params[PARAMETER_PARAM + 2].getValue();
+		float upper			= params[PARAMETER_PARAM + 3].getValue();
+		float lower			= params[PARAMETER_PARAM + 4].getValue();
+		float cents			= params[PARAMETER_PARAM + 6].getValue();
+		int nStepsinBank 	= params[PARAMETER_PARAM + 7].getValue();
+		int maxSteps 		= params[PARAMETER_PARAM + 9].getValue();
 
 		// Only update within current scale
 		int minSlot = currScale * NUM_SCALENOTES;
@@ -514,10 +489,31 @@ struct RainbowScaleExpander : core::PrismModule {
 
 		for (int i = 0; i < maxSteps; i++) {
 
-			float freq = f0 * octaves[oct] * root * (upper / lower) * pow(2.0f, cents / 1200.0f);
+			float freq = f0 * pow(2, oct) * root * (upper / lower) * pow(2.0f, cents / 1200.0f);
 
 			currFreqs[currPosinBank] = freq;
 			currState[currPosinBank] = EDITED;
+
+			char aText[20];
+			char oText[20];
+			char rText[20];
+			char iText[20];
+			char cText[20];
+			snprintf(aText, sizeof(aText), "%.2f", f0);
+			snprintf(oText, sizeof(oText), "%d", oct);
+			snprintf(rText, sizeof(rText), "%.2f", root);
+			snprintf(iText, sizeof(iText), "%.1f/%.1f", upper, lower);
+			snprintf(cText, sizeof(cText), "%.2f", cents);
+
+			notedesc[currPosinBank] = "";
+
+			notedesc[currPosinBank] += "f0=" + std::string(aText);
+			notedesc[currPosinBank] += "/o=" + std::string(oText);
+			notedesc[currPosinBank] += "/r=" + std::string(rText); 
+			notedesc[currPosinBank] += "/i=" + std::string(iText); 
+			if (cents != 0.0) {
+				notedesc[currPosinBank] += "/c=" + std::string(cText);
+			}
 
 			oct++;
 			currPosinBank += nStepsinBank;
@@ -526,12 +522,6 @@ struct RainbowScaleExpander : core::PrismModule {
 				break;
 			} 
 		}
-
-		// params[PARAMETER_PARAM + 0].setValue(oct);
-		// params[PARAMETER_PARAM + 1].setValue(root);
-		// params[PARAMETER_PARAM + 5].setValue(nStepsinBank);
-		// params[PARAMETER_PARAM + 7].setValue(maxSteps);
-
 	}
 
 	void process(const ProcessArgs &args) override {
@@ -561,12 +551,12 @@ struct RainbowScaleExpander : core::PrismModule {
 
 		currPage = params[PAGE_PARAM].getValue();
 		if (prevPage != currPage) {
-			for (int i = 0; i < 8; i++) {
+			for (int i = 0; i < NUM_PARAMETERS; i++) {
 				params[PARAMETER_PARAM + i].setValue(parameterValues[currPage][i]);
 			}
 			prevPage = currPage;
 		} else {
-			for (int i = 0; i < 8; i++) {
+			for (int i = 0; i < NUM_PARAMETERS; i++) {
 				parameterValues[currPage][i] = params[PARAMETER_PARAM + i].getValue();
 			}
 		}
@@ -684,7 +674,11 @@ struct FrequencyDisplay : TransparentWidget {
 			}
 			nvgText(ctx.vg, box.pos.x + 24, (box.pos.y + 30) + (i * 15), text, NULL);
 
-			snprintf(text, sizeof(text), "%s", module->notedesc[index].c_str());
+			if (module->notedesc[index].length() > 25) {
+				snprintf(text, 25, "%s...", module->notedesc[index].substr(0, 20).c_str());
+			} else {
+				snprintf(text, 25, "%s", module->notedesc[index].c_str());
+			}
 			nvgText(ctx.vg, box.pos.x + 90, (box.pos.y + 30) + (i * 15), text, NULL);
 
 		}
@@ -773,18 +767,19 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 
 		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(9.89, 19.118)), module, RainbowScaleExpander::SLOT_PARAM));
 		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 15.868)), module, RainbowScaleExpander::PARAMETER_PARAM+0));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 15.868)), module, RainbowScaleExpander::PARAMETER_PARAM+4));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 30.837)), module, RainbowScaleExpander::PARAMETER_PARAM+1));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 30.837)), module, RainbowScaleExpander::PARAMETER_PARAM+5));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 15.868)), module, RainbowScaleExpander::PARAMETER_PARAM+5));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 30.868)), module, RainbowScaleExpander::PARAMETER_PARAM+1));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 30.868)), module, RainbowScaleExpander::PARAMETER_PARAM+6));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 45.838)), module, RainbowScaleExpander::PARAMETER_PARAM+2));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 45.838)), module, RainbowScaleExpander::PARAMETER_PARAM+7));
 		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(9.89, 49.118)), module, RainbowScaleExpander::SCALE_PARAM));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 45.868)), module, RainbowScaleExpander::PARAMETER_PARAM+2));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 45.868)), module, RainbowScaleExpander::PARAMETER_PARAM+6));
 		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 60.868)), module, RainbowScaleExpander::PARAMETER_PARAM+3));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 60.868)), module, RainbowScaleExpander::PARAMETER_PARAM+7));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 60.868)), module, RainbowScaleExpander::PARAMETER_PARAM+8));
 		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(9.89, 79.118)), module, RainbowScaleExpander::TRANSFER_PARAM));
-		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(107.39, 79.118)), module, RainbowScaleExpander::SET_PARAM));
-		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(137.39, 79.118)), module, RainbowScaleExpander::EXECUTE_PARAM));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(110.69, 90.868)), module, RainbowScaleExpander::ROOTA_PARAM));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 75.868)), module, RainbowScaleExpander::PARAMETER_PARAM+4));
+		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 75.868)), module, RainbowScaleExpander::PARAMETER_PARAM+9));
+		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(107.39, 94.118)), module, RainbowScaleExpander::SET_PARAM));
+		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(137.39, 94.118)), module, RainbowScaleExpander::EXECUTE_PARAM));
 		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(9.89, 109.118)), module, RainbowScaleExpander::PAGE_PARAM));
 		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(98.328, 109.118)), module, RainbowScaleExpander::BANK_PARAM));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(107.59, 109.118)), module, RainbowScaleExpander::BANKLOAD_PARAM));
