@@ -10,12 +10,12 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="22.5mm"
-   height="6.5mm"
-   viewBox="0 0 22.5 6.5"
+   height="13mm"
+   viewBox="0 0 22.5 13"
    version="1.1"
    id="svg1153"
    inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
-   sodipodi:docname="PrismReadout.svg">
+   sodipodi:docname="PrismFloatReadout.svg">
   <defs
      id="defs1147" />
   <sodipodi:namedview
@@ -26,15 +26,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="7.7522917"
-     inkscape:cx="47.276343"
+     inkscape:cx="23.67042"
      inkscape:cy="19.542608"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1780"
-     inkscape:window-height="1046"
-     inkscape:window-x="129"
-     inkscape:window-y="-11"
+     inkscape:window-width="3347"
+     inkscape:window-height="1417"
+     inkscape:window-x="85"
+     inkscape:window-y="-8"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata1150">
@@ -52,7 +52,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-290.5)">
+     transform="translate(0,-284)">
     <rect
        rx="1.5233715"
        style="display:inline;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.09999996;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"

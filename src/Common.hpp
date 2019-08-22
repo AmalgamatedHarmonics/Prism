@@ -154,7 +154,7 @@ struct PrismReadoutParam : app::ParamWidget {
 		sw = new widget::SvgWidget;
 		fb->addChild(sw);
 
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/BarlowCondensed-Bold.ttf"));
+		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf"));
 	}
 
 	void setSvg(std::shared_ptr<Svg> svg) {
@@ -211,8 +211,16 @@ struct PrismReadoutParam : app::ParamWidget {
 			nvgFontFaceId(ctx.vg, font->handle);
 
 			char text[128];
-			snprintf(text, sizeof(text), "%.3f", paramQuantity->getValue());
+
+			snprintf(text, sizeof(text), "%s", title.c_str());
 			nvgText(ctx.vg, pos.x, pos.y, text, NULL);
+
+			if (!isActive) {
+				nvgFillColor(ctx.vg, nvgRGBA(0x80, 0x80, 0x80, 0xFF));
+			}
+
+			snprintf(text, sizeof(text), "%.3f", paramQuantity->getValue());
+			nvgText(ctx.vg, pos.x, pos.y + 19.5, text, NULL);
 		}
 	}
 
@@ -232,20 +240,24 @@ struct FloatReadout : PrismReadoutParam {
 
 			Vec pos = Vec(5, 15);
 
-			nvgFontSize(ctx.vg, 17.0f);
 			nvgFontFaceId(ctx.vg, font->handle);
 
 			char text[128];
 
+			nvgFontSize(ctx.vg, 14.0f);
+			nvgFillColor(ctx.vg, nvgRGBA(0x84, 0x84, 0x8f, 0xFF));
 			snprintf(text, sizeof(text), "%s", title.c_str());
 			nvgText(ctx.vg, pos.x, pos.y, text, NULL);
 
-			if (!isActive) {
-				nvgFillColor(ctx.vg, nvgRGBA(0x80, 0x80, 0x80, 0xFF));
+			if (isActive) {
+				nvgFillColor(ctx.vg, nvgRGBA(0xff, 0xff, 0xff, 0xFF));
+			} else {
+				nvgFillColor(ctx.vg, nvgRGBA(0x84, 0x84, 0x84, 0xFF));
 			}
 
+			nvgFontSize(ctx.vg, 17.0f);
 			snprintf(text, sizeof(text), "%.3f", paramQuantity->getValue());
-			nvgText(ctx.vg, pos.x, pos.y + 17, text, NULL);
+			nvgText(ctx.vg, pos.x, pos.y + 19.5, text, NULL);
 		}
 	}
 
@@ -269,8 +281,16 @@ struct IntegerReadout : PrismReadoutParam {
 			nvgFontFaceId(ctx.vg, font->handle);
 
 			char text[128];
-			snprintf(text, sizeof(text), "%d", (int)paramQuantity->getValue());
+
+			snprintf(text, sizeof(text), "%s", title.c_str());
 			nvgText(ctx.vg, pos.x, pos.y, text, NULL);
+
+			if (!isActive) {
+				nvgFillColor(ctx.vg, nvgRGBA(0x80, 0x80, 0x80, 0xFF));
+			}
+
+			snprintf(text, sizeof(text), "%d", (int)paramQuantity->getValue());
+			nvgText(ctx.vg, pos.x, pos.y + 19.5, text, NULL);
 		}
 	}
 	

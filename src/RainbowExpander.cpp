@@ -244,18 +244,18 @@ struct RainbowScaleExpander : core::PrismModule {
 
 		parameterLabels[1][0] =	"A = ";
 		parameterLabels[1][1] =	"Octave";
-		parameterLabels[1][2] =	"Base interval";
+		parameterLabels[1][2] =	"Base intvl.";
 		parameterLabels[1][3] =	"Interval";
 		parameterLabels[1][4] =	"";
 		parameterLabels[1][5] =	"EDO";
 		parameterLabels[1][6] =	"Cents";
 		parameterLabels[1][7] =	"Slot step";
-		parameterLabels[1][8] =	"Semitone step";
+		parameterLabels[1][8] =	"Intvl. step";
 		parameterLabels[1][9] =	"Max steps";
 
 		parameterLabels[2][0] =	"f0";
 		parameterLabels[2][1] =	"Octave";
-		parameterLabels[2][2] =	"Base interval";
+		parameterLabels[2][2] =	"Base intvl.";
 		parameterLabels[2][3] =	"Upper";
 		parameterLabels[2][4] =	"Lower";
 		parameterLabels[2][5] =	"";
@@ -673,7 +673,7 @@ struct FrequencyDisplay : TransparentWidget {
 	std::shared_ptr<Font> font;
 	
 	FrequencyDisplay() {
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/BarlowCondensed-Bold.ttf"));
+		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf"));
 	}
 
 	void draw(const DrawArgs &ctx) override {
@@ -737,7 +737,7 @@ struct FrequencyDisplay : TransparentWidget {
 			} else {
 				snprintf(text, sizeof(text), "%.3f", module->currFreqs[index]);
 			}
-			nvgText(ctx.vg, box.pos.x + 24, (box.pos.y + 30) + (i * 15), text, NULL);
+			nvgText(ctx.vg, box.pos.x + 26, (box.pos.y + 30) + (i * 15), text, NULL);
 
 			if (module->notedesc[index].length() > 25) {
 				snprintf(text, 25, "%s...", module->notedesc[index].substr(0, 20).c_str());
@@ -756,7 +756,7 @@ struct ExpanderBankWidget : Widget {
 	std::shared_ptr<Font> font;
 
 	ExpanderBankWidget() {
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/BarlowCondensed-Bold.ttf"));
+		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf"));
 	}
 
     ScaleSet scales;
@@ -832,16 +832,16 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 
 		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(9.89, 19.118)), module, RainbowScaleExpander::SLOT_PARAM));
 
-		gui::PrismReadoutParam *p0 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 15.868)), module, RainbowScaleExpander::PARAMETER_PARAM+0);
-		gui::PrismReadoutParam *p1 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 30.868)), module, RainbowScaleExpander::PARAMETER_PARAM+1);
-		gui::PrismReadoutParam *p2 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 45.838)), module, RainbowScaleExpander::PARAMETER_PARAM+2);
-		gui::PrismReadoutParam *p3 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 60.868)), module, RainbowScaleExpander::PARAMETER_PARAM+3);
-		gui::PrismReadoutParam *p4 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 75.868)), module, RainbowScaleExpander::PARAMETER_PARAM+4);
-		gui::PrismReadoutParam *p5 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 15.868)), module, RainbowScaleExpander::PARAMETER_PARAM+5);
-		gui::PrismReadoutParam *p6 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 30.868)), module, RainbowScaleExpander::PARAMETER_PARAM+6);
-		gui::PrismReadoutParam *p7 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 45.838)), module, RainbowScaleExpander::PARAMETER_PARAM+7);
-		gui::PrismReadoutParam *p8 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 60.868)), module, RainbowScaleExpander::PARAMETER_PARAM+8);
-		gui::PrismReadoutParam *p9 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 75.868)), module, RainbowScaleExpander::PARAMETER_PARAM+9);
+		gui::PrismReadoutParam *p0 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 9.268)), module, RainbowScaleExpander::PARAMETER_PARAM+0);
+		gui::PrismReadoutParam *p1 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 24.268)), module, RainbowScaleExpander::PARAMETER_PARAM+1);
+		gui::PrismReadoutParam *p2 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 39.268)), module, RainbowScaleExpander::PARAMETER_PARAM+2);
+		gui::PrismReadoutParam *p3 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 54.268)), module, RainbowScaleExpander::PARAMETER_PARAM+3);
+		gui::PrismReadoutParam *p4 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 69.268)), module, RainbowScaleExpander::PARAMETER_PARAM+4);
+		gui::PrismReadoutParam *p5 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 9.268)), module, RainbowScaleExpander::PARAMETER_PARAM+5);
+		gui::PrismReadoutParam *p6 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 24.268)), module, RainbowScaleExpander::PARAMETER_PARAM+6);
+		gui::PrismReadoutParam *p7 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 39.268)), module, RainbowScaleExpander::PARAMETER_PARAM+7);
+		gui::PrismReadoutParam *p8 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 54.268)), module, RainbowScaleExpander::PARAMETER_PARAM+8);
+		gui::PrismReadoutParam *p9 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 69.268)), module, RainbowScaleExpander::PARAMETER_PARAM+9);
 
 		module->widgetRef[0] = p0;
 		module->widgetRef[1] = p1;
