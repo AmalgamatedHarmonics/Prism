@@ -1,6 +1,7 @@
 
 On-going
 - refactor and clean code
+- optimisation
 
 - Import SVGs and font
 - Invidual V/OCT, Env, Q and Level IO
@@ -14,9 +15,6 @@ On-going
 Specific
 - Revise stored_trigger_level timing
 - refactor filter code
-
-expander
-- Tooltips
 
 
 BUG    system_mode.c:  if (ctr==80000){ //User took too long, start over // bug will never timeout

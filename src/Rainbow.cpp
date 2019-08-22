@@ -703,7 +703,7 @@ struct BankWidget : Widget {
 	};
 
 	BankWidget() {
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/BarlowCondensed-Bold.ttf"));
+		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf"));
 	}
 
 	void draw(const DrawArgs &ctx) override {
@@ -737,7 +737,7 @@ struct RainbowWidget : ModuleWidget {
 	RainbowWidget(Rainbow *module) {
 
 		setModule(module);
-		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Rainbow.svg")));
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/prism_Rainbow.svg")));
 
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(116.911, 15.686)), module, Rainbow::LOCKON_PARAM+0));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(128.057, 15.686)), module, Rainbow::LOCKON_PARAM+1));
@@ -793,25 +793,32 @@ struct RainbowWidget : ModuleWidget {
 		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(144.775, 118.183)), module, Rainbow::FILTER_PARAM));
 		addParam(createParamCentered<gui::PrismKnobNoSnap>(mm2px(Vec(188.66, 118.183)), module, Rainbow::GLOBAL_LEVEL_PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(247.76, 13.58)), module, Rainbow::ROTATECV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(221.301, 40.038)), module, Rainbow::ROTCCW_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(274.218, 40.038)), module, Rainbow::ROTCW_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(100.89, 53.655)), module, Rainbow::FREQCV1_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(188.66, 53.655)), module, Rainbow::FREQCV6_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(247.76, 66.497)), module, Rainbow::SCALE_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(100.89, 72.407)), module, Rainbow::LOCK135_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(188.66, 72.407)), module, Rainbow::LOCK246_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(29.899, 76.69)), module, Rainbow::POLY_IN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(220.022, 118.124)), module, Rainbow::MORPH_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(274.402, 118.124)), module, Rainbow::SPREAD_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(86.52, 118.182)), module, Rainbow::GLOBAL_Q_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(202.983, 118.182)), module, Rainbow::GLOBAL_LEVEL_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(117.04, 118.183)), module, Rainbow::POLY_Q_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(172.511, 118.183)), module, Rainbow::POLY_LEVEL_INPUT));
+		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(118.761f, 25.372f)), module, Rainbow::LEVEL_OUT_PARAM+0));
+		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(129.907f, 25.372f)), module, Rainbow::LEVEL_OUT_PARAM+1));
+		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(141.052f, 25.372f)), module, Rainbow::LEVEL_OUT_PARAM+2));
+		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(152.198f, 25.372f)), module, Rainbow::LEVEL_OUT_PARAM+3));
+		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(163.344f, 25.372f)), module, Rainbow::LEVEL_OUT_PARAM+4));
+		addParam(createParam<gui::PrismLEDIndicator>(mm2px(Vec(174.49f, 25.372f)), module, Rainbow::LEVEL_OUT_PARAM+5));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(29.899, 99.049)), module, Rainbow::POLY_OUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(29.899, 119.686)), module, Rainbow::POLY_ENV_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(54.778, 119.686)), module, Rainbow::POLY_VOCT_OUTPUT));
+		addInput(createInputCentered<gui::PrismPort>(mm2px(Vec(247.76, 13.58)), module, Rainbow::ROTATECV_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(mm2px(Vec(221.301, 40.038)), module, Rainbow::ROTCCW_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(mm2px(Vec(274.218, 40.038)), module, Rainbow::ROTCW_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(mm2px(Vec(100.89, 53.655)), module, Rainbow::FREQCV1_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(mm2px(Vec(188.66, 53.655)), module, Rainbow::FREQCV6_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(mm2px(Vec(247.76, 66.497)), module, Rainbow::SCALE_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(mm2px(Vec(100.89, 72.407)), module, Rainbow::LOCK135_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(mm2px(Vec(188.66, 72.407)), module, Rainbow::LOCK246_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(mm2px(Vec(29.899, 76.69)), module, Rainbow::POLY_IN_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(mm2px(Vec(220.022, 118.124)), module, Rainbow::MORPH_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(mm2px(Vec(274.402, 118.124)), module, Rainbow::SPREAD_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(mm2px(Vec(86.52, 118.182)), module, Rainbow::GLOBAL_Q_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(mm2px(Vec(202.983, 118.182)), module, Rainbow::GLOBAL_LEVEL_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(mm2px(Vec(117.04, 118.183)), module, Rainbow::POLY_Q_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(mm2px(Vec(172.511, 118.183)), module, Rainbow::POLY_LEVEL_INPUT));
+
+		addOutput(createOutputCentered<gui::PrismPort>(mm2px(Vec(29.899, 99.049)), module, Rainbow::POLY_OUT_OUTPUT));
+		addOutput(createOutputCentered<gui::PrismPort>(mm2px(Vec(29.899, 119.686)), module, Rainbow::POLY_ENV_OUTPUT));
+		addOutput(createOutputCentered<gui::PrismPort>(mm2px(Vec(54.778, 119.686)), module, Rainbow::POLY_VOCT_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(116.911, 15.686)), module, Rainbow::LOCK_LIGHT+0));
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(128.057, 15.686)), module, Rainbow::LOCK_LIGHT+1));

@@ -275,7 +275,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		parameterDescriptions[0][4] =	"";
 		parameterDescriptions[0][5] =	"";
 		parameterDescriptions[0][6] = 	"Cents to be added to frequency";
-		parameterDescriptions[0][7] =	"Number of slot to increase in each calculation step";
+		parameterDescriptions[0][7] =	"Number of slots to jump after each calculation step";
 		parameterDescriptions[0][8] =	"Additional cents to be added each step";
 		parameterDescriptions[0][9] =	"Maximum number of steps to apply";
 
@@ -286,21 +286,20 @@ struct RainbowScaleExpander : core::PrismModule {
 		parameterDescriptions[1][4] =	"";
 		parameterDescriptions[1][5] =	"Equal Division of Octave, how many intervals are in 1 octave";
 		parameterDescriptions[1][6] =	"Cents to be added to the final interval";
-		parameterDescriptions[1][7] =	"Number of slot to increase in each calculation step";
+		parameterDescriptions[1][7] =	"Number of slots to jump after each calculation step";
 		parameterDescriptions[1][8] =	"Additional intervals (semitones) to be added each step";
 		parameterDescriptions[1][9] =	"Maximum number of steps to apply";
 
-		parameterDescriptions[2][0] =	"Fundamental frequency; octave frequencies are calculated w.r.t. this frequency";
+		parameterDescriptions[2][0] =	"Fundamental frequency; JI octaves are calculated w.r.t. this frequency";
 		parameterDescriptions[2][1] =	"Octave";
 		parameterDescriptions[2][2] =	"Base interval (ratio) to be added to the octave";
 		parameterDescriptions[2][3] =	"Denominator of the interval ratio";
-		parameterDescriptions[2][4] =	"Numerator of the interval ratio, set this to 1 to allow precise numerical ratio in Upper";
+		parameterDescriptions[2][4] =	"Numerator of the interval ratio, set this to 1 to allow a precise numerical ratio in Upper";
 		parameterDescriptions[2][5] =	"";
 		parameterDescriptions[2][6] =	"Cents to be added to the final interval";
-		parameterDescriptions[2][7] =	"Number of slot to increase in each calculation step";
+		parameterDescriptions[2][7] =	"Number of slots to jump after each calculation step";
 		parameterDescriptions[2][8] =	"";
 		parameterDescriptions[2][9] =	"Maximum number of steps to apply";
-
 
 		for (int j = 0; j < 3; j++) {
 			for (int i = 0; i < NUM_PARAMETERS; i++) {
@@ -908,13 +907,13 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 		addParam(p8);
 		addParam(p9);
 
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(9.89, 19.118)), module, RainbowScaleExpander::SLOT_PARAM));
-		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(9.89, 79.118)), module, RainbowScaleExpander::TRANSFER_PARAM));
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(9.89, 49.118)), module, RainbowScaleExpander::SCALE_PARAM));
-		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(107.39, 94.118)), module, RainbowScaleExpander::SET_PARAM));
-		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(137.39, 94.118)), module, RainbowScaleExpander::EXECUTE_PARAM));
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(9.89, 109.118)), module, RainbowScaleExpander::PAGE_PARAM));
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(98.328, 109.118)), module, RainbowScaleExpander::BANK_PARAM));
+		addParam(createParamCentered<gui::PrismLargeKnobSnap>(mm2px(Vec(9.89, 19.118)), module, RainbowScaleExpander::SLOT_PARAM));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(9.89, 79.118)), module, RainbowScaleExpander::TRANSFER_PARAM));
+		addParam(createParamCentered<gui::PrismLargeKnobSnap>(mm2px(Vec(9.89, 49.118)), module, RainbowScaleExpander::SCALE_PARAM));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(107.39, 94.118)), module, RainbowScaleExpander::SET_PARAM));
+		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(137.39, 94.118)), module, RainbowScaleExpander::EXECUTE_PARAM));
+		addParam(createParamCentered<gui::PrismSSwitch3>(mm2px(Vec(9.89, 109.118)), module, RainbowScaleExpander::PAGE_PARAM));
+		addParam(createParamCentered<gui::PrismLargeKnobSnap>(mm2px(Vec(98.328, 109.118)), module, RainbowScaleExpander::BANK_PARAM));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(107.59, 109.118)), module, RainbowScaleExpander::BANKLOAD_PARAM));
 
 		if (module != NULL) {
