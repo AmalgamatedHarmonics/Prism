@@ -301,12 +301,12 @@ struct RainbowScaleExpander : core::PrismModule {
 		configParam(SCALE_PARAM, 0, 10, 0, "Select scale from bank");
 		configParam(SLOT_PARAM, 0, 20, 0, "Select note in scale");
 
-		configParam(BANK_PARAM, 0, 21, 0, "Preset Bank"); 
+		configParam(BANK_PARAM, 0, 21, 0, "Bank presets"); 
 		configParam(BANKLOAD_PARAM, 0, 1, 0, "Load preset"); 
 
-		configParam(PAGE_PARAM, 0, 2, 1, "Select page"); 
-		configParam(SET_PARAM, 0, 1, 0, "Set frequency"); 
-		configParam(EXECUTE_PARAM, 0, 1, 0, "Set multiple frequencies"); 
+		configParam(PAGE_PARAM, 0, 2, 1, "Select page: Frequency, ET, JI"); 
+		configParam(SET_PARAM, 0, 1, 0, "Set note frequency"); 
+		configParam(EXECUTE_PARAM, 0, 1, 0, "Set frequencies in scale"); 
 
 		for (int i = 0; i < NUM_PARAMETERS; i++) {
 			configParam(PARAMETER_PARAM + i, -100000, 100000, 0, "Parameter");

@@ -17,7 +17,6 @@ Specific
 
 expander
 - Tooltips
-- Dynamic parameter names
 
 
 BUG    system_mode.c:  if (ctr==80000){ //User took too long, start over // bug will never timeout
