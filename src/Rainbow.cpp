@@ -796,7 +796,7 @@ struct RainbowWidget : ModuleWidget {
 		addParam(createParam<gui::PrismLEDSlider>(Vec(239.0f + 2.5, 380.0f - 155.0f - 77.0f - 0.5), module, Rainbow::CHANNEL_LEVEL_PARAM+3));
 		addParam(createParam<gui::PrismLEDSlider>(Vec(279.0f + 2.5, 380.0f - 155.0f - 77.0f - 0.5), module, Rainbow::CHANNEL_LEVEL_PARAM+4));
 		addParam(createParam<gui::PrismLEDSlider>(Vec(319.0f + 2.5, 380.0f - 155.0f - 77.0f - 0.5), module, Rainbow::CHANNEL_LEVEL_PARAM+5));
-		addParam(createParam<gui::PrismSSwitch3>(Vec(80.5f, 380.0f - 205.5f - 33.0f), module, Rainbow::ENV_PARAM));
+		addParam(createParam<gui::PrismSSwitch3>(Vec(79.5f, 380.0f - 205.5f - 33.0f), module, Rainbow::ENV_PARAM));
 		addParam(createParamCentered<gui::PrismButton>(Vec(79.000 + 7.000, 380.0f - 187.000 - 7.000), module, Rainbow::PREPOST_PARAM)); 
 		addParam(createParamCentered<gui::PrismButton>(Vec(79.000 + 7.000, 380.0f - 322.000 - 7.000), module, Rainbow::VOCTGLIDE_PARAM)); 
 
