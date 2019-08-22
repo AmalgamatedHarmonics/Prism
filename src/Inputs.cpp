@@ -59,7 +59,7 @@ void Inputs::param_read_switches(void) {
 		tuning->mod_mode_135 = 135;
 	}
 
-	if (io->SCALEROT_SWITCH == RotateOn) {
+	if (io->SCALEROT_SWITCH) {
 		rotation->rotate_to_next_scale = 1;
 	} else {
 		rotation->rotate_to_next_scale = 0;

@@ -258,7 +258,7 @@ void Filter::filter_twopass() {
 			}
 
 			// VOCT output with glissando
-			if (io->GLIDE_SWITCH == GlideOn) {
+			if (io->GLIDE_SWITCH) {
 				envelope->envout_preload_voct[channel_num] = 
 					(envelope->envout_preload_voct[channel_num] * (1.0f - rotation->motion_morphpos[channel_num])) + 
 					(c1 * rotation->motion_morphpos[channel_num]);
@@ -343,7 +343,7 @@ void Filter::filter_onepass() {
 		}
 
 		// VOCT output with glissando
-		if (io->GLIDE_SWITCH == GlideOn && (j < NUM_CHANNELS)) {
+		if (io->GLIDE_SWITCH && (j < NUM_CHANNELS)) {
 			envelope->envout_preload_voct[channel_num] = 
 				(envelope->envout_preload_voct[channel_num] * (1.0f - rotation->motion_morphpos[channel_num])) + 
 				(c1 * rotation->motion_morphpos[channel_num]);

@@ -72,20 +72,20 @@ enum Mod246Setting {
 	Mod_246
 };
 
-enum ScaleRotationSetting {
-	RotateOff = 0,
-	RotateOn
-};
+// enum ScaleRotationSetting {
+// 	RotateOff = 0,
+// 	RotateOn
+// };
 
 enum VOctTrackSetting {
 	VOctTrackOff = 0,
 	VOctTrackOn
 };
 
-enum PrePostSetting {
-	Pre = 0,
-	Post
-};
+// enum PrePostSetting {
+// 	Pre = 0,
+// 	Post
+// };
 
 enum EnvelopeMode {
 	Fast = 0,
@@ -93,10 +93,10 @@ enum EnvelopeMode {
 	Trigger
 };
 
-enum GlideSetting {
-	GlideOff = 0,
-	GlideOn,
-};
+// enum GlideSetting {
+// 	GlideOff = 0,
+// 	GlideOn,
+// };
 
 uint32_t diff(uint32_t a, uint32_t b);
 
@@ -190,7 +190,7 @@ struct Envelope {
 	uint32_t env_update_ctr = UINT32_MAX;
 	uint32_t ENV_UPDATE_RATE = 50;
 
-	PrePostSetting	env_prepost_mode;
+	bool			env_prepost_mode; // false = pre
 	EnvOutModes		env_track_mode;
 	float			envspeed_attack;
 	float			envspeed_decay;
@@ -296,9 +296,9 @@ struct IO {
 	FilterSetting			FILTER_SWITCH;
 	Mod135Setting			MOD135_SWITCH;
 	Mod246Setting			MOD246_SWITCH;
-	ScaleRotationSetting	SCALEROT_SWITCH;
-	PrePostSetting			PREPOST_SWITCH;
-	GlideSetting			GLIDE_SWITCH;
+	bool					SCALEROT_SWITCH;
+	bool					PREPOST_SWITCH;
+	bool					GLIDE_SWITCH;
 	EnvelopeMode			ENV_SWITCH;
 
 	bool					CHANNEL_Q_ON[NUM_CHANNELS];

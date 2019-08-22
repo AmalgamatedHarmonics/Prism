@@ -70,7 +70,7 @@ void Envelope::update(void) {
 
 				//Pre-CV (input) or Post faders (quieter)
 				//To-Do: Attenuate by a global system parameter
-				if (env_prepost_mode == Pre) {
+				if (!env_prepost_mode) { // Pre
 					io->env_out[j] = envelope[j] / ENV_SCALE;
 				} else {
 					io->env_out[j] = envelope[j] * levels->channel_level[j]/ ENV_SCALE;
@@ -83,7 +83,7 @@ void Envelope::update(void) {
 			for (int j = 0; j < NUM_CHANNELS; j++) {
 
 				//Pre-CV (input) or Post-CV (output)
-				if (env_prepost_mode == Pre) {
+				if (!env_prepost_mode) { // Pre
 					if (stored_trigger_level[j] < 0.002f) {
 						envout_preload[j] *= 0.5f;
 					} else {

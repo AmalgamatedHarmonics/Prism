@@ -112,11 +112,26 @@ struct PrismSSwitch : app::SvgSwitch {
 	}
 };
 
+struct PrismSSwitchR : app::SvgSwitch {
+	PrismSSwitchR() {
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_Switch2_1.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_Switch3_2-11.svg")));
+	}
+};
+
 struct PrismSSwitch3 : app::SvgSwitch {
 	PrismSSwitch3 () {
 		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_Switch3_2-08.svg")));
 		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_Switch3_3.svg")));
 		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_Switch3_1.svg")));
+	}
+};
+
+struct PrismSSwitch3R : app::SvgSwitch {
+	PrismSSwitch3R () {
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_Switch3_1.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_Switch3_3.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_Switch3_2-08.svg")));
 	}
 };
 

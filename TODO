@@ -3,14 +3,19 @@ On-going
 - refactor and clean code
 - optimisation
 
-- Import SVGs and font
 - Invidual V/OCT, Env, Q and Level IO
-- Noise LED
+- LEDs
 - Recalibrate clip LED
 - Recalibrate tuning LED
 - Check input level calculation (add, not multiply??)
 - check trigger calculation
 - check output level calc
+- new lock buttons in SVG
+
+SVG updates
+- Env switch needs fixing, out of order
+- 2/246 label text wrong
+- noise switch alignment
 
 Specific
 - Revise stored_trigger_level timing
