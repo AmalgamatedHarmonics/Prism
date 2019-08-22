@@ -91,6 +91,8 @@ struct Rainbow : core::PrismModule {
 		COMPRESS_PARAM, // Obsolete
 		ENUMS(LEVEL_OUT_PARAM,6),
 		OUTCHAN_PARAM,
+		LOCK135_PARAM,
+		LOCK246_PARAM,
 		NUM_PARAMS
 	};
 	enum InputIds {
@@ -109,6 +111,8 @@ struct Rainbow : core::PrismModule {
 		POLY_IN_INPUT,
 		GLOBAL_Q_INPUT,
 		GLOBAL_LEVEL_INPUT,
+		ENUMS(MONO_Q_INPUT,6),
+		ENUMS(MONO_LEVEL_INPUT,6),
 		NUM_INPUTS
 	};
 	enum OutputIds {
@@ -116,6 +120,8 @@ struct Rainbow : core::PrismModule {
 		POLY_ENV_OUTPUT,
 		POLY_VOCT_OUTPUT,
 		POLY_DEBUG_OUTPUT,
+		ENUMS(MONO_ENV_OUTPUT,6),
+		ENUMS(MONO_VOCT_OUTPUT,6),
 		NUM_OUTPUTS
 	};
 	enum LightIds {
@@ -158,6 +164,9 @@ struct Rainbow : core::PrismModule {
 	rack::dsp::SchmittTrigger qlockTriggers[6];
 	rack::dsp::SchmittTrigger lock135Trigger;
 	rack::dsp::SchmittTrigger lock246Trigger;
+
+	rack::dsp::SchmittTrigger lock135ButtonTrigger;
+	rack::dsp::SchmittTrigger lock246ButtonTrigger;
 
 	rack::dsp::SchmittTrigger rotCWTrigger;
 	rack::dsp::SchmittTrigger rotCCWTrigger;
@@ -453,7 +462,9 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.io->MOD135_SWITCH 		= (Mod135Setting)params[MOD135_PARAM].getValue();
 	main.io->MOD246_SWITCH 		= (Mod246Setting)params[MOD246_PARAM].getValue();
 
-	if (lock135Trigger.process(inputs[LOCK135_INPUT].getVoltage())) {
+	if (lock135Trigger.process(inputs[LOCK135_INPUT].getVoltage()) ||
+		lock135ButtonTrigger.process(params[LOCK135_PARAM].getValue())) {
+
 		main.io->LOCK_ON[0] = !main.io->LOCK_ON[0];
 		
 		if (main.io->MOD135_SWITCH == Mod_135) {
@@ -462,7 +473,8 @@ void Rainbow::process(const ProcessArgs &args) {
 		}
 	} 
 
-	if (lock246Trigger.process(inputs[LOCK246_INPUT].getVoltage())) {
+	if (lock246Trigger.process(inputs[LOCK246_INPUT].getVoltage()) ||
+		lock246ButtonTrigger.process(params[LOCK246_PARAM].getValue())) {
 		main.io->LOCK_ON[5] = !main.io->LOCK_ON[5];
 		
 		if (main.io->MOD246_SWITCH == Mod_246) {
@@ -470,6 +482,8 @@ void Rainbow::process(const ProcessArgs &args) {
 			main.io->LOCK_ON[3] = !main.io->LOCK_ON[3];
 		}
 	} 
+
+
 
 	for (int n = 0; n < 6; n++) {
 		// Process Locks
@@ -602,6 +616,8 @@ void Rainbow::process(const ProcessArgs &args) {
 	for (int n = 0; n < 6; n++) {
 		outputs[POLY_ENV_OUTPUT].setVoltage(main.io->env_out[n] * 10.0f, n);
 		outputs[POLY_VOCT_OUTPUT].setVoltage(main.io->voct_out[n], n);
+		outputs[MONO_ENV_OUTPUT + n].setVoltage(main.io->env_out[n] * 10.0f);
+		outputs[MONO_VOCT_OUTPUT + n].setVoltage(main.io->voct_out[n]);
 	}
 
 	for (int n = 0; n < 6; n++) {
@@ -734,7 +750,7 @@ struct BankWidget : Widget {
 			return;
 		}
 
-		nvgFontSize(ctx.vg, 17.0f);
+		nvgFontSize(ctx.vg, 12.0f);
 		nvgFontFaceId(ctx.vg, font->handle);
 		// nvgTextLetterSpacing(ctx.vg, -1);
 
@@ -748,7 +764,7 @@ struct BankWidget : Widget {
 			snprintf(text, sizeof(text), "%s*", scales.presets[module->nextBank]->name.c_str());
 		}
 
-		nvgText(ctx.vg, 0, box.pos.y, text, NULL);
+		nvgText(ctx.vg, 5, 13, text, NULL);
 
 	}
 
@@ -822,6 +838,9 @@ struct RainbowWidget : ModuleWidget {
 		addParam(createParam<gui::PrismLEDIndicator>(Vec(293.0f, 380.0f - 224.0f), module, Rainbow::LEVEL_OUT_PARAM+4));
 		addParam(createParam<gui::PrismLEDIndicator>(Vec(333.0f, 380.0f - 224.0f), module, Rainbow::LEVEL_OUT_PARAM+5));
 
+		addParam(createParam<gui::PrismButton>(Vec(559.000, 380.0f - 60.000 - 14.000), module, Rainbow::LOCK135_PARAM));
+		addParam(createParam<gui::PrismButton>(Vec(559.000, 380.0f - 30.000 - 14.000), module, Rainbow::LOCK246_PARAM));
+
 		addInput(createInputCentered<gui::PrismPort>(Vec(475.000 + 11.0, 380.0f - 263.000 - 11.0), module, Rainbow::ROTATECV_INPUT));
 		addInput(createInputCentered<gui::PrismPort>(Vec(395.000 + 11.0, 380.0f - 183.500 - 11.0), module, Rainbow::ROTCCW_INPUT));
 		addInput(createInputCentered<gui::PrismPort>(Vec(555.000 + 11.0, 380.0f - 183.500 - 11.0), module, Rainbow::ROTCW_INPUT));
@@ -838,9 +857,37 @@ struct RainbowWidget : ModuleWidget {
 		addInput(createInputCentered<gui::PrismPort>(Vec(355.000 + 11.0, 380.0f - 26.000 - 11.0), module, Rainbow::POLY_Q_INPUT));
 		addInput(createInputCentered<gui::PrismPort>(Vec(355.000 + 11.0, 380.0f - 126.000 - 11.0), module, Rainbow::POLY_LEVEL_INPUT));
 
+		addInput(createInputCentered<gui::PrismPort>(Vec(115.000 + 11.0, 380.0f - 26.000 - 11.0), module, Rainbow::MONO_Q_INPUT+0));
+		addInput(createInputCentered<gui::PrismPort>(Vec(155.000 + 11.0, 380.0f - 26.000 - 11.0), module, Rainbow::MONO_Q_INPUT+1));
+		addInput(createInputCentered<gui::PrismPort>(Vec(195.000 + 11.0, 380.0f - 26.000 - 11.0), module, Rainbow::MONO_Q_INPUT+2));
+		addInput(createInputCentered<gui::PrismPort>(Vec(235.000 + 11.0, 380.0f - 26.000 - 11.0), module, Rainbow::MONO_Q_INPUT+3));
+		addInput(createInputCentered<gui::PrismPort>(Vec(275.000 + 11.0, 380.0f - 26.000 - 11.0), module, Rainbow::MONO_Q_INPUT+4));
+		addInput(createInputCentered<gui::PrismPort>(Vec(315.000 + 11.0, 380.0f - 26.000 - 11.0), module, Rainbow::MONO_Q_INPUT+5));
+
+		addInput(createInputCentered<gui::PrismPort>(Vec(115.000 + 11.0, 380.0f - 126.000 - 11.0), module, Rainbow::MONO_LEVEL_INPUT+0));
+		addInput(createInputCentered<gui::PrismPort>(Vec(155.000 + 11.0, 380.0f - 126.000 - 11.0), module, Rainbow::MONO_LEVEL_INPUT+1));
+		addInput(createInputCentered<gui::PrismPort>(Vec(195.000 + 11.0, 380.0f - 126.000 - 11.0), module, Rainbow::MONO_LEVEL_INPUT+2));
+		addInput(createInputCentered<gui::PrismPort>(Vec(235.000 + 11.0, 380.0f - 126.000 - 11.0), module, Rainbow::MONO_LEVEL_INPUT+3));
+		addInput(createInputCentered<gui::PrismPort>(Vec(275.000 + 11.0, 380.0f - 126.000 - 11.0), module, Rainbow::MONO_LEVEL_INPUT+4));
+		addInput(createInputCentered<gui::PrismPort>(Vec(315.000 + 11.0, 380.0f - 126.000 - 11.0), module, Rainbow::MONO_LEVEL_INPUT+5));
+
 		addOutput(createOutputCentered<gui::PrismPort>(Vec(35.000 + 11.0, 380.0f - 318.000 - 11.0), module, Rainbow::POLY_OUT_OUTPUT));
 		addOutput(createOutputCentered<gui::PrismPort>(Vec(355.000 + 11.0, 380.0f - 240.000 - 11.0), module, Rainbow::POLY_ENV_OUTPUT));
 		addOutput(createOutputCentered<gui::PrismPort>(Vec(355.000 + 11.0, 380.0f - 318.000 - 11.0), module, Rainbow::POLY_VOCT_OUTPUT));
+
+		addOutput(createOutputCentered<gui::PrismPort>(Vec(115.000 + 11.0, 380.0f - 240.000 - 11.0), module, Rainbow::MONO_ENV_OUTPUT+0));
+		addOutput(createOutputCentered<gui::PrismPort>(Vec(155.000 + 11.0, 380.0f - 240.000 - 11.0), module, Rainbow::MONO_ENV_OUTPUT+1));
+		addOutput(createOutputCentered<gui::PrismPort>(Vec(195.000 + 11.0, 380.0f - 240.000 - 11.0), module, Rainbow::MONO_ENV_OUTPUT+2));
+		addOutput(createOutputCentered<gui::PrismPort>(Vec(235.000 + 11.0, 380.0f - 240.000 - 11.0), module, Rainbow::MONO_ENV_OUTPUT+3));
+		addOutput(createOutputCentered<gui::PrismPort>(Vec(275.000 + 11.0, 380.0f - 240.000 - 11.0), module, Rainbow::MONO_ENV_OUTPUT+4));
+		addOutput(createOutputCentered<gui::PrismPort>(Vec(315.000 + 11.0, 380.0f - 240.000 - 11.0), module, Rainbow::MONO_ENV_OUTPUT+5));
+
+		addOutput(createOutputCentered<gui::PrismPort>(Vec(115.000 + 11.0, 380.0f - 318.000 - 11.0), module, Rainbow::MONO_VOCT_OUTPUT+0));
+		addOutput(createOutputCentered<gui::PrismPort>(Vec(155.000 + 11.0, 380.0f - 318.000 - 11.0), module, Rainbow::MONO_VOCT_OUTPUT+1));
+		addOutput(createOutputCentered<gui::PrismPort>(Vec(195.000 + 11.0, 380.0f - 318.000 - 11.0), module, Rainbow::MONO_VOCT_OUTPUT+2));
+		addOutput(createOutputCentered<gui::PrismPort>(Vec(235.000 + 11.0, 380.0f - 318.000 - 11.0), module, Rainbow::MONO_VOCT_OUTPUT+3));
+		addOutput(createOutputCentered<gui::PrismPort>(Vec(275.000 + 11.0, 380.0f - 318.000 - 11.0), module, Rainbow::MONO_VOCT_OUTPUT+4));
+		addOutput(createOutputCentered<gui::PrismPort>(Vec(315.000 + 11.0, 380.0f - 318.000 - 11.0), module, Rainbow::MONO_VOCT_OUTPUT+5));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(Vec(119.0f + 7.000, 380.0f - 352.000 - 7.000), module, Rainbow::LOCK_LIGHT+0));
 		addChild(createLightCentered<MediumLight<RedLight>>(Vec(159.0f + 7.000, 380.0f - 352.000 - 7.000), module, Rainbow::LOCK_LIGHT+1));
@@ -865,7 +912,7 @@ struct RainbowWidget : ModuleWidget {
 
 			BankWidget *bankW = new BankWidget();
 			bankW->module = module;
-			bankW->box.pos = mm2px(Vec(224.0f, 44.4f));
+			bankW->box.pos = Vec(474.962f, 380.0 - 320.162 - 17.708);
 			bankW->box.size = Vec(80.0, 20.0f);
 			addChild(bankW);
 
