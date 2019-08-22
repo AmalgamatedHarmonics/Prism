@@ -27,7 +27,7 @@ struct LED : Widget {
 	int id;
 
 	float ledRadius = 5.0f;
-	float ledStrokeWidth = 1.5f;
+	float ledStrokeWidth = 1.0f;
 	float xCenter;
 	float yCenter;
 
@@ -140,7 +140,7 @@ struct Rainbow : core::PrismModule {
 	uint32_t channelClipCnt[6];
 	float clipLimit = -5.2895f; // Clip at 10V;
 
-	NVGcolor defaultBorder = nvgRGB(50, 150, 50);
+	NVGcolor defaultBorder = nvgRGB(73, 73, 73);
 	NVGcolor blockedBorder = nvgRGB(255, 0, 0);
 
 	rainbow::Controller main;
@@ -774,12 +774,12 @@ struct RainbowWidget : ModuleWidget {
 		addParam(createParamCentered<gui::PrismButton>(Vec(535.000 + 7.000, 380.0f - 243.000 - 7.000), module, Rainbow::ROTCW_PARAM));
 		addParam(createParamCentered<gui::PrismKnobNoSnap>(Vec(435.000 + 11.0, 380.0f - 56.000 - 11.0), module, Rainbow::FREQNUDGE1_PARAM));
 		addParam(createParamCentered<gui::PrismKnobNoSnap>(Vec(435.000 + 11.0, 380.0f - 26.000 - 11.0), module, Rainbow::FREQNUDGE6_PARAM));
-		addParam(createParam<gui::PrismLEDSlider>(Vec(119.0f + 11.0, 380.0f - 155.0f - 77.0f), module, Rainbow::CHANNEL_LEVEL_PARAM+0));
-		addParam(createParam<gui::PrismLEDSlider>(Vec(159.0f + 11.0, 380.0f - 155.0f - 77.0f), module, Rainbow::CHANNEL_LEVEL_PARAM+1));
-		addParam(createParam<gui::PrismLEDSlider>(Vec(199.0f + 11.0, 380.0f - 155.0f - 77.0f), module, Rainbow::CHANNEL_LEVEL_PARAM+2));
-		addParam(createParam<gui::PrismLEDSlider>(Vec(239.0f + 11.0, 380.0f - 155.0f - 77.0f), module, Rainbow::CHANNEL_LEVEL_PARAM+3));
-		addParam(createParam<gui::PrismLEDSlider>(Vec(279.0f + 11.0, 380.0f - 155.0f - 77.0f), module, Rainbow::CHANNEL_LEVEL_PARAM+4));
-		addParam(createParam<gui::PrismLEDSlider>(Vec(319.0f, 380.0f - 155.0f - 77.0f), module, Rainbow::CHANNEL_LEVEL_PARAM+5));
+		addParam(createParam<gui::PrismLEDSlider>(Vec(119.0f + 2.5, 380.0f - 155.0f - 77.0f - 0.5), module, Rainbow::CHANNEL_LEVEL_PARAM+0));
+		addParam(createParam<gui::PrismLEDSlider>(Vec(159.0f + 2.5, 380.0f - 155.0f - 77.0f - 0.5), module, Rainbow::CHANNEL_LEVEL_PARAM+1));
+		addParam(createParam<gui::PrismLEDSlider>(Vec(199.0f + 2.5, 380.0f - 155.0f - 77.0f - 0.5), module, Rainbow::CHANNEL_LEVEL_PARAM+2));
+		addParam(createParam<gui::PrismLEDSlider>(Vec(239.0f + 2.5, 380.0f - 155.0f - 77.0f - 0.5), module, Rainbow::CHANNEL_LEVEL_PARAM+3));
+		addParam(createParam<gui::PrismLEDSlider>(Vec(279.0f + 2.5, 380.0f - 155.0f - 77.0f - 0.5), module, Rainbow::CHANNEL_LEVEL_PARAM+4));
+		addParam(createParam<gui::PrismLEDSlider>(Vec(319.0f + 2.5, 380.0f - 155.0f - 77.0f - 0.5), module, Rainbow::CHANNEL_LEVEL_PARAM+5));
 		addParam(createParam<gui::PrismSSwitch3>(Vec(80.5f, 380.0f - 205.5f - 33.0f), module, Rainbow::ENV_PARAM));
 		addParam(createParamCentered<gui::PrismButton>(Vec(79.000 + 7.000, 380.0f - 187.000 - 7.000), module, Rainbow::PREPOST_PARAM)); 
 		addParam(createParamCentered<gui::PrismButton>(Vec(79.000 + 7.000, 380.0f - 322.000 - 7.000), module, Rainbow::VOCTGLIDE_PARAM)); 
@@ -869,26 +869,45 @@ struct RainbowWidget : ModuleWidget {
 			bankW->box.size = Vec(80.0, 20.0f);
 			addChild(bankW);
 
-			Vec levelStrip(mm2px(Vec(113.3f, 21.5f)));
-			Vec channelStrip(mm2px(Vec(113.3f, 54.0f)));
+			float XStartL = 106.5;
+			float XStartR = 256.5 + 2.0;
+			float xDelta = 40.0;
+			float yVoct = 380.0 - 339.500 - 4.5;
+			float yEnv = 380.0 - 261.500 - 4.5;
+			float yQ = 380.0 - 77.500 - 4.5;
 
-			for (int i = 0; i < NUM_CHANNELS; i++) {
-				module->qLEDs[i] = new LED(i, channelStrip.x + i * 32.5f, channelStrip.y + 11.0f);
+			for (int i = 0; i < 3; i++) {
+				module->qLEDs[i] = new LED(i, XStartL + i * xDelta, yQ);
 				module->qLEDs[i]->module = NULL;
 				addChild(module->qLEDs[i]);
 
-				module->envelopeLEDs[i] = new LED(i, channelStrip.x + i * 32.5f + 12.0f, channelStrip.y + 11.0f);
+				module->envelopeLEDs[i] = new LED(i, XStartL + i * xDelta, yEnv);
 				module->envelopeLEDs[i]->module = NULL;
 				addChild(module->envelopeLEDs[i]);
 
-				module->tuningLEDs[i] = new LED(i, channelStrip.x + i * 32.5f + 6.0f, channelStrip.y + 0.0f);
+				module->tuningLEDs[i] = new LED(i, XStartL + i * xDelta, yVoct);
 				module->tuningLEDs[i]->module = NULL;
 				addChild(module->tuningLEDs[i]);
 			}
+
+			for (int i = 3; i < 6; i++) {
+				module->qLEDs[i] = new LED(i, XStartR + (i - 3) * xDelta, yQ);
+				module->qLEDs[i]->module = NULL;
+				addChild(module->qLEDs[i]);
+
+				module->envelopeLEDs[i] = new LED(i, XStartR + (i - 3) * xDelta, yEnv);
+				module->envelopeLEDs[i]->module = NULL;
+				addChild(module->envelopeLEDs[i]);
+
+				module->tuningLEDs[i] = new LED(i, XStartR + (i - 3) * xDelta, yVoct);
+				module->tuningLEDs[i]->module = NULL;
+				addChild(module->tuningLEDs[i]);
+			}
+
 		}
 
 		if (module) {
-			Vec ringBox(mm2px(Vec(227.794f, 22.6f)));
+			Vec ringBox(Vec(429.258, 137.198 - 2.9));
 			float ringDiv = (core::PI * 2.0f) / NUM_FILTS;
 
 			for (int i = 0; i < NUM_FILTS; i++) {
