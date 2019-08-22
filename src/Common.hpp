@@ -144,6 +144,9 @@ struct PrismReadoutParam : app::ParamWidget {
 	widget::SvgWidget *sw;
 	std::shared_ptr<Font> font;
 
+	bool isActive = true;
+	std::string title = "";
+
 	PrismReadoutParam() {
 		fb = new widget::FramebufferWidget;
 		addChild(fb);
@@ -233,8 +236,16 @@ struct FloatReadout : PrismReadoutParam {
 			nvgFontFaceId(ctx.vg, font->handle);
 
 			char text[128];
-			snprintf(text, sizeof(text), "%.3f", paramQuantity->getValue());
+
+			snprintf(text, sizeof(text), "%s", title.c_str());
 			nvgText(ctx.vg, pos.x, pos.y, text, NULL);
+
+			if (!isActive) {
+				nvgFillColor(ctx.vg, nvgRGBA(0x80, 0x80, 0x80, 0xFF));
+			}
+
+			snprintf(text, sizeof(text), "%.3f", paramQuantity->getValue());
+			nvgText(ctx.vg, pos.x, pos.y + 17, text, NULL);
 		}
 	}
 

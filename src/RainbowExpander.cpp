@@ -47,6 +47,10 @@ struct RainbowScaleExpander : core::PrismModule {
 	};
 
 	float parameterValues[3][NUM_PARAMETERS] = {};
+	bool parameterActive[3][NUM_PARAMETERS] = {};
+	std::string parameterLabels[3][NUM_PARAMETERS] = {};
+
+	prism::gui::PrismReadoutParam *widgetRef[NUM_PARAMETERS];
 
 	const float CtoF = 96000.0f / (2.0f * core::PI);
 	const float FtoC = (2.0f * core::PI) / 96000.0f;
@@ -72,6 +76,10 @@ struct RainbowScaleExpander : core::PrismModule {
 	json_t *dataToJson() override {
 
         json_t *rootJ = json_object();
+
+		// page
+		json_t *ppageJ = json_integer(prevPage);
+		json_object_set_new(rootJ, "ppage", ppageJ);
 
 		// page
 		json_t *pageJ = json_integer(currPage);
@@ -113,6 +121,11 @@ struct RainbowScaleExpander : core::PrismModule {
     }
 
 	void dataFromJson(json_t *rootJ) override {
+
+		// ppage
+		json_t *ppageJ = json_object_get(rootJ, "ppage");
+		if (ppageJ)
+			prevPage = json_integer_value(ppageJ);
 
 		// page
 		json_t *pageJ = json_object_get(rootJ, "page");
@@ -182,43 +195,74 @@ struct RainbowScaleExpander : core::PrismModule {
 		// P3 				/ Interval 	/ Upper		P8				/ Interval Step	/ Cent step
 		// P4  				/ 			/ Lower		p9	Max steps	/ Max Steps		/ Max Steps
 
-
-
 		// Frequency page
-		parameterValues[0][0] = 261.6256f;	// Frequency
-		parameterValues[0][1] = 0.0f;		// -
-		parameterValues[0][2] = 0.0f;		// -
-		parameterValues[0][3] = 0.0f;		// -
-		parameterValues[0][4] = 0.0f;		// -
-		parameterValues[0][5] = 0.0f;		// -
-		parameterValues[0][6] = 0.0f;		// Cents
-		parameterValues[0][7] = 1.0f;		// Slot step
-		parameterValues[0][8] = 100.0f;		// Interval step (cents)
-		parameterValues[0][9] = 21.0f;		// Max steps
+		parameterValues[0][0] = 261.6256f; 	parameterActive[0][0] = true;	// Frequency
+		parameterValues[0][1] = 0.0f;		parameterActive[0][1] = false;	// -
+		parameterValues[0][2] = 0.0f;		parameterActive[0][2] = false;	// -
+		parameterValues[0][3] = 0.0f;		parameterActive[0][3] = false;  // -
+		parameterValues[0][4] = 0.0f;		parameterActive[0][4] = false;  // -
+		parameterValues[0][5] = 0.0f;		parameterActive[0][5] = false;  // -
+		parameterValues[0][6] = 0.0f;		parameterActive[0][6] = true;	// Cents
+		parameterValues[0][7] = 1.0f;		parameterActive[0][7] = true;	// Slot step
+		parameterValues[0][8] = 100.0f;		parameterActive[0][8] = true;	// Interval step (cents)
+		parameterValues[0][9] = 21.0f;		parameterActive[0][9] = true;	// Max steps
 
 		// ET page
-		parameterValues[1][0] = 440.0f;		// Root A
-		parameterValues[1][1] = 4.0f;		// Octave
-		parameterValues[1][2] = 0.0f;		// Root Interval
-		parameterValues[1][3] = 12.0f;		// Interval
-		parameterValues[1][4] = 0.0f;		// -
-		parameterValues[1][5] = 12.0f;		// EDO
-		parameterValues[1][6] = 0.0f;		// Cents
-		parameterValues[1][7] = 1.0f;		// Slot step
-		parameterValues[1][8] = 1.0f;		// Interval step (semitone)
-		parameterValues[1][9] = 21.0f;		// Max steps
+		parameterValues[1][0] = 440.0f;		parameterActive[1][0] = true;	// Root A
+		parameterValues[1][1] = 4.0f;		parameterActive[1][1] = true;	// Octave
+		parameterValues[1][2] = 0.0f;		parameterActive[1][2] = true;	// Root Interval
+		parameterValues[1][3] = 12.0f;		parameterActive[1][3] = true;	// Interval
+		parameterValues[1][4] = 0.0f;		parameterActive[1][4] = false;	// -
+		parameterValues[1][5] = 12.0f;		parameterActive[1][5] = true;	// EDO
+		parameterValues[1][6] = 0.0f;		parameterActive[1][6] = true;	// Cents
+		parameterValues[1][7] = 1.0f;		parameterActive[1][7] = true;	// Slot step
+		parameterValues[1][8] = 1.0f;		parameterActive[1][8] = true;	// Interval step (semitone)
+		parameterValues[1][9] = 21.0f;		parameterActive[1][9] = true;	// Max steps
 
 		// JI page
-		parameterValues[2][0] = 16.35f;		// f0
-		parameterValues[2][1] = 4.0f;		// Octave
-		parameterValues[2][2] = 1.0f;		// Base
-		parameterValues[2][3] = 3.0f;		// Upper
-		parameterValues[2][4] = 2.0f;		// Lower
-		parameterValues[2][5] = 0.0f;		// -
-		parameterValues[2][6] = 0.0f;		// Cents
-		parameterValues[2][7] = 1.0f;		// Slot step
-		parameterValues[2][8] = 0.0f;		// -
-		parameterValues[2][9] = 21.0f;		// Max steps
+		parameterValues[2][0] = 16.35f;		parameterActive[2][0] = true;	// f0
+		parameterValues[2][1] = 4.0f;		parameterActive[2][1] = true;	// Octave
+		parameterValues[2][2] = 1.0f;		parameterActive[2][2] = true;	// Base
+		parameterValues[2][3] = 3.0f;		parameterActive[2][3] = true;	// Upper
+		parameterValues[2][4] = 2.0f;		parameterActive[2][4] = true;	// Lower
+		parameterValues[2][5] = 0.0f;		parameterActive[2][5] = false;	// -
+		parameterValues[2][6] = 0.0f;		parameterActive[2][6] = true;	// Cents
+		parameterValues[2][7] = 1.0f;		parameterActive[2][7] = true;	// Slot step
+		parameterValues[2][8] = 0.0f;		parameterActive[2][8] = false;	// -
+		parameterValues[2][9] = 21.0f;		parameterActive[2][9] = true;	// Max steps
+
+		parameterLabels[0][0] =	"Frequency";
+		parameterLabels[0][1] = "";
+		parameterLabels[0][2] =	"";
+		parameterLabels[0][3] =	"";
+		parameterLabels[0][4] =	"";
+		parameterLabels[0][5] =	"";
+		parameterLabels[0][6] = "Cents";
+		parameterLabels[0][7] =	"Slot step";
+		parameterLabels[0][8] =	"Cent step";
+		parameterLabels[0][9] =	"Max steps";
+
+		parameterLabels[1][0] =	"A = ";
+		parameterLabels[1][1] =	"Octave";
+		parameterLabels[1][2] =	"Base interval";
+		parameterLabels[1][3] =	"Interval";
+		parameterLabels[1][4] =	"";
+		parameterLabels[1][5] =	"EDO";
+		parameterLabels[1][6] =	"Cents";
+		parameterLabels[1][7] =	"Slot step";
+		parameterLabels[1][8] =	"Semitone step";
+		parameterLabels[1][9] =	"Max steps";
+
+		parameterLabels[2][0] =	"f0";
+		parameterLabels[2][1] =	"Octave";
+		parameterLabels[2][2] =	"Base interval";
+		parameterLabels[2][3] =	"Upper";
+		parameterLabels[2][4] =	"Lower";
+		parameterLabels[2][5] =	"";
+		parameterLabels[2][6] =	"Cents";
+		parameterLabels[2][7] =	"Slot step";
+		parameterLabels[2][8] =	"";
+		parameterLabels[2][9] =	"Max steps";
 
 		for (int j = 0; j < 3; j++) {
 			for (int i = 0; i < NUM_PARAMETERS; i++) {
@@ -271,6 +315,13 @@ struct RainbowScaleExpander : core::PrismModule {
 
 	void onReset() override {
 		initialise();
+	}
+
+	void populateWidgetData() {
+		for (int i = 0; i < NUM_PARAMETERS; i++) {
+			widgetRef[i]->isActive 	= parameterActive[currPage][i];
+			widgetRef[i]->title 	= parameterLabels[currPage][i];
+		}
 	}
 
 	void setFromFrequency() {
@@ -554,6 +605,7 @@ struct RainbowScaleExpander : core::PrismModule {
 			for (int i = 0; i < NUM_PARAMETERS; i++) {
 				params[PARAMETER_PARAM + i].setValue(parameterValues[currPage][i]);
 			}
+			populateWidgetData();
 			prevPage = currPage;
 		} else {
 			for (int i = 0; i < NUM_PARAMETERS; i++) {
@@ -615,7 +667,6 @@ struct RainbowScaleExpander : core::PrismModule {
 
 };
 
-
 struct FrequencyDisplay : TransparentWidget {
 	
 	RainbowScaleExpander *module;
@@ -638,6 +689,20 @@ struct FrequencyDisplay : TransparentWidget {
 
 		snprintf(text, sizeof(text), "Bank: %s", module->name.c_str());
 		nvgText(ctx.vg, box.pos.x + 7, box.pos.y + 0, text, NULL);
+
+		switch(module->currPage) {
+			case 0:
+				snprintf(text, sizeof(text), "Mode: Frequency");
+				break;
+			case 1:
+				snprintf(text, sizeof(text), "Mode: Equal Temp.");
+				break;
+			case 2:
+				snprintf(text, sizeof(text), "Mode: Just Inton.");
+				break;
+
+		}
+		nvgText(ctx.vg, box.pos.x + 120, box.pos.y + 0, text, NULL);
 
 		snprintf(text, sizeof(text), "Scale: %s", module->scalename[module->currScale].c_str());
 		nvgText(ctx.vg, box.pos.x + 7, box.pos.y + 15, text, NULL);
@@ -766,18 +831,43 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/RainbowScaleExpander.svg")));
 
 		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(9.89, 19.118)), module, RainbowScaleExpander::SLOT_PARAM));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 15.868)), module, RainbowScaleExpander::PARAMETER_PARAM+0));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 15.868)), module, RainbowScaleExpander::PARAMETER_PARAM+5));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 30.868)), module, RainbowScaleExpander::PARAMETER_PARAM+1));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 30.868)), module, RainbowScaleExpander::PARAMETER_PARAM+6));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 45.838)), module, RainbowScaleExpander::PARAMETER_PARAM+2));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 45.838)), module, RainbowScaleExpander::PARAMETER_PARAM+7));
-		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(9.89, 49.118)), module, RainbowScaleExpander::SCALE_PARAM));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 60.868)), module, RainbowScaleExpander::PARAMETER_PARAM+3));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 60.868)), module, RainbowScaleExpander::PARAMETER_PARAM+8));
+
+		gui::PrismReadoutParam *p0 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 15.868)), module, RainbowScaleExpander::PARAMETER_PARAM+0);
+		gui::PrismReadoutParam *p1 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 30.868)), module, RainbowScaleExpander::PARAMETER_PARAM+1);
+		gui::PrismReadoutParam *p2 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 45.838)), module, RainbowScaleExpander::PARAMETER_PARAM+2);
+		gui::PrismReadoutParam *p3 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 60.868)), module, RainbowScaleExpander::PARAMETER_PARAM+3);
+		gui::PrismReadoutParam *p4 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 75.868)), module, RainbowScaleExpander::PARAMETER_PARAM+4);
+		gui::PrismReadoutParam *p5 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 15.868)), module, RainbowScaleExpander::PARAMETER_PARAM+5);
+		gui::PrismReadoutParam *p6 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 30.868)), module, RainbowScaleExpander::PARAMETER_PARAM+6);
+		gui::PrismReadoutParam *p7 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 45.838)), module, RainbowScaleExpander::PARAMETER_PARAM+7);
+		gui::PrismReadoutParam *p8 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 60.868)), module, RainbowScaleExpander::PARAMETER_PARAM+8);
+		gui::PrismReadoutParam *p9 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 75.868)), module, RainbowScaleExpander::PARAMETER_PARAM+9);
+
+		module->widgetRef[0] = p0;
+		module->widgetRef[1] = p1;
+		module->widgetRef[2] = p2;
+		module->widgetRef[3] = p3;
+		module->widgetRef[4] = p4;
+		module->widgetRef[5] = p5;
+		module->widgetRef[6] = p6;
+		module->widgetRef[7] = p7;
+		module->widgetRef[8] = p8;
+		module->widgetRef[9] = p9;
+		module->populateWidgetData();
+
+		addParam(p0);
+		addParam(p1);
+		addParam(p2);
+		addParam(p3);
+		addParam(p4);
+		addParam(p5);
+		addParam(p6);
+		addParam(p7);
+		addParam(p8);
+		addParam(p9);
+
 		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(9.89, 79.118)), module, RainbowScaleExpander::TRANSFER_PARAM));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(95.69, 75.868)), module, RainbowScaleExpander::PARAMETER_PARAM+4));
-		addParam(createParam<gui::FloatReadout>(mm2px(Vec(125.69, 75.868)), module, RainbowScaleExpander::PARAMETER_PARAM+9));
+		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(9.89, 49.118)), module, RainbowScaleExpander::SCALE_PARAM));
 		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(107.39, 94.118)), module, RainbowScaleExpander::SET_PARAM));
 		addParam(createParamCentered<gui::PrismLargeButton>(mm2px(Vec(137.39, 94.118)), module, RainbowScaleExpander::EXECUTE_PARAM));
 		addParam(createParamCentered<gui::PrismKnobSnap>(mm2px(Vec(9.89, 109.118)), module, RainbowScaleExpander::PAGE_PARAM));
@@ -794,6 +884,7 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 			bankW->box.size = Vec(80.0, 20.0f);
 			bankW->module = module;
 			addChild(bankW);
+
 		}
 	}
 };
