@@ -181,6 +181,9 @@ struct RainbowScaleExpander : core::PrismModule {
 				}
 			}
 		}
+
+		populateWidgetData();
+
 	}
 
 	void initialise() {
@@ -318,9 +321,12 @@ struct RainbowScaleExpander : core::PrismModule {
 	}
 
 	void populateWidgetData() {
+		std::cout << currPage << std::endl;
 		for (int i = 0; i < NUM_PARAMETERS; i++) {
-			widgetRef[i]->isActive 	= parameterActive[currPage][i];
-			widgetRef[i]->title 	= parameterLabels[currPage][i];
+			if (widgetRef[i]) {
+				widgetRef[i]->isActive 	= parameterActive[currPage][i];
+				widgetRef[i]->title 	= parameterLabels[currPage][i];
+			}
 		}
 	}
 
@@ -683,7 +689,7 @@ struct FrequencyDisplay : TransparentWidget {
 
 		nvgFontSize(ctx.vg, 14);
 		nvgFontFaceId(ctx.vg, font->handle);
-		// nvgTextLetterSpacing(ctx.vg, -1);
+		nvgTextLetterSpacing(ctx.vg, -1);
 
 		char text[128];
 
@@ -695,7 +701,7 @@ struct FrequencyDisplay : TransparentWidget {
 				snprintf(text, sizeof(text), "Mode: Frequency");
 				break;
 			case 1:
-				snprintf(text, sizeof(text), "Mode: Equal Temp.");
+				snprintf(text, sizeof(text), "Mode: Equal Tem.");
 				break;
 			case 2:
 				snprintf(text, sizeof(text), "Mode: Just Inton.");
@@ -843,17 +849,19 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 		gui::PrismReadoutParam *p8 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 54.268)), module, RainbowScaleExpander::PARAMETER_PARAM+8);
 		gui::PrismReadoutParam *p9 = createParam<gui::FloatReadout>(mm2px(Vec(125.69, 69.268)), module, RainbowScaleExpander::PARAMETER_PARAM+9);
 
-		module->widgetRef[0] = p0;
-		module->widgetRef[1] = p1;
-		module->widgetRef[2] = p2;
-		module->widgetRef[3] = p3;
-		module->widgetRef[4] = p4;
-		module->widgetRef[5] = p5;
-		module->widgetRef[6] = p6;
-		module->widgetRef[7] = p7;
-		module->widgetRef[8] = p8;
-		module->widgetRef[9] = p9;
-		module->populateWidgetData();
+		if (module) {
+			module->widgetRef[0] = p0;
+			module->widgetRef[1] = p1;
+			module->widgetRef[2] = p2;
+			module->widgetRef[3] = p3;
+			module->widgetRef[4] = p4;
+			module->widgetRef[5] = p5;
+			module->widgetRef[6] = p6;
+			module->widgetRef[7] = p7;
+			module->widgetRef[8] = p8;
+			module->widgetRef[9] = p9;
+			module->populateWidgetData();
+		}
 
 		addParam(p0);
 		addParam(p1);
