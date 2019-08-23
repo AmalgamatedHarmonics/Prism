@@ -73,36 +73,38 @@ void Envelope::update(void) {
 				if (!env_prepost_mode) { // Pre
 					io->env_out[j] = envelope[j] / ENV_SCALE;
 				} else {
-					io->env_out[j] = envelope[j] * levels->channel_level[j]/ ENV_SCALE;
+					io->env_out[j] = envelope[j] * levels->channel_level[j] / ENV_SCALE;
 				}
+
 				if (io->env_out[j] > 1.0f) {
 					io->env_out[j] = 1.0f;
 				}
 			}
+
 		} else { //trigger mode
 			for (int j = 0; j < NUM_CHANNELS; j++) {
 
 				//Pre-CV (input) or Post-CV (output)
-				if (!env_prepost_mode) { // Pre
-					if (stored_trigger_level[j] < 0.002f) {
+				if (!env_prepost_mode) { // In Pre mode the stored trigger level attenuate the envelope before the trigger stage
+					if (stored_trigger_level[j] < 0.002f) { // There is a minimum trigger level
 						envout_preload[j] *= 0.5f;
 					} else {
 						envout_preload[j] *= stored_trigger_level[j];
 					}
-				} else {
-					envout_preload[j] *= levels->channel_level[j];
-					stored_trigger_level[j] = levels->channel_level[j];
+				} else { // In Post mode the level control attenuate the envelope before the trigger stage
+					envout_preload[j] 		*= levels->channel_level[j]; // Attenuate preload by channel level
+					stored_trigger_level[j]	 = levels->channel_level[j]; // Trigger level = channel level
 				}
 
-				if (env_trigout[j]) { //keep the trigger high for about 100ms, ignoring the input signal
+				if (env_trigout[j]) { // Have bee triggered so ignore the input signal
 					env_trigout[j]--;
 				} else {
-					if (((uint32_t)envout_preload[j]) > 0x02000000) { //about 12.5% of max, or 1V envelope output
+					if (((uint32_t)envout_preload[j]) > 1000000) { 
 						env_low_ctr[j] = 0;
-						env_trigout[j] = 50; //about 100ms
-						io->env_out[j]= 10.0f;
+						env_trigout[j] = 40; // about 40 clicks * 50 wait cycles = 1 every 2000 cycles or 22ms
+						io->env_out[j] = 1.0f;
 					} else {
-						if (++env_low_ctr[j] >= 50) { //only set the output low if the input signal has stayed low for about 100ms
+						if (++env_low_ctr[j] >= 40) { 
 							io->env_out[j] = 0.0f;
 						}
 					}

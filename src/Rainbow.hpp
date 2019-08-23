@@ -281,7 +281,8 @@ struct IO {
 	int16_t					CHANNEL_Q_LEVEL[NUM_CHANNELS];
 	int16_t					CHANNEL_Q_CONTROL[NUM_CHANNELS];
 
-	float					LEVEL[NUM_CHANNELS];
+	float					LEVEL_ADC[NUM_CHANNELS];
+	float					LEVEL_CV[NUM_CHANNELS];
 
 	uint16_t				FREQNUDGE1_ADC;
 	uint16_t				FREQNUDGE6_ADC;

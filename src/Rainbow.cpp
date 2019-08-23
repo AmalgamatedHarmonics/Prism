@@ -337,7 +337,7 @@ struct Rainbow : core::PrismModule {
 		configParam(FILTER_PARAM, 0, 2, 0, "Filter type: 2-pass, 1-pass, bpre"); // two/one/bpre
 		configParam(VOCTGLIDE_PARAM, 0, 1, 0, "V/Oct glide on/off"); // on/off
 		configParam(SCALEROT_PARAM, 0, 1, 0, "Scale rotation on/off"); // on/off
-		configParam(PREPOST_PARAM, 0, 1, 0, "Envelope: pre/post"); //pre/post
+		configParam(PREPOST_PARAM, 0, 1, 0, "Envelope: post/pre"); //pre/post
 		configParam(ENV_PARAM, 0, 2, 0, "Envelope: fast/slow/trigger"); // fast/slow/trigger
 		configParam(NOISE_PARAM, 0, 2, 0, "Noise: brown/pink/white"); // brown/pink/white
 		configParam(OUTCHAN_PARAM, 0, 2, 0, "Output channels"); // mono/stereo/6
@@ -483,8 +483,6 @@ void Rainbow::process(const ProcessArgs &args) {
 		}
 	} 
 
-
-
 	for (int n = 0; n < 6; n++) {
 		// Process Locks
 		if (lockTriggers[n].process(params[LOCKON_PARAM + n].getValue())) {
@@ -537,28 +535,29 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.io->GLOBAL_Q_LEVEL		= (int16_t)clamp(inputs[GLOBAL_Q_INPUT].getVoltage() * 409.5f, -4095.0f, 4095.0f);
 	main.io->GLOBAL_Q_CONTROL	= (int16_t)params[GLOBAL_Q_PARAM].getValue();
 
-	bool haveGlobalLevelCV		= inputs[GLOBAL_LEVEL_INPUT].isConnected();
-	bool haveChannelLevelCV		= inputs[POLY_LEVEL_INPUT].isConnected();
-
-	float globalLevelCV			= haveGlobalLevelCV ?
-		clamp(inputs[GLOBAL_LEVEL_INPUT].getVoltage() / 5.0f, -1.0f, 1.0f) : 1.0f;
-
-	float globalLevelControl	= params[GLOBAL_LEVEL_PARAM].getValue() / 4095.0f;
+	float globalLevelParam 	= params[GLOBAL_LEVEL_PARAM].getValue() / 4095.0f;
 
 	for (int n = 0; n < 6; n++) {
 
+		// CV Level
+		// If there are no Level CV inputs, no attenuation
+		if (!inputs[GLOBAL_LEVEL_INPUT].isConnected() && !inputs[MONO_LEVEL_INPUT + n].isConnected() && !inputs[POLY_LEVEL_INPUT].isConnected()) {
+			main.io->LEVEL_CV[n] 	= 1.0f;	
+		} else { // If the sum of these stages is zero, that's because the is zero volts on all inputs
+			main.io->LEVEL_CV[n] 	= inputs[GLOBAL_LEVEL_INPUT].getVoltage() / 5.0f; 	// Could be 0
+			if (inputs[MONO_LEVEL_INPUT + n].isConnected()) {
+				main.io->LEVEL_CV[n] 	+= inputs[MONO_LEVEL_INPUT + n].getVoltage() / 5.0; // Could be 0
+			} else {
+				main.io->LEVEL_CV[n] 	+= inputs[POLY_LEVEL_INPUT].getVoltage(n) / 5.0f; 	// Could be 0
+			}
+		}
+		main.io->LEVEL_CV[n] 	= clamp(main.io->LEVEL_CV[n], -1.0f, 1.0f);
+
+		main.io->LEVEL_ADC[n]	= globalLevelParam * params[CHANNEL_LEVEL_PARAM + n].getValue() / 4095.0f;
+		main.io->LEVEL_ADC[n] 	= clamp(main.io->LEVEL_ADC[n], 0.0f, 1.0f);
+
 		main.io->CHANNEL_Q_LEVEL[n]		= (int16_t)clamp(inputs[POLY_Q_INPUT].getVoltage() * 409.5f, -4095.0, 4095.0f);
 		main.io->CHANNEL_Q_CONTROL[n]	= (int16_t)params[CHANNEL_Q_PARAM + n].getValue();
-
-		float channelLevelControl		= params[CHANNEL_LEVEL_PARAM + n].getValue() / 4095.0f;
-		main.io->LEVEL[n]				= globalLevelControl * channelLevelControl;
-
-		float channelLevelCV			= haveChannelLevelCV ?
-			clamp(inputs[POLY_LEVEL_INPUT].getVoltage(n) / 5.0f, -1.0f, 1.0f) :	1.0f;
-
-		if (haveGlobalLevelCV || haveChannelLevelCV) {
-			main.io->LEVEL[n]			= main.io->LEVEL[n] + globalLevelCV * channelLevelCV;
-		}
 
 		main.io->TRANS_DIAL[n]			= params[TRANS_PARAM + n].getValue();
 	}
@@ -570,8 +569,9 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.io->ROTCV_ADC			= (uint16_t)clamp(inputs[ROTATECV_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
 	main.io->FREQCV1_ADC		= (uint16_t)clamp(inputs[FREQCV1_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
 	main.io->FREQCV6_ADC		= (uint16_t)clamp(inputs[FREQCV6_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
-
 	main.io->SLEW_ADC			= (uint16_t)params[SLEW_PARAM].getValue();
+
+	main.io->ENV_SWITCH			= (EnvelopeMode)params[ENV_PARAM].getValue();
 
 	if (glissTrigger.process(params[VOCTGLIDE_PARAM].getValue())) {
 		main.io->GLIDE_SWITCH = !main.io->GLIDE_SWITCH;
@@ -584,8 +584,6 @@ void Rainbow::process(const ProcessArgs &args) {
 	if (scaleRotTrigger.process(params[SCALEROT_PARAM].getValue())) {
 		main.io->SCALEROT_SWITCH = !main.io->SCALEROT_SWITCH;
 	} 
-
-	main.io->ENV_SWITCH			= (EnvelopeMode)params[ENV_PARAM].getValue();
 
 	main.prepare();
 
@@ -608,13 +606,12 @@ void Rainbow::process(const ProcessArgs &args) {
 			audio.ChannelProcess1(main, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT]);
 	}
 
-	// audio.nChannelProcess(main, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT]);
-
 	// Populate poly outputs
 	outputs[POLY_VOCT_OUTPUT].setChannels(6);
-	outputs[POLY_ENV_OUTPUT].setChannels(6);
+	outputs[POLY_ENV_OUTPUT].setChannels(12);
 	for (int n = 0; n < 6; n++) {
 		outputs[POLY_ENV_OUTPUT].setVoltage(main.io->env_out[n] * 10.0f, n);
+		outputs[POLY_ENV_OUTPUT].setVoltage(main.io->OUTLEVEL[n] * 10.0f, n + 6);
 		outputs[POLY_VOCT_OUTPUT].setVoltage(main.io->voct_out[n], n);
 		outputs[MONO_ENV_OUTPUT + n].setVoltage(main.io->env_out[n] * 10.0f);
 		outputs[MONO_VOCT_OUTPUT + n].setVoltage(main.io->voct_out[n]);
@@ -634,7 +631,7 @@ void Rainbow::process(const ProcessArgs &args) {
 
 	inputs[POLY_IN_INPUT].getChannels() ? lights[NOISE_LIGHT].setBrightness(0.0f) : lights[NOISE_LIGHT].setBrightness(1.0f); 
 	main.io->GLIDE_SWITCH ? lights[VOCTGLIDE_LIGHT].setBrightness(1.0f) : lights[VOCTGLIDE_LIGHT].setBrightness(0.0f); 
-	main.io->PREPOST_SWITCH ? lights[PREPOST_LIGHT].setBrightness(1.0f) : lights[PREPOST_LIGHT].setBrightness(0.0f); 
+	main.io->PREPOST_SWITCH ? lights[PREPOST_LIGHT].setBrightness(0.0f) : lights[PREPOST_LIGHT].setBrightness(1.0f); // Light on if PRE (inverted)
 	main.io->SCALEROT_SWITCH ? lights[SCALEROT_LIGHT].setBrightness(1.0f) : lights[SCALEROT_LIGHT].setBrightness(0.0f); 
 
 	for (int i = 0; i < NUM_FILTS; i++) {

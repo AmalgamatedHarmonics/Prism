@@ -507,7 +507,7 @@ void Filter::process_audio_block() {
 
 		io->channelLevel[j] = (f_blended * levels->channel_level[j]) / CLIP_LEVEL;
 		
-		if (f_blended > 0.0f) {
+		if (f_blended > 0.0f) { // Envelope does not take into account channel level
 			envelope->envout_preload[j] = f_blended;
 		} else {
 			envelope->envout_preload[j] = -1.0f * f_blended;
