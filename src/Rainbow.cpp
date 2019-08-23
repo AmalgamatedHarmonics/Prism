@@ -556,7 +556,12 @@ void Rainbow::process(const ProcessArgs &args) {
 		main.io->LEVEL_ADC[n]	= globalLevelParam * params[CHANNEL_LEVEL_PARAM + n].getValue() / 4095.0f;
 		main.io->LEVEL_ADC[n] 	= clamp(main.io->LEVEL_ADC[n], 0.0f, 1.0f);
 
-		main.io->CHANNEL_Q_LEVEL[n]		= (int16_t)clamp(inputs[POLY_Q_INPUT].getVoltage() * 409.5f, -4095.0, 4095.0f);
+		if (inputs[MONO_Q_INPUT + n].isConnected()) {
+			main.io->CHANNEL_Q_LEVEL[n] = (int16_t)clamp(inputs[MONO_Q_INPUT + n].getVoltage() * 409.5f, -4095.0, 4095.0f);
+		} else {
+			main.io->CHANNEL_Q_LEVEL[n] = (int16_t)clamp(inputs[POLY_Q_INPUT].getVoltage(n) * 409.5f, -4095.0, 4095.0f);
+		}
+
 		main.io->CHANNEL_Q_CONTROL[n]	= (int16_t)params[CHANNEL_Q_PARAM + n].getValue();
 
 		main.io->TRANS_DIAL[n]			= params[TRANS_PARAM + n].getValue();
