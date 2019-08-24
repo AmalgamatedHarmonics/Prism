@@ -42,32 +42,15 @@ void LEDRing::calculate_envout_leds() {
 
 	for (int chan = 0; chan < NUM_CHANNELS; chan++) {
 
-		float f = 0.0f;
-
-		// V/OCT leds
-		if (io->voct_out[chan] < 0.0f) {
-			f = io->voct_out[chan] / envelope->MIN_VOCT;
-			if (f > 1.0f) {
-				f = 1.0f;
-			}
-
-			io->tuning_out_leds[chan][0] = f;
-			io->tuning_out_leds[chan][1] = 0.0f;
-			io->tuning_out_leds[chan][2] = 0.0f;
-		} else if (io->voct_out[chan] > 0.0f) {
-			f = io->voct_out[chan] / envelope->MAX_VOCT;
-			if (f > 1.0f) {
-				f = 1.0f;
-			}
-
-			io->tuning_out_leds[chan][0] = 0.0f;
-			io->tuning_out_leds[chan][1] = 0.0f;
-			io->tuning_out_leds[chan][2] = f;
-		} else {
-			io->tuning_out_leds[chan][0] = 0.0f;
-			io->tuning_out_leds[chan][1] = 0.0f;
-			io->tuning_out_leds[chan][2] = 0.0f;
-		}
+		float f = (io->voct_out[chan] - envelope->MIN_VOCT) / envelope->VOCT_RANGE;
+		
+		// Here we are going to use HSL
+		// 0V = Green = 120
+		// MIN_VOCT = Blue = 240
+		// MAX_VOCT = Red = 0
+		io->tuning_out_leds[chan][0] = f * hslRange;
+		io->tuning_out_leds[chan][1] = 1.0f;
+		io->tuning_out_leds[chan][2] = 0.5f;
 
 		// Level leds
 		float qval = q->qval_goal[chan] / 4095.0f;

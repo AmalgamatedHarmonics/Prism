@@ -1,19 +1,11 @@
-
 On-going
 - refactor and clean code
 - optimisation
 
-- Invidual Q and Level IO
-- Recalibrate clip LED
-- Recalibrate tuning LED
-- Check input level calculation (add, not multiply??)
-- check trigger calculation
-- check output level calc
-
-SVG updates
-- noise switch alignment
-
 Specific
+- v/oct out for bpre?
+- Recalibrate clip LED
+- check output level calc
 - Revise stored_trigger_level timing
 - refactor filter code
 
@@ -22,5 +14,5 @@ BUG    system_mode.c:  if (ctr==80000){ //User took too long, start over // bug 
 BUG? } else if (controller->scale_bank[i] == 0xFF) { // TODO Should be NUM_SCALEBANK - 1?
 BUG? level slider attenuates: level_lpf = ((float)(io->LEVEL_ADC[j]) / 4096.0) * (float)(t) / 4096.0; // TODO should be 4095.0??
 Repeating indian scale
-Intervals (JI)
+Intervals (JI) why 27.25 not 27.5?
 filter.c line 729, surely this is wrong ( j & 1 is even channels and should go to right channel)

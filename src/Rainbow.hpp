@@ -174,9 +174,10 @@ struct Envelope {
 	Levels *	levels;
 	IO *		io;
 
-	float MIN_VOCT = -10.0f/3.0f;
-	float MAX_VOCT = 4.75f;
-	float ENV_SCALE = 4.0e+7;
+	const float MIN_VOCT = -10.0f/3.0f;
+	const float MAX_VOCT = 4.75f;
+	const float VOCT_RANGE = -MIN_VOCT + MAX_VOCT;
+	const float ENV_SCALE = 4.0e+7;
 
 	float envout_preload[NUM_CHANNELS];
 	float envout_preload_voct[NUM_CHANNELS];
@@ -362,10 +363,12 @@ struct LEDRing {
 	Filter *		filter;
 	Q *				q;
 
-	float sqrt2over2				= sqrt(2.0f) / 2.0f;
-	float sqrt2						= sqrt(2.0f);
-	float maxNudge					= 1.0f + 4095.0f / 55000.0f;
 
+	const float sqrt2over2			= sqrt(2.0f) / 2.0f;
+	const float sqrt2				= sqrt(2.0f);
+	const float maxNudge			= 1.0f + 4095.0f / 55000.0f;
+	const float hslRange 			= 2.0f/3.0f;
+	
 	// Counters
 	uint8_t filter_flash_ctr		= 0;
 	uint32_t led_ring_update_ctr	= UINT32_MAX; // Initialise to always fire on first pass 

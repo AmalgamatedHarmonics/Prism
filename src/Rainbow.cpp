@@ -684,7 +684,7 @@ void Rainbow::process(const ProcessArgs &args) {
 			main.io->q_leds[i][2]);
 		qLEDs[i]->colorBorder = defaultBorder;
 
-		tuningLEDs[i]->color = nvgRGBf(
+		tuningLEDs[i]->color = nvgHSL(
 			main.io->tuning_out_leds[i][0], 
 			main.io->tuning_out_leds[i][1],
 			main.io->tuning_out_leds[i][2]);
