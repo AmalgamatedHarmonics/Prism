@@ -1,0 +1,6 @@
+- All position info are in the "Rainbow  position" svg file
+- the fader head is the same as the push button_0
+- the leds buttons are normal buttons with a 9 px led grey rgb 132,132,132
+- all the other leds are working as the circle leds: outside diameter 9px, that includes a 1px edge - the inside is rbg 12,12,12 - the edge is rgb73,73,73
+- The positioning of the leds within the two circles are the same than the original rainbow module.
+- the bank font isroboto condensed regular capitals - 10pt - RGB 201,88,83
