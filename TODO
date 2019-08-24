@@ -3,11 +3,13 @@ On-going
 - optimisation
 
 Specific
-- v/oct out for bpre?
-- Recalibrate clip LED
 - check output level calc
-- Revise stored_trigger_level timing
 - refactor filter code
+
+Expander
+- build in fidlib
+- refactor main.c
+- generate bpre filter coeffs
 
 
 BUG    system_mode.c:  if (ctr==80000){ //User took too long, start over // bug will never timeout

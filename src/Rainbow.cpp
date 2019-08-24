@@ -189,6 +189,18 @@ struct Rainbow : core::PrismModule {
 
 		json_t *rootJ = json_object();
 
+		// gliss
+		json_t *glissJ = json_integer((int) main.io->GLIDE_SWITCH);
+		json_object_set_new(rootJ, "gliss", glissJ);
+
+		// prepost
+		json_t *prepostJ = json_integer((int) main.io->PREPOST_SWITCH);
+		json_object_set_new(rootJ, "prepost", prepostJ);
+
+		// scale rotation
+		json_t *scalerotJ = json_integer((int) main.io->SCALEROT_SWITCH);
+		json_object_set_new(rootJ, "scalerot", scalerotJ);
+
 		// bank
 		json_t *bankJ = json_integer((int) currBank);
 		json_object_set_new(rootJ, "bank", bankJ);
@@ -242,6 +254,21 @@ struct Rainbow : core::PrismModule {
 	}
 
 	void dataFromJson(json_t *rootJ) override {
+
+		// gliss
+		json_t *glissJ = json_object_get(rootJ, "gliss");
+		if (glissJ)
+			main.io->GLIDE_SWITCH = json_integer_value(glissJ);
+
+		// prepost
+		json_t *prepostJ = json_object_get(rootJ, "prepost");
+		if (prepostJ)
+			main.io->PREPOST_SWITCH = json_integer_value(prepostJ);
+
+		// gliss
+		json_t *scalerotJ = json_object_get(rootJ, "scalerot");
+		if (scalerotJ)
+			main.io->SCALEROT_SWITCH = json_integer_value(scalerotJ);
 
 		// bank
 		json_t *bankJ = json_object_get(rootJ, "bank");
