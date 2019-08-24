@@ -224,6 +224,8 @@ struct Filter {
 	float *c_hiq[NUM_CHANNELS];
 	float *c_loq[NUM_CHANNELS];
 
+	float *bpretuning[NUM_CHANNELS];
+
 	// filter buffer
 	float buf[NUM_CHANNELS][NUM_SCALES][NUM_FILTS][3]; 
 
@@ -368,7 +370,7 @@ struct LEDRing {
 	const float sqrt2				= sqrt(2.0f);
 	const float maxNudge			= 1.0f + 4095.0f / 55000.0f;
 	const float hslRange 			= 2.0f/3.0f;
-	
+
 	// Counters
 	uint8_t filter_flash_ctr		= 0;
 	uint32_t led_ring_update_ctr	= UINT32_MAX; // Initialise to always fire on first pass 

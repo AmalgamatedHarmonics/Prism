@@ -104,8 +104,9 @@ void Filter::process_scale_bank(void) {
 					c_hiq[i] = (float *)(scales.presets[scale_bank[i]]->c_maxq);
 				}	
 			} else if (filter_mode != TWOPASS && filter_type == BPRE) {
-				c_hiq[i] = (float *)(scales.presets[scale_bank[i]]->c_bpre_hi);
-				c_loq[i] = (float *)(scales.presets[scale_bank[i]]->c_bpre_lo);
+				c_hiq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre_hi);
+				c_loq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre_lo);
+				bpretuning[i]	= (float *)(scales.presets[scale_bank[i]]->c_maxq); // Filter tuning, no exact tracking
 			}
 		}	// new scale bank or filter type changed
 	}	// channels
@@ -130,6 +131,8 @@ void Filter::filter_twopass() {
 	float pos_in_cf;	// % of Qknob position within crossfade region
 	float ratio_a;
 	float ratio_b;		// two-pass filter crossfade ratios
+
+	float destvoct[6];
 
 	int32_t *ptmp_i32;
 
@@ -231,6 +234,8 @@ void Filter::filter_twopass() {
 				c1 = 1.30899581f; //hard limit at 20k
 			}
 
+			destvoct[channel_num] = c1;
+
 			//AMPLITUDE: Boost high freqs and boost low resonance
 			c2_a  = (0.003f * c1) - (0.1f * c0_a) + 0.102f;
 			c2	= (0.003f * c1) - (0.1f * c0)   + 0.102f;
@@ -261,7 +266,7 @@ void Filter::filter_twopass() {
 			if (io->GLIDE_SWITCH) {
 				envelope->envout_preload_voct[channel_num] = 
 					(envelope->envout_preload_voct[channel_num] * (1.0f - rotation->motion_morphpos[channel_num])) + 
-					(c1 * rotation->motion_morphpos[channel_num]);
+					(destvoct[channel_num] * rotation->motion_morphpos[channel_num]);
 			}
 		}
 	}
@@ -279,6 +284,8 @@ void Filter::filter_onepass() {
 	float c0, c1, c2;
 	float tmp;
 	float iir;
+
+	float destvoct[6];
 
 	io->INPUT_CLIP = false;
 
@@ -319,7 +326,12 @@ void Filter::filter_onepass() {
 			}
 
 			// Set VOCT output
-			envelope->envout_preload_voct[channel_num] = c1;
+			if (j < NUM_CHANNELS) { // Starting v/oct for gliss calc comes from first pass
+				envelope->envout_preload_voct[channel_num] = c1;
+			} else {
+				destvoct[channel_num] = c1;
+			}
+
 
 			// AMPLITUDE: Boost high freqs and boost low resonance
 			c2  = (0.003f * c1) - (0.1f * c0) + 0.102f;
@@ -340,13 +352,14 @@ void Filter::filter_onepass() {
 				buf[channel_num][scale_num][filter_num][1] = buf[channel_num][scale_num][filter_num][2];
 				filter_out[j][i] = buf[channel_num][scale_num][filter_num][1];
 			}
-		}
-
-		// VOCT output with glissando
-		if (io->GLIDE_SWITCH && (j < NUM_CHANNELS)) {
-			envelope->envout_preload_voct[channel_num] = 
-				(envelope->envout_preload_voct[channel_num] * (1.0f - rotation->motion_morphpos[channel_num])) + 
-				(c1 * rotation->motion_morphpos[channel_num]);
+	
+			// VOCT output with glissando
+			// must run on second set of channels as target V/oct comes from second pass, then interp
+			if (io->GLIDE_SWITCH && (j >= NUM_CHANNELS)) { 
+				envelope->envout_preload_voct[channel_num] = 
+					(envelope->envout_preload_voct[channel_num] * (1.0f - rotation->motion_morphpos[channel_num])) + 
+					(destvoct[channel_num] * rotation->motion_morphpos[channel_num]);
+			}
 		}
 	}
 }
@@ -370,6 +383,8 @@ void Filter::filter_bpre() {
 	float inv_var_q;
 	float var_f;
 	float inv_var_f;
+
+	float destvoct[6];
 
 	io->INPUT_CLIP = false;
 
@@ -408,6 +423,15 @@ void Filter::filter_bpre() {
 			nudge_filter_num = filter_num + 1;
 			if (nudge_filter_num > NUM_FILTS) {
 				nudge_filter_num = NUM_FILTS;
+			}
+
+			// Set VOCT output
+			if (j < NUM_CHANNELS) {
+				envelope->envout_preload_voct[channel_num] = 
+					*(bpretuning[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
+			} else {
+				destvoct[channel_num] = 
+					*(bpretuning[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
 			}
 
 			a0 =* (c_loq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 0)*var_f + *(c_loq[channel_num] + (scale_num*63) + (filter_num*3) + 0)*inv_var_f;
@@ -455,6 +479,14 @@ void Filter::filter_bpre() {
 
 				filter_out[j][i] = fir;
 
+			}
+
+			// VOCT output with glissando
+			// must run on second set of channels as target V/oct comes from second pass, then interp
+			if (io->GLIDE_SWITCH && (j >= NUM_CHANNELS)) { 
+				envelope->envout_preload_voct[channel_num] = 
+					(envelope->envout_preload_voct[channel_num] * (1.0f - rotation->motion_morphpos[channel_num])) + 
+					(destvoct[channel_num] * rotation->motion_morphpos[channel_num]);
 			}
 		}
 	}
