@@ -287,8 +287,8 @@ struct IO {
 	float					LEVEL_ADC[NUM_CHANNELS];
 	float					LEVEL_CV[NUM_CHANNELS];
 
-	uint16_t				FREQNUDGE1_ADC;
-	uint16_t				FREQNUDGE6_ADC;
+	int16_t					FREQNUDGE1_ADC;
+	int16_t					FREQNUDGE6_ADC;
 
 	uint16_t				SLEW_ADC;
 	uint16_t				SCALE_ADC;

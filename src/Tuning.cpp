@@ -43,10 +43,6 @@ void Tuning::configure(IO *_io, Filter * _filter) {
 		twelveroottwo[12 - i] = 1.0 / pow(2.0, (i / 12.0f)); 
 		twelveroottwo[12 + i] = pow(2.0, (i / 12.0f));
 	}
-
-	for (int i = 0; i < 25; i++) {
-		std::cout << i << " " << twelveroottwo[i] << std::endl;
-	}
 }
 
 void Tuning::update(void) {
@@ -81,9 +77,18 @@ void Tuning::update(void) {
 			f_shift_evens = exp_1voct[(uint32_t)freq_jack_conditioning[1].bracketed_val];
 
 			// FREQ NUDGE 
-			// SEMITONE FINE TUNE	
-			f_nudge_odds  = 1 + t_fo / 55000.0f; // goes beyond semitone 
-			f_nudge_evens = 1 + t_fe / 55000.0f; 
+			// SEMITONE FINE TUNE
+			if (t_fo >= 0.0f) {    
+				f_nudge_odds = 1.0f + t_fo / 68866.244586208118131541982334306f; // goes to a semitone 
+			} else {  
+				f_nudge_odds = 1.0f + t_fo / 72961.244586208118131541982334306f; // goes to a semitone 
+			}
+
+			if (t_fe >= 0.0) {
+				f_nudge_evens = 1.0f + t_fe / 68866.244586208118131541982334306f; // goes to a semitone 
+			} else {
+				f_nudge_evens = 1.0f + t_fe / 72961.244586208118131541982334306f; // goes to a semitone 
+			}
 
 			// 2-Octave COARSE TUNE
 			for (int i = 0; i < NUM_CHANNELS; i++) {
@@ -161,10 +166,16 @@ void Tuning::update(void) {
 			if (t_fo > 1.0f) {
 				t_fo = 1.0f;
 			}
+			if (t_fo < -1.0f) {
+				t_fo = -1.0f;
+			}
 
 			t_fe = (float)(io->FREQNUDGE6_ADC + io->FREQCV6_ADC) / 4096.0f;
 			if (t_fe > 1.0f) {
 				t_fe = 1.0f;
+			}
+			if (t_fe < -1.0f) {
+				t_fe = -1.0f;
 			}
 
 			f_shift_odds	= 1.0f;

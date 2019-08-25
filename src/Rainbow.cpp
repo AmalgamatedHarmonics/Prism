@@ -371,8 +371,8 @@ struct Rainbow : core::PrismModule {
 
 		configParam(COMPRESS_PARAM, 0, 1, 0, "Compress: off/on"); 
 
-		configParam(FREQNUDGE1_PARAM, 0, 4095, 0, "Freq Nudge odds");
-		configParam(FREQNUDGE6_PARAM, 0, 4095, 0, "Freq Nudge evens");
+		configParam(FREQNUDGE1_PARAM, -4095, 4095, 0, "Freq Nudge odds");
+		configParam(FREQNUDGE6_PARAM, -4095, 4095, 0, "Freq Nudge evens");
 		configParam(MOD135_PARAM, 0, 1, 0, "Mod 1/135"); // 1/135
 		configParam(MOD246_PARAM, 0, 1, 0, "Mod 2/246"); // 6/246
 
@@ -594,8 +594,8 @@ void Rainbow::process(const ProcessArgs &args) {
 		main.io->TRANS_DIAL[n]			= params[TRANS_PARAM + n].getValue();
 	}
 
-	main.io->FREQNUDGE1_ADC		= (uint16_t)params[FREQNUDGE1_PARAM].getValue();
-	main.io->FREQNUDGE6_ADC		= (uint16_t)params[FREQNUDGE6_PARAM].getValue();
+	main.io->FREQNUDGE1_ADC		= (int16_t)params[FREQNUDGE1_PARAM].getValue();
+	main.io->FREQNUDGE6_ADC		= (int16_t)params[FREQNUDGE6_PARAM].getValue();
 	main.io->SCALE_ADC			= (uint16_t)clamp(inputs[SCALE_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
 
 	main.io->ROTCV_ADC			= (uint16_t)clamp(inputs[ROTATECV_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
