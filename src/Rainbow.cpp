@@ -393,7 +393,7 @@ struct Rainbow : core::PrismModule {
 
 			configParam(LOCKON_PARAM + n, 0, 1, 0, "Lock channel");
 
-			configParam(TRANS_PARAM + n, -6, 6, 0, "Semitone transpose"); 
+			configParam(TRANS_PARAM + n, -12, 12, 0, "Semitone transpose"); 
 
 			vuMeters[n].mode = dsp::VuMeter2::RMS;
 			channelClipCnt[n] = 0;

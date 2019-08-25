@@ -37,6 +37,16 @@ extern float exp_1voct[4096];
 void Tuning::configure(IO *_io, Filter * _filter) {
 	filter	= _filter;
 	io		= _io;
+
+	twelveroottwo[12] = 1.0f;
+	for (int i = 1; i <= 12; i++) {
+		twelveroottwo[12 - i] = 1.0 / pow(2.0, (i / 12.0f)); 
+		twelveroottwo[12 + i] = pow(2.0, (i / 12.0f));
+	}
+
+	for (int i = 0; i < 25; i++) {
+		std::cout << i << " " << twelveroottwo[i] << std::endl;
+	}
 }
 
 void Tuning::update(void) {
@@ -75,53 +85,9 @@ void Tuning::update(void) {
 			f_nudge_odds  = 1 + t_fo / 55000.0f; // goes beyond semitone 
 			f_nudge_evens = 1 + t_fe / 55000.0f; 
 
-			// 12-SEMITONE COARSE TUNE
+			// 2-Octave COARSE TUNE
 			for (int i = 0; i < NUM_CHANNELS; i++) {
-
-				switch(io->TRANS_DIAL[i]) {
-					case 0:
-						coarse_adj[i] = 1.0f;
-						break;
-					case -6:
-						coarse_adj[i] = 1.0f / 1.41421356237f; 
-						break;
-					case -5:
-						coarse_adj[i] = 1.0f / 1.33483985417f; 
-						break;
-					case -4: 
-						coarse_adj[i] = 1.0f / 1.25992104989f; 
-						break;
-					case -3:
-						coarse_adj[i] = 1.0f / 1.189207115f;
-						break;
-					case -2:
-						coarse_adj[i] = 1.0f / 1.12246204831f;
-						break;
-					case -1:
-						coarse_adj[i] = 1.0f / 1.05946309436f;
-						break;
-					case 1:
-						coarse_adj[i] = 1.05946309436f;
-						break;
-					case 2:
-						coarse_adj[i] = 1.12246204831f;
-						break;
-					case 3:
-						coarse_adj[i] = 1.189207115f;
-						break;
-					case 4:
-						coarse_adj[i] = 1.25992104989f;
-						break;
-					case 5:
-						coarse_adj[i] = 1.33483985417f;
-						break;
-					case 6:
-						coarse_adj[i] = 1.41421356237f;
-						break;
-					default:
-						coarse_adj[i] = 1.0f;
-						break;
-				}
+				coarse_adj[i] = twelveroottwo[io->TRANS_DIAL[i] + 12];
 			}
 
 			// LOCK SWITCHES

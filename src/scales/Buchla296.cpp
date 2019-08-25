@@ -4,7 +4,7 @@
 
 Scale buchla296 = {
 	.name = "Buchla 296 EQ",
-	.description = "Frequencies from the Buchla 296 EQ module. Each scale is shifted up 50 cents from previous.",
+	.description = "Frequencies from the Buchla 296 EQ module. Each scale is shifted up 50 cents from previous scale.",
 	.scalename = {
 		"20.000Hz",
 		"20.586Hz",

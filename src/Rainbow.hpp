@@ -557,6 +557,8 @@ struct Tuning {
 	float coarse_adj[NUM_CHANNELS]	= {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 	float freq_shift[NUM_CHANNELS];
 
+	float twelveroottwo[25];
+
 	uint32_t tuning_update_ctr		= UINT32_MAX;
 	uint32_t TUNING_UPDATE_RATE		= 50;
 
