@@ -294,8 +294,8 @@ struct IO {
 	uint16_t				SCALE_ADC;
 	uint16_t				SPREAD_ADC;
 	uint16_t				ROTCV_ADC;
-	uint16_t				FREQCV1_ADC;
-	uint16_t				FREQCV6_ADC;
+	float					FREQCV1_ADC;
+	float					FREQCV6_ADC;
 
 	FilterSetting			FILTER_SWITCH;
 	Mod135Setting			MOD135_SWITCH;
@@ -428,18 +428,18 @@ struct Inputs {
 struct LPF {
 
 	//Value outputs:
-	uint16_t			raw_val;
+	float				raw_val;
 	float				lpf_val;
-	int16_t				bracketed_val;
+	float				bracketed_val;
 
 	//Settings (input)
 	uint16_t			iir_lpf_size;	//size of iir average. 0 = disabled. if fir_lpf_size > 0, then iir average is disabled.
 	uint16_t			fir_lpf_size;	//size of moving average (number of samples to average). 0 = disabled.
-	int16_t				bracket_size;	//size of bracket (ignore changes when old_val-bracket_size < new_val < old_val+bracket_size)
+	float				bracket_size;	//size of bracket (ignore changes when old_val-bracket_size < new_val < old_val+bracket_size)
 	AnalogPolarity		polarity;		//AP_UNIPOLAR or AP_BIPOLAR
 
 	//Filter window buffer and index
-	int32_t 			fir_lpf[MAX_FIR_LPF_SIZE];
+	float	 			fir_lpf[MAX_FIR_LPF_SIZE];
 	uint32_t 			fir_lpf_i;
 
 	void setup_fir_filter();

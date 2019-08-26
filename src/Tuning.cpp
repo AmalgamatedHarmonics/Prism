@@ -65,7 +65,8 @@ void Tuning::update(void) {
 			freq_jack_conditioning[0].apply_bracket();
 
 			// Convert to 1VOCT
-			f_shift_odds = exp_1voct[(uint32_t)freq_jack_conditioning[0].bracketed_val];
+			f_shift_odds = pow(2.0, freq_jack_conditioning[0].bracketed_val);
+			// std::cout << f_shift_odds << std::endl;
 
 			// Freq shift evens
 			// is odds cv input Low-passed
@@ -74,7 +75,7 @@ void Tuning::update(void) {
 			freq_jack_conditioning[1].apply_bracket();
 
 			// Convert to 1VOCT
-			f_shift_evens = exp_1voct[(uint32_t)freq_jack_conditioning[1].bracketed_val];
+			f_shift_evens = pow(2.0, freq_jack_conditioning[1].bracketed_val);
 
 			// FREQ NUDGE 
 			// SEMITONE FINE TUNE
@@ -248,12 +249,12 @@ void Tuning::initialise(void) {
 	freq_jack_conditioning[0].polarity		= AP_UNIPOLAR;
 	freq_jack_conditioning[0].fir_lpf_size	= 40;
 	freq_jack_conditioning[0].iir_lpf_size	= 0;
-	freq_jack_conditioning[0].bracket_size	= 2;
+	freq_jack_conditioning[0].bracket_size	= 0.0004f;
 
 	freq_jack_conditioning[1].polarity		= AP_UNIPOLAR;
 	freq_jack_conditioning[1].fir_lpf_size	= 40;
 	freq_jack_conditioning[1].iir_lpf_size	= 0;
-	freq_jack_conditioning[1].bracket_size	= 2;
+	freq_jack_conditioning[1].bracket_size	= 0.0004f;
 
 	freq_jack_conditioning[0].setup_fir_filter();
 	freq_jack_conditioning[1].setup_fir_filter();

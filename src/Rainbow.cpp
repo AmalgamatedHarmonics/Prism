@@ -599,8 +599,8 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.io->SCALE_ADC			= (uint16_t)clamp(inputs[SCALE_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
 
 	main.io->ROTCV_ADC			= (uint16_t)clamp(inputs[ROTATECV_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
-	main.io->FREQCV1_ADC		= (uint16_t)clamp(inputs[FREQCV1_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
-	main.io->FREQCV6_ADC		= (uint16_t)clamp(inputs[FREQCV6_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
+	main.io->FREQCV1_ADC		= clamp(inputs[FREQCV1_INPUT].getVoltage() * 0.5, -5.0f, 5.0f);
+	main.io->FREQCV6_ADC		= clamp(inputs[FREQCV6_INPUT].getVoltage() * 0.5, -5.0f, 5.0f);
 	main.io->SLEW_ADC			= (uint16_t)params[SLEW_PARAM].getValue();
 
 	main.io->ENV_SWITCH			= (EnvelopeMode)params[ENV_PARAM].getValue();

@@ -46,9 +46,9 @@ void LPF::setup_fir_filter() {
 		//Bipolar CVs default to value of 2048
 		//Other CVs default to 0
 		if (polarity == AP_BIPOLAR) {
-			fir_lpf[i] = 2048;
+			fir_lpf[i] = 0.0f;
 		} else {
-			fir_lpf[i] = 0;
+			fir_lpf[i] = 5.0f;
 		}
 	}
 
@@ -70,14 +70,8 @@ void LPF::apply_fir_lpf() {
 	}
 
 	//Calculate the arithmetic average (FIR LPF)
-	lpf_val = (float)((lpf_val * fir_lpf_size) - old_value + new_value) / (float)(fir_lpf_size);
+	lpf_val = ((lpf_val * fir_lpf_size) - old_value + new_value) / fir_lpf_size;
 
-	//Range check 
-	if (lpf_val < 0.0f) {
-		lpf_val = 0.0f;
-	} else if (lpf_val > 4095.0f) {
-		lpf_val = 4095.0f;
-	}
 }
 
 //
@@ -85,18 +79,12 @@ void LPF::apply_fir_lpf() {
 //
 void LPF::apply_bracket() {
 
-	int16_t diff = (int16_t)lpf_val - bracketed_val;
+	float diff = lpf_val - bracketed_val;
 
 	if (diff > bracket_size)	{
-		bracketed_val = (uint16_t)lpf_val - bracket_size;
+		bracketed_val = lpf_val - bracket_size;
 	} else if (diff < (-1*(bracket_size))) {
-		bracketed_val = (uint16_t)lpf_val + bracket_size;
-	}
-
-	if (bracketed_val < 0) {
-		bracketed_val = 0;
-	} else if (bracketed_val > 4095) {
-		bracketed_val = 4095;
+		bracketed_val = lpf_val + bracket_size;
 	}
 
 }
