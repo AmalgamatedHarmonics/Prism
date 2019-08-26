@@ -31,7 +31,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		BANK_PARAM,
 		BANKLOAD_PARAM,
 		PAGE_PARAM,
-		SET_PARAM,
+		CALC_PARAM,
 		EXECUTE_PARAM,
 		ENUMS(PARAMETER_PARAM, 10),
 		NUM_PARAMS
@@ -326,7 +326,6 @@ struct RainbowScaleExpander : core::PrismModule {
 
 	rack::dsp::SchmittTrigger transferTrigger;
 	rack::dsp::SchmittTrigger loadBankTrigger;
-	rack::dsp::SchmittTrigger setTrigger;
 	rack::dsp::SchmittTrigger executeTrigger;
 
 	RainbowScaleExpander() : core::PrismModule(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
@@ -339,7 +338,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		configParam(BANKLOAD_PARAM, 0, 1, 0, "Load preset"); 
 
 		configParam(PAGE_PARAM, 0, 2, 1, "Select page: Frequency, ET, JI"); 
-		configParam(SET_PARAM, 0, 1, 0, "Set note frequency"); 
+		configParam(CALC_PARAM, 0, 1, 0, "Set Single note/in page"); 
 		configParam(EXECUTE_PARAM, 0, 1, 0, "Set frequencies in scale"); 
 
 		for (int i = 0; i < NUM_PARAMETERS; i++) {
@@ -654,31 +653,33 @@ struct RainbowScaleExpander : core::PrismModule {
 			}
 		}
 
-		if (setTrigger.process(params[SET_PARAM].getValue())) {
-			switch(currPage) {
-				case 0:
-					setFromFrequency();
-					break;
-				case 1:
-					setFromET();
-					break;
-				case 2:
-					setFromJI();
-					break;
-			}
-		}
+		int calc = params[CALC_PARAM].getValue();
 
 		if (executeTrigger.process(params[EXECUTE_PARAM].getValue())) {
-			switch(currPage) {
-				case 0:
-					executeFromFrequency();
-					break;
-				case 1:
-					executeFromET();
-					break;
-				case 2:
-					executeFromJI();
-					break;
+			if (calc == 0) {
+				switch(currPage) {
+					case 0:
+						setFromFrequency();
+						break;
+					case 1:
+						setFromET();
+						break;
+					case 2:
+						setFromJI();
+						break;
+				}
+			} else {
+				switch(currPage) {
+					case 0:
+						executeFromFrequency();
+						break;
+					case 1:
+						executeFromET();
+						break;
+					case 2:
+						executeFromJI();
+						break;
+				}
 			}
 		}
 
@@ -910,7 +911,7 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 		addParam(createParamCentered<gui::PrismLargeKnobSnap>(mm2px(Vec(9.89, 19.118)), module, RainbowScaleExpander::SLOT_PARAM));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(9.89, 79.118)), module, RainbowScaleExpander::TRANSFER_PARAM));
 		addParam(createParamCentered<gui::PrismLargeKnobSnap>(mm2px(Vec(9.89, 49.118)), module, RainbowScaleExpander::SCALE_PARAM));
-		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(107.39, 94.118)), module, RainbowScaleExpander::SET_PARAM));
+		addParam(createParamCentered<gui::PrismSSwitch>(mm2px(Vec(107.39, 94.118)), module, RainbowScaleExpander::CALC_PARAM));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(137.39, 94.118)), module, RainbowScaleExpander::EXECUTE_PARAM));
 		addParam(createParamCentered<gui::PrismSSwitch3>(mm2px(Vec(9.89, 109.118)), module, RainbowScaleExpander::PAGE_PARAM));
 		addParam(createParamCentered<gui::PrismLargeKnobSnap>(mm2px(Vec(98.328, 109.118)), module, RainbowScaleExpander::BANK_PARAM));

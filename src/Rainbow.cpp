@@ -791,7 +791,6 @@ struct BankWidget : Widget {
 
 		nvgFontSize(ctx.vg, 12.0f);
 		nvgFontFaceId(ctx.vg, font->handle);
-		// nvgTextLetterSpacing(ctx.vg, -1);
 
 		char text[128];
 
@@ -946,9 +945,6 @@ struct RainbowWidget : ModuleWidget {
 		addChild(createLightCentered<MediumLight<RedLight>>(Vec(479.000 + 7.000, 380.0f - 187.000 -7.000), module, Rainbow::SCALEROT_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(Vec(79.000 + 7.000, 380.0f - 187.000 - 7.000), module, Rainbow::PREPOST_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(Vec(79.000 + 7.000, 380.0f - 322.000 - 7.000), module, Rainbow::VOCTGLIDE_LIGHT));
-
-				// module->envelopeLEDs[i] = new LED(i, (256.5 + 2.0) + 6 * 40.0, yEnv);
-
 
 		addChild(createLightCentered<TinyLight<RedLight>>(Vec((256.5 + 2.0) + 6 * 40.0, 380.0 - 77.500 - 4.5), module, Rainbow::POLYCVIN_LIGHT));
 
