@@ -132,6 +132,7 @@ struct Rainbow : core::PrismModule {
 		SCALEROT_LIGHT,
 		VOCTGLIDE_LIGHT,
 		PREPOST_LIGHT,
+		POLYCVIN_LIGHT,
 		NUM_LIGHTS
 	};
 
@@ -601,6 +602,14 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.io->ROTCV_ADC			= (uint16_t)clamp(inputs[ROTATECV_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
 	main.io->FREQCV1_ADC		= clamp(inputs[FREQCV1_INPUT].getVoltage() * 0.5, -5.0f, 5.0f);
 	main.io->FREQCV6_ADC		= clamp(inputs[FREQCV6_INPUT].getVoltage() * 0.5, -5.0f, 5.0f);
+	if (inputs[FREQCV1_INPUT].getChannels() > 1) {
+		for (int i = 0; i < NUM_CHANNELS; i++) {
+			main.io->FREQCV_ALL[i] = clamp(inputs[FREQCV1_INPUT].getVoltage(i) * 0.5, -5.0f, 5.0f);
+		}
+		main.io->FREQCV_ALL_ON = true;
+	} else {
+		main.io->FREQCV_ALL_ON = false;
+	}
 	main.io->SLEW_ADC			= (uint16_t)params[SLEW_PARAM].getValue();
 
 	main.io->ENV_SWITCH			= (EnvelopeMode)params[ENV_PARAM].getValue();
@@ -665,6 +674,7 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.io->GLIDE_SWITCH ? lights[VOCTGLIDE_LIGHT].setBrightness(1.0f) : lights[VOCTGLIDE_LIGHT].setBrightness(0.0f); 
 	main.io->PREPOST_SWITCH ? lights[PREPOST_LIGHT].setBrightness(0.0f) : lights[PREPOST_LIGHT].setBrightness(1.0f); // Light on if PRE (inverted)
 	main.io->SCALEROT_SWITCH ? lights[SCALEROT_LIGHT].setBrightness(1.0f) : lights[SCALEROT_LIGHT].setBrightness(0.0f); 
+	main.io->FREQCV_ALL_ON ? lights[POLYCVIN_LIGHT].setBrightness(1.0f) : lights[POLYCVIN_LIGHT].setBrightness(0.0f); 
 
 	for (int i = 0; i < NUM_FILTS; i++) {
 		if (main.io->FREQ_BLOCK[i]) {
@@ -936,6 +946,11 @@ struct RainbowWidget : ModuleWidget {
 		addChild(createLightCentered<MediumLight<RedLight>>(Vec(479.000 + 7.000, 380.0f - 187.000 -7.000), module, Rainbow::SCALEROT_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(Vec(79.000 + 7.000, 380.0f - 187.000 - 7.000), module, Rainbow::PREPOST_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(Vec(79.000 + 7.000, 380.0f - 322.000 - 7.000), module, Rainbow::VOCTGLIDE_LIGHT));
+
+				// module->envelopeLEDs[i] = new LED(i, (256.5 + 2.0) + 6 * 40.0, yEnv);
+
+
+		addChild(createLightCentered<TinyLight<RedLight>>(Vec((256.5 + 2.0) + 6 * 40.0, 380.0 - 77.500 - 4.5), module, Rainbow::POLYCVIN_LIGHT));
 
 		if(module) {
 

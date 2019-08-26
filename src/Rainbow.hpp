@@ -297,6 +297,9 @@ struct IO {
 	float					FREQCV1_ADC;
 	float					FREQCV6_ADC;
 
+	float					FREQCV_ALL[6];
+	bool					FREQCV_ALL_ON;
+
 	FilterSetting			FILTER_SWITCH;
 	Mod135Setting			MOD135_SWITCH;
 	Mod246Setting			MOD246_SWITCH;
@@ -571,8 +574,6 @@ struct Tuning {
 	float t_fe; // buffers for freq nudge knob readouts 
 	float f_nudge_odds 				= 1;
 	float f_nudge_evens 			= 1;
-	float f_shift_odds 				= 1;
-	float f_shift_evens 			= 1;
 
 	LPF freq_jack_conditioning[2];	//LPF and bracketing for freq jacks
 

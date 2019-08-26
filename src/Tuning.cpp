@@ -50,6 +50,8 @@ void Tuning::update(void) {
 	//With the Maxq filter, the Freq Nudge pot alone adjusts the "nudge", and the CV jack is 1V/oct shift
 	//With the BpRe filter, the Freq Nudge pot plus CV jack adjusts the "nudge", and there is no 1V/oct shift
 
+	float f_shift_all[6];
+
 	if (tuning_update_ctr++ > TUNING_UPDATE_RATE) {
 		tuning_update_ctr = 0;
 	
@@ -58,24 +60,53 @@ void Tuning::update(void) {
 			t_fo = (float)(io->FREQNUDGE1_ADC);
 			t_fe = (float)(io->FREQNUDGE6_ADC);
 
-			// Freq shift odds
-			// is odds cv input Low-passed
-			freq_jack_conditioning[0].raw_val = io->FREQCV1_ADC;
-			freq_jack_conditioning[0].apply_fir_lpf();
-			freq_jack_conditioning[0].apply_bracket();
+			if (io->FREQCV_ALL_ON) { // No LPF for 6-channel
+				for (int i = 0; i < NUM_CHANNELS; i++) {
+					f_shift_all[i] = pow(2.0f, io->FREQCV_ALL[i]);
+				}
+			} else {
 
-			// Convert to 1VOCT
-			f_shift_odds = pow(2.0, freq_jack_conditioning[0].bracketed_val);
-			// std::cout << f_shift_odds << std::endl;
+				// Freq shift odds
+				// is odds cv input Low-passed
+				freq_jack_conditioning[0].raw_val = io->FREQCV1_ADC;
+				freq_jack_conditioning[0].apply_fir_lpf();
+				freq_jack_conditioning[0].apply_bracket();
 
-			// Freq shift evens
-			// is odds cv input Low-passed
-			freq_jack_conditioning[1].raw_val = io->FREQCV6_ADC;
-			freq_jack_conditioning[1].apply_fir_lpf();
-			freq_jack_conditioning[1].apply_bracket();
+				// Convert to 1VOCT
+				f_shift_all[0] = pow(2.0, freq_jack_conditioning[0].bracketed_val);
+				f_shift_all[2] = f_shift_all[0];
+				f_shift_all[4] = f_shift_all[0];
 
-			// Convert to 1VOCT
-			f_shift_evens = pow(2.0, freq_jack_conditioning[1].bracketed_val);
+				// Freq shift evens
+				// is odds cv input Low-passed
+				freq_jack_conditioning[1].raw_val = io->FREQCV6_ADC;
+				freq_jack_conditioning[1].apply_fir_lpf();
+				freq_jack_conditioning[1].apply_bracket();
+
+				// Convert to 1VOCT
+				f_shift_all[1] = pow(2.0, freq_jack_conditioning[1].bracketed_val);
+				f_shift_all[3] = f_shift_all[1];
+				f_shift_all[5] = f_shift_all[1];
+
+			}
+
+			freq_shift[0] = f_shift_all[0]; 
+			if (mod_mode_135 == 135) {
+				freq_shift[2] = f_shift_all[2]; 
+				freq_shift[4] = f_shift_all[4]; 
+			} else {
+				freq_shift[2] = 1.0f; 
+				freq_shift[4] = 1.0f; 
+			}
+
+			freq_shift[5] = f_shift_all[5];
+			if (mod_mode_246 == 246) {
+				freq_shift[1] = f_shift_all[1]; 
+				freq_shift[3] = f_shift_all[3]; 
+			} else {
+				freq_shift[1] = 1.0f; 
+				freq_shift[3] = 1.0f; 
+			}
 
 			// FREQ NUDGE 
 			// SEMITONE FINE TUNE
@@ -105,60 +136,47 @@ void Tuning::update(void) {
 			if (!io->LOCK_ON[0]) {
 				freq_nudge[0] = f_nudge_odds * coarse_adj[0];
 			}
-			freq_shift[0] = f_shift_odds; // apply freq CV in
 
 			if (mod_mode_135 == 135) {
 				if (!io->LOCK_ON[2]) {
 					freq_nudge[2] = f_nudge_odds * coarse_adj[2];
 				}
-				freq_shift[2] = f_shift_odds;
 
 				if (!io->LOCK_ON[4]) {
 					freq_nudge[4] = f_nudge_odds * coarse_adj[4];
 				}
-				freq_shift[4] = f_shift_odds;
 			} 
 			// disable freq nudge and shift on channel 3 and 5 when in "1 mode"
 			else { 
 				if (!io->LOCK_ON[2]) {
 					freq_nudge[2] = coarse_adj[2];
 				}
-				freq_shift[2] = 1.0f;
-
 				if (!io->LOCK_ON[4]) {
 					freq_nudge[4] = coarse_adj[4];
 				}
-				freq_shift[4] = 1.0f;
 			}
 
 		//EVENS
 			if (!io->LOCK_ON[5]) {
 				freq_nudge[5] = f_nudge_evens * coarse_adj[5];
 			}
-			freq_shift[5] = f_shift_evens; 
 
 			if (mod_mode_246 == 246){
 				if (!io->LOCK_ON[1]) {
 					freq_nudge[1] = f_nudge_evens * coarse_adj[1];
 				} 
-				freq_shift[1] = f_shift_evens;
-
 				if (!io->LOCK_ON[3]) {
 					freq_nudge[3] = f_nudge_evens * coarse_adj[3];
 				}
-				freq_shift[3] = f_shift_evens;
 			} 
 			// disable freq nudge and shift on channel 2 and 4 when in "6 mode"
 			else {
 				if (!io->LOCK_ON[3]) {
 					freq_nudge[3] = coarse_adj[3];
 				}
-				freq_shift[3] = 1.0f;
-
 				if (!io->LOCK_ON[1]) {
 					freq_nudge[1] = coarse_adj[1];
 				}
-				freq_shift[1] = 1.0f;
 			}
 
 		} else { // BPRE Filter
@@ -179,8 +197,8 @@ void Tuning::update(void) {
 				t_fe = -1.0f;
 			}
 
-			f_shift_odds	= 1.0f;
-			f_shift_evens	= 1.0f;
+			float f_shift_odds	= 1.0f;
+			float f_shift_evens	= 1.0f;
 			
 			f_nudge_odds	*= FREQNUDGE_LPF;
 			f_nudge_odds	+= (1.0f - FREQNUDGE_LPF) * t_fo;
