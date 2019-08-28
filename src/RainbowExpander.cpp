@@ -1,4 +1,15 @@
+
+#include <string>
+#include <sstream>
+#include <algorithm> 
+#include <locale>
+#include <iterator>
 #include <bitset>
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <cctype>
+#include <osdialog.h>
 
 #include "common.hpp"
 
@@ -10,6 +21,211 @@
 #include "dsp/noise.hpp"
 
 extern float exp_1voct[4096];
+
+// trim from start (in place)
+static inline void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+        return !std::isspace(ch);
+    }));
+}
+
+// trim from end (in place)
+static inline void rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+        return !std::isspace(ch);
+    }).base(), s.end());
+}
+
+// trim from both ends (in place)
+static inline void trim(std::string &s) {
+    ltrim(s);
+    rtrim(s);
+}
+
+// trim from start (copying)
+static inline std::string ltrim_copy(std::string s) {
+    ltrim(s);
+    return s;
+}
+
+// trim from end (copying)
+static inline std::string rtrim_copy(std::string s) {
+    rtrim(s);
+    return s;
+}
+
+template <class Container>
+void split(const std::string& str, Container& cont, char delim = ' ') {
+    std::stringstream ss(str);
+    std::string token;
+    while (std::getline(ss, token, delim)) {
+        cont.push_back(token);
+    }
+}
+
+struct ScalaDef {
+	int upper;
+	int lower;
+	float cents;
+	std::string description;
+	bool isRatio;
+};
+
+struct ScalaFile {
+	std::vector<ScalaDef *> notes;
+	std::string description;
+	bool isValid;
+
+	ScalaDef *parseNote(std::string text) {
+
+		if (text.find('/') != std::string::npos) {
+
+			std::vector<std::string> ratios;
+			split<std::vector<std::string>>(text,ratios,'/');
+			if (ratios.size() != 2) {
+				WARN("Invalid ratio %s", text);
+				return NULL;
+			}
+
+			ScalaDef *d = new ScalaDef();
+
+			try {
+				d->upper = std::stoi(ratios[0]);
+				d->lower = std::stoi(ratios[1]);
+			} catch (std::exception &e) {
+				WARN("cannot convert %s to integer", text);
+				return NULL;
+			}
+
+			d->isRatio = true;
+			return d;
+
+		} else if (text.find_first_of('.') != std::string::npos) {
+
+			ScalaDef *d = new ScalaDef();
+			try {
+				d->cents = std::stof(text);
+			} catch (std::exception &e) {
+				WARN("cannot convert %s to float", text);
+				return NULL;
+			}
+
+			d->isRatio = false;
+			return d;
+
+		} else {
+
+			ScalaDef *d = new ScalaDef();
+
+			try {
+				d->upper = std::stoi(text);
+				d->lower = 1;
+			} catch (std::exception &e) {
+				WARN("cannot convert %s to integer", text);
+				return NULL;
+			}
+
+			d->isRatio = true;
+			return d;
+
+		}
+
+		return NULL;
+
+	}
+
+	void load(const char *path) {
+
+		bool readNumNotes = false;
+		bool readDescription = false;
+		
+		// Empty path, so bail 
+		if (path[0] == '\0') {
+			return;
+		}
+
+		unsigned int nNotes = 0;
+
+		std::string line;
+		std::ifstream file(path);
+		if (!file.is_open()) {
+			WARN("Could not load Scala file %s", path);
+			return;
+		}
+		DEFER({
+		    file.close();
+		});
+
+		reset();
+
+		bool failed = false;
+
+		// Populate with implicit unison note
+		ScalaDef *root = new ScalaDef();
+		root->upper = 1;
+		root->lower = 1;
+		root->isRatio = true;
+		notes.push_back(root);
+
+		while (std::getline(file,line)) {
+
+			trim(line);
+
+			if (line[0] == '!') {
+				continue;
+			}
+			if (!readDescription) {
+				description = line;
+				readDescription = true;
+				continue;
+			}
+			if (!readNumNotes) {
+				try {
+					nNotes = std::stoi(line);
+				} catch ( std::exception &e) {
+					WARN("Invalid number of notes '%s'", line.c_str());
+					failed = true;
+					break;
+				}
+				readNumNotes = true;
+				continue;
+			}
+
+			std::vector<std::string> tokens;
+			split<std::vector<std::string>>(line,tokens);
+
+			ScalaDef *n = parseNote(tokens[0]);
+			if (n != NULL) {
+				notes.push_back(n);
+			} else {
+				WARN("Failed to parse line '%s'", tokens[0]);
+				failed = true;
+			}
+
+    	}
+
+		if (failed) {
+			WARN("Loading Scala file failed");
+			reset();
+		}
+
+		if (notes.size() - 1 != nNotes) {
+			WARN("Number of notes %d found does not match declared value of %d", notes.size() - 1, nNotes);
+		}
+
+    	file.close();
+	}
+
+	void reset () {
+		isValid = false;
+		for (unsigned int i = 0; i < notes.size(); i++) {
+			delete notes[i];
+		}
+		notes.clear();
+	}
+
+};
+
 
 using namespace prism;
 
@@ -46,12 +262,16 @@ struct RainbowScaleExpander : core::PrismModule {
 		NUM_LIGHTS
 	};
 
-	float parameterValues[3][NUM_PARAMETERS] = {};
-	bool parameterActive[3][NUM_PARAMETERS] = {};
-	std::string parameterLabels[3][NUM_PARAMETERS] = {};
-	std::string parameterDescriptions[3][NUM_PARAMETERS] = {};
+	const static int NUM_PAGES = 3;
+
+	float parameterValues[NUM_PAGES][NUM_PARAMETERS] = {};
+	bool parameterActive[NUM_PAGES][NUM_PARAMETERS] = {};
+	std::string parameterLabels[NUM_PAGES][NUM_PARAMETERS] = {};
+	std::string parameterDescriptions[NUM_PAGES][NUM_PARAMETERS] = {};
 
 	prism::gui::PrismReadoutParam *widgetRef[NUM_PARAMETERS];
+
+	std::string path;
 
 	const float CtoF = 96000.0f / (2.0f * core::PI);
 	const float FtoC = (2.0f * core::PI) / 96000.0f;
@@ -73,6 +293,8 @@ struct RainbowScaleExpander : core::PrismModule {
 	std::string notedesc[231];
 
     ScaleSet scales;
+
+	ScalaFile scala;
 
 	json_t *dataToJson() override {
 
@@ -188,6 +410,9 @@ struct RainbowScaleExpander : core::PrismModule {
 	}
 
 	void initialise() {
+
+		scala.reset();
+
 		for (int j = 0; j < NUM_BANKNOTES; j++) {
 			currFreqs[j] = scales.presets[NUM_SCALEBANKS - 1]->c_maxq[j];
 			currState[j] = FRESH;
@@ -301,7 +526,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		parameterDescriptions[2][8] =	"";
 		parameterDescriptions[2][9] =	"Maximum number of steps to apply";
 
-		for (int j = 0; j < 3; j++) {
+		for (int j = 0; j < NUM_PAGES; j++) {
 			for (int i = 0; i < NUM_PARAMETERS; i++) {
 				params[PARAMETER_PARAM + i].setValue(parameterValues[j][i]);
 			}
@@ -337,7 +562,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		configParam(BANK_PARAM, 0, 21, 0, "Bank presets"); 
 		configParam(BANKLOAD_PARAM, 0, 1, 0, "Load preset"); 
 
-		configParam(PAGE_PARAM, 0, 2, 1, "Select page: Frequency, ET, JI"); 
+		configParam(PAGE_PARAM, 0, NUM_PAGES - 1, 1, "Select page: Frequency, ET, JI"); 
 		configParam(CALC_PARAM, 0, 1, 0, "Set Single note/in page"); 
 		configParam(EXECUTE_PARAM, 0, 1, 0, "Set frequencies in scale"); 
 
@@ -865,6 +1090,26 @@ struct ExpanderBankWidget : Widget {
 
 };
 
+static void loadFile(RainbowScaleExpander *module) {
+
+	std::string dir;
+	std::string filename;
+	if (module->path != "") {
+		dir = string::directory(module->path);
+		filename = string::filename(module->path);
+	}
+	else {
+		dir = asset::user("");
+		filename = "";
+	}
+
+	char *path = osdialog_file(OSDIALOG_OPEN, dir.c_str(), filename.c_str(), NULL);
+	if (path) {
+		module->scala.load(path);
+		free(path);
+	}
+}
+
 struct RainbowScaleExpanderWidget : ModuleWidget {
 	
 	RainbowScaleExpanderWidget(RainbowScaleExpander *module) {
@@ -913,7 +1158,7 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 		addParam(createParamCentered<gui::PrismLargeKnobSnap>(mm2px(Vec(9.89, 49.118)), module, RainbowScaleExpander::SCALE_PARAM));
 		addParam(createParamCentered<gui::PrismSSwitch>(mm2px(Vec(107.39, 94.118)), module, RainbowScaleExpander::CALC_PARAM));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(137.39, 94.118)), module, RainbowScaleExpander::EXECUTE_PARAM));
-		addParam(createParamCentered<gui::PrismSSwitch3>(mm2px(Vec(9.89, 109.118)), module, RainbowScaleExpander::PAGE_PARAM));
+		addParam(createParamCentered<gui::PrismLargeKnobSnap>(mm2px(Vec(9.89, 109.118)), module, RainbowScaleExpander::PAGE_PARAM));
 		addParam(createParamCentered<gui::PrismLargeKnobSnap>(mm2px(Vec(98.328, 109.118)), module, RainbowScaleExpander::BANK_PARAM));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(107.59, 109.118)), module, RainbowScaleExpander::BANKLOAD_PARAM));
 
@@ -930,6 +1175,26 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 
 		}
 	}
+
+	void appendContextMenu(Menu *menu) override {
+
+		RainbowScaleExpander *spectrum = dynamic_cast<RainbowScaleExpander*>(module);
+		assert(spectrum);
+
+		struct PathItem : MenuItem {
+			RainbowScaleExpander *module;
+			void onAction(const event::Action &e) override {
+				loadFile(module);
+			}
+		};
+
+		PathItem *pathItem = new PathItem;
+		pathItem->text = "Load Scala file";
+		pathItem->module = spectrum;
+		menu->addChild(pathItem);
+
+	 }
+
 };
 
 Model *modelRainbowScaleExpander = createModel<RainbowScaleExpander, RainbowScaleExpanderWidget>("RainbowScaleExpander");
