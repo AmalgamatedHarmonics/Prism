@@ -75,6 +75,7 @@ struct ScalaFile {
 	std::vector<ScalaDef *> notes;
 	std::string description;
 	bool isValid;
+	std::string lastError;
 
 	ScalaDef *parseNote(std::string text) {
 
@@ -83,7 +84,7 @@ struct ScalaFile {
 			std::vector<std::string> ratios;
 			split<std::vector<std::string>>(text,ratios,'/');
 			if (ratios.size() != 2) {
-				WARN("Invalid ratio %s", text);
+				lastError = "Invalid ratio " + text;
 				return NULL;
 			}
 
@@ -93,7 +94,7 @@ struct ScalaFile {
 				d->upper = std::stoi(ratios[0]);
 				d->lower = std::stoi(ratios[1]);
 			} catch (std::exception &e) {
-				WARN("cannot convert %s to integer", text);
+				lastError = "Cannot convert " + text + " to integer";
 				return NULL;
 			}
 
@@ -106,7 +107,7 @@ struct ScalaFile {
 			try {
 				d->cents = std::stof(text);
 			} catch (std::exception &e) {
-				WARN("cannot convert %s to float", text);
+				lastError = "Cannot convert " + text + " to float";
 				return NULL;
 			}
 
@@ -121,7 +122,7 @@ struct ScalaFile {
 				d->upper = std::stoi(text);
 				d->lower = 1;
 			} catch (std::exception &e) {
-				WARN("cannot convert %s to integer", text);
+				lastError = "Cannot convert " + text + " to integer";
 				return NULL;
 			}
 
@@ -130,27 +131,23 @@ struct ScalaFile {
 
 		}
 
+		lastError = "Unknown error";
 		return NULL;
 
 	}
 
-	void load(const char *path) {
+	bool load(const char *path) {
 
 		bool readNumNotes = false;
 		bool readDescription = false;
 		
-		// Empty path, so bail 
-		if (path[0] == '\0') {
-			return;
-		}
-
 		unsigned int nNotes = 0;
 
 		std::string line;
 		std::ifstream file(path);
 		if (!file.is_open()) {
-			WARN("Could not load Scala file %s", path);
-			return;
+			lastError = "Could not load Scala file '" + std::string(path) + "'";
+			return false;
 		}
 		DEFER({
 		    file.close();
@@ -159,13 +156,6 @@ struct ScalaFile {
 		reset();
 
 		bool failed = false;
-
-		// Populate with implicit unison note
-		ScalaDef *root = new ScalaDef();
-		root->upper = 1;
-		root->lower = 1;
-		root->isRatio = true;
-		notes.push_back(root);
 
 		while (std::getline(file,line)) {
 
@@ -182,10 +172,9 @@ struct ScalaFile {
 			if (!readNumNotes) {
 				try {
 					nNotes = std::stoi(line);
-				} catch ( std::exception &e) {
-					WARN("Invalid number of notes '%s'", line.c_str());
-					failed = true;
-					break;
+				} catch (std::exception &e) {
+					lastError = "Invalid number of notes '" + line + "'";
+					return false;
 				}
 				readNumNotes = true;
 				continue;
@@ -195,25 +184,30 @@ struct ScalaFile {
 			split<std::vector<std::string>>(line,tokens);
 
 			ScalaDef *n = parseNote(tokens[0]);
+			n->description = line;
 			if (n != NULL) {
 				notes.push_back(n);
 			} else {
-				WARN("Failed to parse line '%s'", tokens[0]);
+				lastError = "Failed to parse line '" + tokens[0] + "'";
 				failed = true;
 			}
 
     	}
 
+		if (notes.size() != nNotes) {
+			lastError = "Number of notes " + std::to_string(notes.size()) + " found does not match declared value of " + std::to_string(nNotes);
+			failed = true;
+		}
+
 		if (failed) {
 			WARN("Loading Scala file failed");
 			reset();
-		}
-
-		if (notes.size() - 1 != nNotes) {
-			WARN("Number of notes %d found does not match declared value of %d", notes.size() - 1, nNotes);
+			return false;
 		}
 
     	file.close();
+		isValid = true;
+		return true;
 	}
 
 	void reset () {
@@ -414,51 +408,45 @@ struct RainbowScaleExpander : core::PrismModule {
 		scala.reset();
 
 		for (int j = 0; j < NUM_BANKNOTES; j++) {
-			currFreqs[j] = scales.presets[NUM_SCALEBANKS - 1]->c_maxq[j];
+			currFreqs[j] = scales.presets[NUM_SCALEBANKS - 1]->c_maxq[j] * CtoF;
 			currState[j] = FRESH;
+			notedesc[j] = "";
+		}
+
+		name = scales.presets[NUM_SCALEBANKS - 1]->name;
+		description = scales.presets[NUM_SCALEBANKS - 1]->description;
+		for (int j = 0; j < NUM_SCALES; j++) {
+			scalename[j] = scales.presets[NUM_SCALEBANKS - 1]->scalename[j];
 		}
 
 		// P0 Frequency		/ A			/ f0		P5				/ EDO			/				
 		// P1 				/ Octave	/ Octave	P6	Cents		/ Cents			/ Cents	
-		// P2  				/ Base 		/ Base		P7	Slot Step	/ Slot Step		/ Slot step
+		// P2  				/ Root 		/ Base		P7	Slot Step	/ Slot Step		/ Slot step
 		// P3 				/ Interval 	/ Upper		P8				/ Interval Step	/ Cent step
 		// P4  				/ 			/ Lower		p9	Max steps	/ Max Steps		/ Max Steps
 
 		// Frequency page
-		parameterValues[0][0] = 261.6256f; 	parameterActive[0][0] = true;	// Frequency
-		parameterValues[0][1] = 0.0f;		parameterActive[0][1] = false;	// -
-		parameterValues[0][2] = 0.0f;		parameterActive[0][2] = false;	// -
-		parameterValues[0][3] = 0.0f;		parameterActive[0][3] = false;  // -
-		parameterValues[0][4] = 0.0f;		parameterActive[0][4] = false;  // -
-		parameterValues[0][5] = 0.0f;		parameterActive[0][5] = false;  // -
-		parameterValues[0][6] = 0.0f;		parameterActive[0][6] = true;	// Cents
-		parameterValues[0][7] = 1.0f;		parameterActive[0][7] = true;	// Slot step
-		parameterValues[0][8] = 100.0f;		parameterActive[0][8] = true;	// Interval step (cents)
-		parameterValues[0][9] = 21.0f;		parameterActive[0][9] = true;	// Max steps
+		parameterValues[0][0] = 261.6256f; 	// Frequency	
+		parameterValues[0][1] = 0.0f;		// -	
+		parameterValues[0][2] = 0.0f;		// -
+		parameterValues[0][3] = 0.0f;		// -
+		parameterValues[0][4] = 0.0f;		// -
+		parameterValues[0][5] = 0.0f;		// -
+		parameterValues[0][6] = 0.0f;		// Cents
+		parameterValues[0][7] = 1.0f;		// Slot step
+		parameterValues[0][8] = 100.0f;		// Interval step (cents)
+		parameterValues[0][9] = 21.0f;		// Max steps
 
-		// ET page
-		parameterValues[1][0] = 440.0f;		parameterActive[1][0] = true;	// Root A
-		parameterValues[1][1] = 4.0f;		parameterActive[1][1] = true;	// Octave
-		parameterValues[1][2] = 0.0f;		parameterActive[1][2] = true;	// Root Interval
-		parameterValues[1][3] = 12.0f;		parameterActive[1][3] = true;	// Interval
-		parameterValues[1][4] = 0.0f;		parameterActive[1][4] = false;	// -
-		parameterValues[1][5] = 12.0f;		parameterActive[1][5] = true;	// EDO
-		parameterValues[1][6] = 0.0f;		parameterActive[1][6] = true;	// Cents
-		parameterValues[1][7] = 1.0f;		parameterActive[1][7] = true;	// Slot step
-		parameterValues[1][8] = 1.0f;		parameterActive[1][8] = true;	// Interval step (semitone)
-		parameterValues[1][9] = 21.0f;		parameterActive[1][9] = true;	// Max steps
-
-		// JI page
-		parameterValues[2][0] = 16.35f;		parameterActive[2][0] = true;	// f0
-		parameterValues[2][1] = 4.0f;		parameterActive[2][1] = true;	// Octave
-		parameterValues[2][2] = 1.0f;		parameterActive[2][2] = true;	// Base
-		parameterValues[2][3] = 3.0f;		parameterActive[2][3] = true;	// Upper
-		parameterValues[2][4] = 2.0f;		parameterActive[2][4] = true;	// Lower
-		parameterValues[2][5] = 0.0f;		parameterActive[2][5] = false;	// -
-		parameterValues[2][6] = 0.0f;		parameterActive[2][6] = true;	// Cents
-		parameterValues[2][7] = 1.0f;		parameterActive[2][7] = true;	// Slot step
-		parameterValues[2][8] = 0.0f;		parameterActive[2][8] = false;	// -
-		parameterValues[2][9] = 21.0f;		parameterActive[2][9] = true;	// Max steps
+		parameterActive[0][0] = true;		// Frequency
+		parameterActive[0][1] = false;		// -
+		parameterActive[0][2] = false;		// -
+		parameterActive[0][3] = false;  	// -
+		parameterActive[0][4] = false;  	// -
+		parameterActive[0][5] = false;  	// -
+		parameterActive[0][6] = true;		// Cents
+		parameterActive[0][7] = true;		// Slot step
+		parameterActive[0][8] = true;		// Interval step (cents)
+		parameterActive[0][9] = true;		// Max steps
 
 		parameterLabels[0][0] =	"Frequency";
 		parameterLabels[0][1] = "";
@@ -471,28 +459,6 @@ struct RainbowScaleExpander : core::PrismModule {
 		parameterLabels[0][8] =	"Cent step";
 		parameterLabels[0][9] =	"Max steps";
 
-		parameterLabels[1][0] =	"A = ";
-		parameterLabels[1][1] =	"Octave";
-		parameterLabels[1][2] =	"Base intvl.";
-		parameterLabels[1][3] =	"Interval";
-		parameterLabels[1][4] =	"";
-		parameterLabels[1][5] =	"EDO";
-		parameterLabels[1][6] =	"Cents";
-		parameterLabels[1][7] =	"Slot step";
-		parameterLabels[1][8] =	"Intvl. step";
-		parameterLabels[1][9] =	"Max steps";
-
-		parameterLabels[2][0] =	"f0";
-		parameterLabels[2][1] =	"Octave";
-		parameterLabels[2][2] =	"Base intvl.";
-		parameterLabels[2][3] =	"Upper";
-		parameterLabels[2][4] =	"Lower";
-		parameterLabels[2][5] =	"";
-		parameterLabels[2][6] =	"Cents";
-		parameterLabels[2][7] =	"Slot step";
-		parameterLabels[2][8] =	"";
-		parameterLabels[2][9] =	"Max steps";
-
 		parameterDescriptions[0][0] =	"Frequency";
 		parameterDescriptions[0][1] = 	"";
 		parameterDescriptions[0][2] =	"";
@@ -503,6 +469,40 @@ struct RainbowScaleExpander : core::PrismModule {
 		parameterDescriptions[0][7] =	"Number of slots to jump after each calculation step";
 		parameterDescriptions[0][8] =	"Additional cents to be added each step";
 		parameterDescriptions[0][9] =	"Maximum number of steps to apply";
+
+		// ET page
+		parameterValues[1][0] = 440.0f;		// Root A	
+		parameterValues[1][1] = 4.0f;		// Octave
+		parameterValues[1][2] = 0.0f;		// Root Interval	
+		parameterValues[1][3] = 12.0f;		// Interval
+		parameterValues[1][4] = 0.0f;		// -
+		parameterValues[1][5] = 12.0f;		// EDO
+		parameterValues[1][6] = 0.0f;		// Cents
+		parameterValues[1][7] = 1.0f;		// Slot step
+		parameterValues[1][8] = 1.0f;		// Interval step (semitone)
+		parameterValues[1][9] = 21.0f;		// Max steps
+
+		parameterActive[1][0] = true;		// Root A
+		parameterActive[1][1] = true;		// Octave
+		parameterActive[1][2] = true;		// Root Interval
+		parameterActive[1][3] = true;		// Interval
+		parameterActive[1][4] = false;		// -
+		parameterActive[1][5] = true;		// EDO
+		parameterActive[1][6] = true;		// Cents
+		parameterActive[1][7] = true;		// Slot step
+		parameterActive[1][8] = true;		// Interval step (semitone)
+		parameterActive[1][9] = true;		// Max steps
+
+		parameterLabels[1][0] =	"A = ";
+		parameterLabels[1][1] =	"Octave";
+		parameterLabels[1][2] =	"Base intvl.";
+		parameterLabels[1][3] =	"Interval";
+		parameterLabels[1][4] =	"";
+		parameterLabels[1][5] =	"EDO";
+		parameterLabels[1][6] =	"Cents";
+		parameterLabels[1][7] =	"Slot step";
+		parameterLabels[1][8] =	"Intvl. step";
+		parameterLabels[1][9] =	"Max steps";
 
 		parameterDescriptions[1][0] =	"Frequency of pitch standard A4";
 		parameterDescriptions[1][1] =	"Octave";
@@ -515,6 +515,40 @@ struct RainbowScaleExpander : core::PrismModule {
 		parameterDescriptions[1][8] =	"Additional intervals (semitones) to be added each step";
 		parameterDescriptions[1][9] =	"Maximum number of steps to apply";
 
+		// JI page
+		parameterValues[2][0] = 16.35f;		// f0
+		parameterValues[2][1] = 4.0f;		// Octave
+		parameterValues[2][2] = 1.0f;		// Base
+		parameterValues[2][3] = 3.0f;		// Upper
+		parameterValues[2][4] = 2.0f;		// Lower
+		parameterValues[2][5] = 0.0f;		// -
+		parameterValues[2][6] = 0.0f;		// Cents
+		parameterValues[2][7] = 1.0f;		// Slot step
+		parameterValues[2][8] = 0.0f;		// -
+		parameterValues[2][9] = 21.0f;		// Max steps
+
+		parameterActive[2][0] = true;		// f0
+		parameterActive[2][1] = true;		// Octave
+		parameterActive[2][2] = true;		// Base
+		parameterActive[2][3] = true;		// Upper
+		parameterActive[2][4] = true;		// Lower
+		parameterActive[2][5] = false;		// -
+		parameterActive[2][6] = true;		// Cents
+		parameterActive[2][7] = true;		// Slot step
+		parameterActive[2][8] = false;		// -
+		parameterActive[2][9] = true;		// Max steps
+
+		parameterLabels[2][0] =	"f0";
+		parameterLabels[2][1] =	"Octave";
+		parameterLabels[2][2] =	"Base intvl.";
+		parameterLabels[2][3] =	"Upper";
+		parameterLabels[2][4] =	"Lower";
+		parameterLabels[2][5] =	"";
+		parameterLabels[2][6] =	"Cents";
+		parameterLabels[2][7] =	"Slot step";
+		parameterLabels[2][8] =	"";
+		parameterLabels[2][9] =	"Max steps";
+
 		parameterDescriptions[2][0] =	"Fundamental frequency; JI octaves are calculated w.r.t. this frequency";
 		parameterDescriptions[2][1] =	"Octave";
 		parameterDescriptions[2][2] =	"Base interval (ratio) to be added to the octave";
@@ -526,11 +560,10 @@ struct RainbowScaleExpander : core::PrismModule {
 		parameterDescriptions[2][8] =	"";
 		parameterDescriptions[2][9] =	"Maximum number of steps to apply";
 
-		for (int j = 0; j < NUM_PAGES; j++) {
-			for (int i = 0; i < NUM_PARAMETERS; i++) {
-				params[PARAMETER_PARAM + i].setValue(parameterValues[j][i]);
-			}
+		for (int i = 0; i < NUM_PARAMETERS; i++) {
+			params[PARAMETER_PARAM + i].setValue(parameterValues[currPage][i]);
 		}
+
 	}
 
 	float JI5LimitIntervals[13] = {
@@ -840,6 +873,63 @@ struct RainbowScaleExpander : core::PrismModule {
 		}
 	}
 
+	void applyScale() {
+
+		float f0;
+
+		switch(currPage) {
+			case 0:
+				f0 = params[PARAMETER_PARAM + 0].getValue();
+				break;
+			case 1:
+				f0 = params[PARAMETER_PARAM + 0].getValue() / 32.0f * 
+					pow(2, params[PARAMETER_PARAM + 1].getValue());
+				break;
+			case 2:
+				f0 = params[PARAMETER_PARAM + 0].getValue() * 
+					pow(2, params[PARAMETER_PARAM + 1].getValue());
+				break;
+			default:
+				f0 = params[PARAMETER_PARAM + 0].getValue();
+		}
+
+		int currPosinBank = currNote + currScale * NUM_SCALENOTES;
+		int maxSlot = NUM_BANKNOTES;
+
+		unsigned int scalaPos = 0;
+
+		// populate with implicit 1/1 interval
+		currFreqs[currPosinBank] = f0;
+		currState[currPosinBank] = EDITED;
+		notedesc[currPosinBank] = "1/1";
+		currPosinBank++;
+
+		while (currPosinBank < maxSlot) {
+
+			ScalaDef *note = scala.notes[scalaPos];
+			float freq;
+			if (note->isRatio) {
+				freq = f0 * ((float)note->upper / (float)note->lower);
+			} else {
+				freq = f0 * pow(2.0f, note->cents / 1200.0f);
+			}
+
+			currFreqs[currPosinBank] = freq;
+			currState[currPosinBank] = EDITED;
+			notedesc[currPosinBank] = note->description;
+
+			currPosinBank++;
+
+			// Wrap
+			if (++scalaPos == scala.notes.size()) {
+				f0 *= 2.0f;
+				scalaPos = 0;
+			} 
+		}
+		std::cout << scala.description << std::endl;
+		description = scala.description;
+	}
+
 	void process(const ProcessArgs &args) override {
 		PrismModule::step();
 
@@ -1105,7 +1195,12 @@ static void loadFile(RainbowScaleExpander *module) {
 
 	char *path = osdialog_file(OSDIALOG_OPEN, dir.c_str(), filename.c_str(), NULL);
 	if (path) {
-		module->scala.load(path);
+		if (module->scala.load(path)) {
+			module->applyScale();
+		} else {
+			std::string message = module->scala.lastError;
+			osdialog_message(OSDIALOG_WARNING, OSDIALOG_OK, message.c_str());
+		}
 		free(path);
 	}
 }
@@ -1189,7 +1284,7 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 		};
 
 		PathItem *pathItem = new PathItem;
-		pathItem->text = "Load Scala file";
+		pathItem->text = "Apply Scala file";
 		pathItem->module = spectrum;
 		menu->addChild(pathItem);
 

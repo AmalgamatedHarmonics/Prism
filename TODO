@@ -3,10 +3,28 @@ On-going
 - optimisation
 
 Specific
+1.1
+- revise level code and gloabl control gain max to 2.0
+- Manual
+- Poly V/OCT in changes 1/dual 3/6
+> 1.1
 - check output level calc
 - refactor filter code
 
 Expander
+1.1
+- Remove base offset from ET/JI
+- Limit execute to 30kHz
+- Set/Page/Bank switch to control calc button
+- Revise/simplify automatically generated note names
+- scala file name into bank name
+> 1.1
+- Set name, description and scale description - osdiaglog?
+- refactor execute/set code
+- Revise UI
+
+
+Fidlib module
 - build in fidlib
 - refactor main.c
 - generate bpre filter coeffs
