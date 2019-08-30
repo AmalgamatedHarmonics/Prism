@@ -358,7 +358,7 @@ struct Rainbow : core::PrismModule {
 	Rainbow() : core::PrismModule(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) { 
 
 		configParam(GLOBAL_Q_PARAM, 0, 4095, 2048, "Global Q");
-		configParam(GLOBAL_LEVEL_PARAM, 0, 4095, 4095, "Global Level");
+		configParam(GLOBAL_LEVEL_PARAM, 0, 8191, 4095, "Global Level");
 		configParam(SPREAD_PARAM, 0, 4095, 0, "Spread");
 		configParam(MORPH_PARAM, 0, 4095, 0, "Morph");
 
@@ -388,7 +388,7 @@ struct Rainbow : core::PrismModule {
 
 		for (int n = 0; n < 6; n++) {
 			configParam(CHANNEL_LEVEL_PARAM + n, 0, 4095, 4095, "Channel Level");
-			configParam(LEVEL_OUT_PARAM + n, 0, 1, 1, "Channel Level");
+			configParam(LEVEL_OUT_PARAM + n, 0, 2, 1, "Channel Level");
 
 			configParam(CHANNEL_Q_PARAM + n, 0, 4095, 2048, "Channel Q");
 			configParam(CHANNEL_Q_ON_PARAM + n, 0, 1, 0, "Channel Q activate");
@@ -564,33 +564,26 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.io->GLOBAL_Q_LEVEL		= (int16_t)clamp(inputs[GLOBAL_Q_INPUT].getVoltage() * 409.5f, -4095.0f, 4095.0f);
 	main.io->GLOBAL_Q_CONTROL	= (int16_t)params[GLOBAL_Q_PARAM].getValue();
 
-	float globalLevelParam 	= params[GLOBAL_LEVEL_PARAM].getValue() / 4095.0f;
+	main.io->GLOBAL_LEVEL_ADC 	= params[GLOBAL_LEVEL_PARAM].getValue() / 4095.0f;
+	main.io->GLOBAL_LEVEL_CV	= inputs[GLOBAL_LEVEL_INPUT].getVoltage() / 5.0f;
 
 	for (int n = 0; n < 6; n++) {
 
-		// CV Level
-		// If there are no Level CV inputs, no attenuation
-		if (!inputs[GLOBAL_LEVEL_INPUT].isConnected() && !inputs[MONO_LEVEL_INPUT + n].isConnected() && !inputs[POLY_LEVEL_INPUT].isConnected()) {
-			main.io->LEVEL_CV[n] 	= 1.0f;	
-		} else { // If the sum of these stages is zero, that's because the is zero volts on all inputs
-			main.io->LEVEL_CV[n] 	= inputs[GLOBAL_LEVEL_INPUT].getVoltage() / 5.0f; 	// Could be 0
-			if (inputs[MONO_LEVEL_INPUT + n].isConnected()) {
-				main.io->LEVEL_CV[n] 	+= inputs[MONO_LEVEL_INPUT + n].getVoltage() / 5.0; // Could be 0
-			} else {
-				main.io->LEVEL_CV[n] 	+= inputs[POLY_LEVEL_INPUT].getVoltage(n) / 5.0f; 	// Could be 0
-			}
-		}
-		main.io->LEVEL_CV[n] 	= clamp(main.io->LEVEL_CV[n], -1.0f, 1.0f);
+		if (!inputs[MONO_LEVEL_INPUT + n].isConnected() &&
+				!inputs[POLY_LEVEL_INPUT].isConnected()) { 
+			main.io->LEVEL_CV[n] 	= 1.0f;
+		 } else {
+			main.io->LEVEL_CV[n] = 
+				((inputs[MONO_LEVEL_INPUT + n].getVoltage() + 
+				inputs[POLY_LEVEL_INPUT].getVoltage(n)) + 5.0f) / 10.0f;
+		 }
 
-		main.io->LEVEL_ADC[n]	= globalLevelParam * params[CHANNEL_LEVEL_PARAM + n].getValue() / 4095.0f;
+		main.io->LEVEL_CV[n] 	= clamp(main.io->LEVEL_CV[n], 0.0f, 1.0f);
+
+		main.io->LEVEL_ADC[n]	= params[CHANNEL_LEVEL_PARAM + n].getValue() / 4095.0f;
 		main.io->LEVEL_ADC[n] 	= clamp(main.io->LEVEL_ADC[n], 0.0f, 1.0f);
 
-		if (inputs[MONO_Q_INPUT + n].isConnected()) {
-			main.io->CHANNEL_Q_LEVEL[n] = (int16_t)clamp(inputs[MONO_Q_INPUT + n].getVoltage() * 409.5f, -4095.0, 4095.0f);
-		} else {
-			main.io->CHANNEL_Q_LEVEL[n] = (int16_t)clamp(inputs[POLY_Q_INPUT].getVoltage(n) * 409.5f, -4095.0, 4095.0f);
-		}
-
+		main.io->CHANNEL_Q_LEVEL[n] 	= (int16_t)clamp((inputs[MONO_Q_INPUT + n].getVoltage() + inputs[POLY_Q_INPUT].getVoltage(n))  * 409.5f, -4095.0f, 4095.0f);
 		main.io->CHANNEL_Q_CONTROL[n]	= (int16_t)params[CHANNEL_Q_PARAM + n].getValue();
 
 		main.io->TRANS_DIAL[n]			= params[TRANS_PARAM + n].getValue();

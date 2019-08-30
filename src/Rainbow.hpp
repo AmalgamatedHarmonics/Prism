@@ -284,6 +284,8 @@ struct IO {
 	int16_t					CHANNEL_Q_LEVEL[NUM_CHANNELS];
 	int16_t					CHANNEL_Q_CONTROL[NUM_CHANNELS];
 
+	float					GLOBAL_LEVEL_ADC;
+	float					GLOBAL_LEVEL_CV;
 	float					LEVEL_ADC[NUM_CHANNELS];
 	float					LEVEL_CV[NUM_CHANNELS];
 

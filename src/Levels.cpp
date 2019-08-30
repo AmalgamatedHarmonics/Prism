@@ -40,14 +40,16 @@ void Levels::update(void) {
 	if (level_update_ctr++ > LEVEL_UPDATE_RATE) { 
 		level_update_ctr = 0;
 
+		float globalL = io->GLOBAL_LEVEL_ADC + io->GLOBAL_LEVEL_CV;
+
 		for (int j = 0; j < NUM_CHANNELS; j++) {
 
-			float level_lpf = io->LEVEL_CV[j] * io->LEVEL_ADC[j];
+			float level_lpf = globalL * io->LEVEL_CV[j] * io->LEVEL_ADC[j];
 			if (level_lpf <= SLIDER_LPF_MIN) {
 				level_lpf = 0.0f;
 			}
-			if (level_lpf > 1.0f) {
-				level_lpf = 1.0f;
+			if (level_lpf > 2.0f) {
+				level_lpf = 2.0f;
 			}
 
 			prev_level[j] = level_goal[j];
