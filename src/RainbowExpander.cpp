@@ -903,6 +903,10 @@ struct RainbowScaleExpander : core::PrismModule {
 				freq = f0 * pow(2.0f, note->cents / 1200.0f);
 			}
 
+			if (freq > maxFreq) {
+				break;
+			}
+
 			currFreqs[currPosinBank] = freq;
 			currState[currPosinBank] = EDITED;
 			notedesc[currPosinBank] = note->description;
@@ -914,10 +918,6 @@ struct RainbowScaleExpander : core::PrismModule {
 				f0 *= 2.0f;
 				scalaPos = 0;
 			} 
-
-			if (freq > 30000.0f) {
-				break;
-			}
 
 		}
 
