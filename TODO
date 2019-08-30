@@ -4,7 +4,7 @@ On-going
 
 Specific
 1.1
-- revise level code and gloabl control gain max to 2.0
+- revise level code and global control gain max to 2.0
 - Manual
 - Poly V/OCT in changes 1/dual 3/6
 > 1.1
@@ -13,7 +13,6 @@ Specific
 
 Expander
 1.1
-- Revise/simplify automatically generated note names
 - scala file name into bank name
 > 1.1
 - Set name, description and scale description - osdialog?

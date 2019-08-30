@@ -1189,7 +1189,7 @@ struct ExpanderBankWidget : Widget {
 
 };
 
-static void applyFile(RainbowScaleExpander *module) {
+static void loadFile(RainbowScaleExpander *module) {
 
 	std::string dir;
 	std::string filename;
@@ -1204,9 +1204,7 @@ static void applyFile(RainbowScaleExpander *module) {
 
 	char *path = osdialog_file(OSDIALOG_OPEN, dir.c_str(), filename.c_str(), NULL);
 	if (path) {
-		if (module->scala.load(path)) {
-			module->applyScale();
-		} else {
+		if (!module->scala.load(path)) {
 			std::string message = module->scala.lastError;
 			osdialog_message(OSDIALOG_WARNING, OSDIALOG_OK, message.c_str());
 		}
@@ -1214,7 +1212,7 @@ static void applyFile(RainbowScaleExpander *module) {
 	}
 }
 
-static void reapplyFile(RainbowScaleExpander *module) {
+static void applyFile(RainbowScaleExpander *module) {
 
 	if (module->scala.isValid) {
 		module->applyScale();
@@ -1296,6 +1294,13 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 		RainbowScaleExpander *spectrum = dynamic_cast<RainbowScaleExpander*>(module);
 		assert(spectrum);
 
+		struct LoadItem : MenuItem {
+			RainbowScaleExpander *module;
+			void onAction(const event::Action &e) override {
+				loadFile(module);
+			}
+		};
+
 		struct ApplyItem : MenuItem {
 			RainbowScaleExpander *module;
 			void onAction(const event::Action &e) override {
@@ -1303,22 +1308,17 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 			}
 		};
 
-		struct ReapplyItem : MenuItem {
-			RainbowScaleExpander *module;
-			void onAction(const event::Action &e) override {
-				reapplyFile(module);
-			}
-		};
+		menu->addChild(construct<MenuLabel>());
+
+		LoadItem *loadItem = new LoadItem;
+		loadItem->text = "Load Scala file";
+		loadItem->module = spectrum;
+		menu->addChild(loadItem);
 
 		ApplyItem *applyItem = new ApplyItem;
-		applyItem->text = "Load and apply Scala file";
+		applyItem->text = "Apply Scala file";
 		applyItem->module = spectrum;
 		menu->addChild(applyItem);
-
-		ReapplyItem *reapplyItem = new ReapplyItem;
-		reapplyItem->text = "Re-apply Scala file";
-		reapplyItem->module = spectrum;
-		menu->addChild(reapplyItem);
 
 	 }
 
