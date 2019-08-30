@@ -874,20 +874,26 @@ struct RainbowScaleExpander : core::PrismModule {
 
 		float f0;
 
+		float rootA 	= params[PARAMETER_PARAM + 0].getValue() / 32.0f;
+		float f		 	= params[PARAMETER_PARAM + 0].getValue();
+		int oct 		= params[PARAMETER_PARAM + 1].getValue();
+		int semi		= params[PARAMETER_PARAM + 3].getValue();
+		int edo			= params[PARAMETER_PARAM + 5].getValue();
+		float upper		= params[PARAMETER_PARAM + 3].getValue();
+		float lower		= params[PARAMETER_PARAM + 4].getValue();
+
 		switch(currPage) {
 			case 0:
-				f0 = params[PARAMETER_PARAM + 0].getValue();
+				f0 = f;
 				break;
 			case 1:
-				f0 = params[PARAMETER_PARAM + 0].getValue() / 32.0f * 
-					pow(2, params[PARAMETER_PARAM + 1].getValue());
+				f0 = rootA * pow(2, oct) * pow(2.0, (float)semi / (float)edo);
 				break;
 			case 2:
-				f0 = params[PARAMETER_PARAM + 0].getValue() * 
-					pow(2, params[PARAMETER_PARAM + 1].getValue());
+				f0 = f * pow(2, oct) * (upper / lower);
 				break;
 			default:
-				f0 = params[PARAMETER_PARAM + 0].getValue();
+				f0 = f;
 		}
 
 		int currPosinBank = currNote + currScale * NUM_SCALENOTES;
