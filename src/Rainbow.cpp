@@ -132,7 +132,8 @@ struct Rainbow : core::PrismModule {
 		SCALEROT_LIGHT,
 		VOCTGLIDE_LIGHT,
 		PREPOST_LIGHT,
-		POLYCVIN_LIGHT,
+		POLYCV1IN_LIGHT,
+		POLYCV6IN_LIGHT,
 		NUM_LIGHTS
 	};
 
@@ -600,16 +601,14 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.io->SCALE_ADC			= (uint16_t)clamp(inputs[SCALE_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
 
 	main.io->ROTCV_ADC			= (uint16_t)clamp(inputs[ROTATECV_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
-	main.io->FREQCV1_ADC		= clamp(inputs[FREQCV1_INPUT].getVoltage() * 0.5, -5.0f, 5.0f);
-	main.io->FREQCV6_ADC		= clamp(inputs[FREQCV6_INPUT].getVoltage() * 0.5, -5.0f, 5.0f);
-	if (inputs[FREQCV1_INPUT].getChannels() > 1) {
-		for (int i = 0; i < NUM_CHANNELS; i++) {
-			main.io->FREQCV_ALL[i] = clamp(inputs[FREQCV1_INPUT].getVoltage(i) * 0.5, -5.0f, 5.0f);
-		}
-		main.io->FREQCV_ALL_ON = true;
-	} else {
-		main.io->FREQCV_ALL_ON = false;
+
+	main.io->FREQCV1_CHAN		= inputs[FREQCV1_INPUT].getChannels();
+	main.io->FREQCV6_CHAN		= inputs[FREQCV6_INPUT].getChannels();
+	for (int i = 0; i < 6; i++) {
+		main.io->FREQCV1_CV[i] = clamp(inputs[FREQCV1_INPUT].getVoltage(i) * 0.5, -5.0f, 5.0f); 
+		main.io->FREQCV6_CV[i] = clamp(inputs[FREQCV6_INPUT].getVoltage(i) * 0.5, -5.0f, 5.0f); 
 	}
+
 	main.io->SLEW_ADC			= (uint16_t)params[SLEW_PARAM].getValue();
 
 	main.io->ENV_SWITCH			= (EnvelopeMode)params[ENV_PARAM].getValue();
@@ -673,8 +672,10 @@ void Rainbow::process(const ProcessArgs &args) {
 	inputs[POLY_IN_INPUT].getChannels() ? lights[NOISE_LIGHT].setBrightness(0.0f) : lights[NOISE_LIGHT].setBrightness(1.0f); 
 	main.io->GLIDE_SWITCH ? lights[VOCTGLIDE_LIGHT].setBrightness(1.0f) : lights[VOCTGLIDE_LIGHT].setBrightness(0.0f); 
 	main.io->PREPOST_SWITCH ? lights[PREPOST_LIGHT].setBrightness(0.0f) : lights[PREPOST_LIGHT].setBrightness(1.0f); // Light on if PRE (inverted)
-	main.io->SCALEROT_SWITCH ? lights[SCALEROT_LIGHT].setBrightness(1.0f) : lights[SCALEROT_LIGHT].setBrightness(0.0f); 
-	main.io->FREQCV_ALL_ON ? lights[POLYCVIN_LIGHT].setBrightness(1.0f) : lights[POLYCVIN_LIGHT].setBrightness(0.0f); 
+	main.io->SCALEROT_SWITCH ? lights[SCALEROT_LIGHT].setBrightness(1.0f) : lights[SCALEROT_LIGHT].setBrightness(0.0f);
+
+	main.io->FREQCV1_CHAN > 1 ? lights[POLYCV1IN_LIGHT].setBrightness(1.0f) : lights[POLYCV1IN_LIGHT].setBrightness(0.0f); 
+	main.io->FREQCV6_CHAN > 1 ? lights[POLYCV6IN_LIGHT].setBrightness(1.0f) : lights[POLYCV6IN_LIGHT].setBrightness(0.0f); 
 
 	for (int i = 0; i < NUM_FILTS; i++) {
 		if (main.io->FREQ_BLOCK[i]) {
@@ -946,7 +947,8 @@ struct RainbowWidget : ModuleWidget {
 		addChild(createLightCentered<MediumLight<RedLight>>(Vec(79.000 + 7.000, 380.0f - 187.000 - 7.000), module, Rainbow::PREPOST_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(Vec(79.000 + 7.000, 380.0f - 322.000 - 7.000), module, Rainbow::VOCTGLIDE_LIGHT));
 
-		addChild(createLightCentered<TinyLight<RedLight>>(Vec((256.5 + 2.0) + 6 * 40.0, 380.0 - 77.500 - 4.5), module, Rainbow::POLYCVIN_LIGHT));
+		addChild(createLightCentered<TinyLight<RedLight>>(Vec((256.5 + 5.0) + 6 * 40.0, 380.0 - 77.500 - 4.5), module, Rainbow::POLYCV1IN_LIGHT));
+		addChild(createLightCentered<TinyLight<RedLight>>(Vec((256.5 + 5.0) + 6 * 40.0, 380.0 - 77.500 - 4.5 + 30.0), module, Rainbow::POLYCV6IN_LIGHT));
 
 		if(module) {
 

@@ -294,11 +294,12 @@ struct IO {
 	uint16_t				SCALE_ADC;
 	uint16_t				SPREAD_ADC;
 	uint16_t				ROTCV_ADC;
-	float					FREQCV1_ADC;
-	float					FREQCV6_ADC;
 
-	float					FREQCV_ALL[6];
-	bool					FREQCV_ALL_ON;
+	float					FREQCV1_CV[6];
+	int						FREQCV1_CHAN;
+
+	float					FREQCV6_CV[6];
+	int						FREQCV6_CHAN;
 
 	FilterSetting			FILTER_SWITCH;
 	Mod135Setting			MOD135_SWITCH;

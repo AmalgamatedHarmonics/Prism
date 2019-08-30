@@ -6,7 +6,6 @@ Specific
 1.1
 - revise level code and global control gain max to 2.0
 - Manual
-- Poly V/OCT in changes 1/dual 3/6
 > 1.1
 - check output level calc
 - refactor filter code

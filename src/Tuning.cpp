@@ -60,15 +60,14 @@ void Tuning::update(void) {
 			t_fo = (float)(io->FREQNUDGE1_ADC);
 			t_fe = (float)(io->FREQNUDGE6_ADC);
 
-			if (io->FREQCV_ALL_ON) { // No LPF for 6-channel
-				for (int i = 0; i < NUM_CHANNELS; i++) {
-					f_shift_all[i] = pow(2.0f, io->FREQCV_ALL[i]);
-				}
+			if (io->FREQCV1_CHAN > 1) {
+				f_shift_all[0] = pow(2.0f, io->FREQCV1_CV[0]);
+				f_shift_all[2] = pow(2.0f, io->FREQCV1_CV[1]);
+				f_shift_all[4] = pow(2.0f, io->FREQCV1_CV[2]);
 			} else {
-
 				// Freq shift odds
 				// is odds cv input Low-passed
-				freq_jack_conditioning[0].raw_val = io->FREQCV1_ADC;
+				freq_jack_conditioning[0].raw_val = io->FREQCV1_CV[0];
 				freq_jack_conditioning[0].apply_fir_lpf();
 				freq_jack_conditioning[0].apply_bracket();
 
@@ -76,10 +75,16 @@ void Tuning::update(void) {
 				f_shift_all[0] = pow(2.0, freq_jack_conditioning[0].bracketed_val);
 				f_shift_all[2] = f_shift_all[0];
 				f_shift_all[4] = f_shift_all[0];
-
+			} 
+			
+			if (io->FREQCV6_CHAN > 1) {
+				f_shift_all[1] = pow(2.0f, io->FREQCV6_CV[0]);
+				f_shift_all[3] = pow(2.0f, io->FREQCV6_CV[1]);
+				f_shift_all[5] = pow(2.0f, io->FREQCV6_CV[2]);
+			} else { // No LPF for 6-channel
 				// Freq shift evens
 				// is odds cv input Low-passed
-				freq_jack_conditioning[1].raw_val = io->FREQCV6_ADC;
+				freq_jack_conditioning[1].raw_val = io->FREQCV6_CV[0];
 				freq_jack_conditioning[1].apply_fir_lpf();
 				freq_jack_conditioning[1].apply_bracket();
 
@@ -87,8 +92,7 @@ void Tuning::update(void) {
 				f_shift_all[1] = pow(2.0, freq_jack_conditioning[1].bracketed_val);
 				f_shift_all[3] = f_shift_all[1];
 				f_shift_all[5] = f_shift_all[1];
-
-			}
+			} 
 
 			freq_shift[0] = f_shift_all[0]; 
 			if (mod_mode_135 == 135) {
@@ -181,7 +185,7 @@ void Tuning::update(void) {
 
 		} else { // BPRE Filter
 
-			t_fo = (float)(io->FREQNUDGE1_ADC + io->FREQCV1_ADC) / 4096.0f;
+			t_fo = (float)(io->FREQNUDGE1_ADC + io->FREQCV1_CV[0]) / 4096.0f;
 			if (t_fo > 1.0f) {
 				t_fo = 1.0f;
 			}
@@ -189,7 +193,7 @@ void Tuning::update(void) {
 				t_fo = -1.0f;
 			}
 
-			t_fe = (float)(io->FREQNUDGE6_ADC + io->FREQCV6_ADC) / 4096.0f;
+			t_fe = (float)(io->FREQNUDGE6_ADC + io->FREQCV6_CV[0]) / 4096.0f;
 			if (t_fe > 1.0f) {
 				t_fe = 1.0f;
 			}
