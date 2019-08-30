@@ -1183,7 +1183,7 @@ struct ExpanderBankWidget : Widget {
 
 };
 
-static void loadFile(RainbowScaleExpander *module) {
+static void applyFile(RainbowScaleExpander *module) {
 
 	std::string dir;
 	std::string filename;
@@ -1206,6 +1206,17 @@ static void loadFile(RainbowScaleExpander *module) {
 		}
 		free(path);
 	}
+}
+
+static void reapplyFile(RainbowScaleExpander *module) {
+
+	if (module->scala.isValid) {
+		module->applyScale();
+	} else {
+		std::string message = "No Scala file loaded";
+		osdialog_message(OSDIALOG_WARNING, OSDIALOG_OK, message.c_str());
+	}
+
 }
 
 struct RainbowScaleExpanderWidget : ModuleWidget {
@@ -1279,17 +1290,29 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 		RainbowScaleExpander *spectrum = dynamic_cast<RainbowScaleExpander*>(module);
 		assert(spectrum);
 
-		struct PathItem : MenuItem {
+		struct ApplyItem : MenuItem {
 			RainbowScaleExpander *module;
 			void onAction(const event::Action &e) override {
-				loadFile(module);
+				applyFile(module);
 			}
 		};
 
-		PathItem *pathItem = new PathItem;
-		pathItem->text = "Apply Scala file";
-		pathItem->module = spectrum;
-		menu->addChild(pathItem);
+		struct ReapplyItem : MenuItem {
+			RainbowScaleExpander *module;
+			void onAction(const event::Action &e) override {
+				reapplyFile(module);
+			}
+		};
+
+		ApplyItem *applyItem = new ApplyItem;
+		applyItem->text = "Load and apply Scala file";
+		applyItem->module = spectrum;
+		menu->addChild(applyItem);
+
+		ReapplyItem *reapplyItem = new ReapplyItem;
+		reapplyItem->text = "Re-apply Scala file";
+		reapplyItem->module = spectrum;
+		menu->addChild(reapplyItem);
 
 	 }
 
