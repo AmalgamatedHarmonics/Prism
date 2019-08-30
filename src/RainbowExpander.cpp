@@ -611,16 +611,18 @@ struct RainbowScaleExpander : core::PrismModule {
 
 		float freq 	= params[PARAMETER_PARAM + 0].getValue();
 		float cents	= params[PARAMETER_PARAM + 6].getValue();
+
 		currFreqs[currNote + currScale * NUM_SCALENOTES] = freq * pow(2.0f, cents / 1200.0f);
 		currState[currNote + currScale * NUM_SCALENOTES] = EDITED;
 
 		char fText[20];
-		char cText[20];
 		snprintf(fText, sizeof(fText), "%.2f", freq);
-		snprintf(cText, sizeof(cText), "%.2f", cents);
 
 		notedesc[currNote + currScale * NUM_SCALENOTES] = "f=" + std::string(fText);
-		if (cents != 0.0) {
+
+		if (cents != 0.0f) {
+			char cText[20];
+			snprintf(cText, sizeof(cText), "%.2f", cents);
 			notedesc[currNote + currScale * NUM_SCALENOTES] += "/c=" + std::string(cText);
 		}
 
@@ -645,29 +647,29 @@ struct RainbowScaleExpander : core::PrismModule {
 		snprintf(oText, sizeof(oText), "%d", oct);
 		snprintf(sText, sizeof(sText), "%d", semi);
 
-		notedesc[currNote + currScale * NUM_SCALENOTES] = "";
-
-		if (rootA != 13.75f) {
-			char aText[20];
-			snprintf(aText, sizeof(aText), "%.1f", params[PARAMETER_PARAM + 0].getValue());
-			notedesc[currNote + currScale * NUM_SCALENOTES] += "A=" + std::string(aText) + "/";
-		}
-		if (edo != 12) {
-			char eText[20];
-			snprintf(eText, sizeof(eText), "%d", edo);
-			notedesc[currNote + currScale * NUM_SCALENOTES] += "e=" + std::string(eText) + "/";
-		}
-
-		notedesc[currNote + currScale * NUM_SCALENOTES] += "o=" + std::string(oText);
+		notedesc[currNote + currScale * NUM_SCALENOTES] = "o=" + std::string(oText) + 
 		notedesc[currNote + currScale * NUM_SCALENOTES] += "/i=" + std::string(sText); 
 
-		if (cents != 0.0) {
+		if (cents != 0.0f) {
 			char cText[20];
 			snprintf(cText, sizeof(cText), "%.2f", cents);
 			notedesc[currNote + currScale * NUM_SCALENOTES] += "/c=" + std::string(cText);
 		}
 
+		scalename[currScale] = "";
+		if (rootA != 13.75f) {
+			char aText[20];
+			snprintf(aText, sizeof(aText), "%.1f", params[PARAMETER_PARAM + 0].getValue());
+			scalename[currScale] += "A=" + std::string(aText) + "/";
+		}
+		if (edo != 12) {
+			char eText[20];
+			snprintf(eText, sizeof(eText), "%d", edo);
+			scalename[currScale] += "e=" + std::string(eText);
+		}
+
 		this->moveNote();
+
 	}
 
 	void setFromJI() {
@@ -682,23 +684,23 @@ struct RainbowScaleExpander : core::PrismModule {
 		currFreqs[currNote + currScale * NUM_SCALENOTES] = freq;
 		currState[currNote + currScale * NUM_SCALENOTES] = EDITED;
 
-		char aText[20];
 		char oText[20];
 		char iText[20];
-		snprintf(aText, sizeof(aText), "%.2f", f0);
 		snprintf(oText, sizeof(oText), "%d", oct);
 		snprintf(iText, sizeof(iText), "%.1f/%.1f", upper, lower);
 
-		notedesc[currNote + currScale * NUM_SCALENOTES] = "";
+		notedesc[currNote + currScale * NUM_SCALENOTES] = "o=" + std::string(oText);
+		notedesc[currNote + currScale * NUM_SCALENOTES] += "/i=" + std::string(iText);
 
-		notedesc[currNote + currScale * NUM_SCALENOTES] += "f0=" + std::string(aText);
-		notedesc[currNote + currScale * NUM_SCALENOTES] += "/o=" + std::string(oText);
-		notedesc[currNote + currScale * NUM_SCALENOTES] += "/i=" + std::string(iText); 
 		if (cents != 0.0) {
 			char cText[20];
 			notedesc[currNote + currScale * NUM_SCALENOTES] += "/c=" + std::string(cText);
 			snprintf(cText, sizeof(cText), "%.2f", cents);
 		}
+
+		char aText[20];
+		snprintf(aText, sizeof(aText), "%.2f", f0);
+		scalename[currScale] += "f0=" + std::string(aText);
 
 		this->moveNote();
 	}
@@ -715,8 +717,8 @@ struct RainbowScaleExpander : core::PrismModule {
 		int minSlot = currScale * NUM_SCALENOTES;
 		int maxSlot = std::min((currScale + 1) * NUM_SCALENOTES - 1, NUM_BANKNOTES);
 
-		char fText[100];
-		char cText[100];
+		char fText[20];
+		char cText[20];
 
 		for (int i = 0; i < maxSteps; i++) {
 
@@ -729,10 +731,12 @@ struct RainbowScaleExpander : core::PrismModule {
 
 			currFreqs[currPosinBank] = freq;
 			currState[currPosinBank] = EDITED;
-			snprintf(fText, sizeof(fText), "%.2f", frequency);
+
+			snprintf(fText, sizeof(fText), "%.2f", freq);
 			snprintf(cText, sizeof(cText), "%.2f", dCents);
 
 			notedesc[currPosinBank] = "f=" + std::string(fText);
+
 			if (dCents != 0.0) {
 				notedesc[currPosinBank] += "/c=" + std::string(cText);
 			}
@@ -743,12 +747,16 @@ struct RainbowScaleExpander : core::PrismModule {
 				break;
 			} 
 		}
+
+		char aText[20];
+		snprintf(aText, sizeof(aText), "f0=%.2f", frequency);
+		scalename[currScale] = aText;
+
 	}
 
 	void executeFromET() {
 		int currPosinBank = currNote + currScale * NUM_SCALENOTES;
 
-		float a				= params[PARAMETER_PARAM + 0].getValue();
 		float rootA			= params[PARAMETER_PARAM + 0].getValue() / 32.0f;
 		int oct 			= params[PARAMETER_PARAM + 1].getValue();
 		int semi			= params[PARAMETER_PARAM + 3].getValue();
@@ -761,10 +769,8 @@ struct RainbowScaleExpander : core::PrismModule {
 		int minSlot = currScale * NUM_SCALENOTES;
 		int maxSlot = std::min((currScale + 1) * NUM_SCALENOTES - 1, NUM_BANKNOTES);
 
-		char aText[20];
 		char oText[20];
 		char iText[20];
-		char eText[20];
 		char cText[20];
 
 		int interval = 0;
@@ -783,18 +789,9 @@ struct RainbowScaleExpander : core::PrismModule {
 			snprintf(oText, sizeof(oText), "%d", oct);
 			snprintf(iText, sizeof(iText), "%d", interval);
 
-			notedesc[currPosinBank] = "";
-
-			if (rootA != 13.75f) {
-				snprintf(aText, sizeof(aText), "%.1f", a);
-				notedesc[currPosinBank] += "A=" + std::string(aText) + "/";
-			}
-			if (edo != 12) {
-				snprintf(eText, sizeof(eText), "%d", edo);
-				notedesc[currPosinBank] += "e=" + std::string(eText) + "/";
-			}
-			notedesc[currPosinBank] += "o=" + std::string(oText);
+			notedesc[currPosinBank] = "o=" + std::string(oText);
 			notedesc[currPosinBank] += "/i=" + std::string(iText); 
+
 			if (cents != 0.0) {
 				snprintf(cText, sizeof(cText), "%.2f", cents);
 				notedesc[currPosinBank] += "/c=" + std::string(cText);
@@ -807,6 +804,15 @@ struct RainbowScaleExpander : core::PrismModule {
 				break;
 			} 
 		}
+
+		char aText[20];
+		snprintf(aText, sizeof(aText), "%.1f", params[PARAMETER_PARAM + 0].getValue());
+		scalename[currScale] = "A=" + std::string(aText) + "/";
+
+		char eText[20];
+		snprintf(eText, sizeof(eText), "%d", edo);
+		scalename[currScale] += "e=" + std::string(eText);
+
 	}
 
 	void executeFromJI() {
@@ -824,6 +830,10 @@ struct RainbowScaleExpander : core::PrismModule {
 		int minSlot = currScale * NUM_SCALENOTES;
 		int maxSlot = std::min((currScale + 1) * NUM_SCALENOTES - 1, NUM_BANKNOTES);
 
+		char oText[20];
+		char iText[20];
+		char cText[20];
+
 		for (int i = 0; i < maxSteps; i++) {
 
 			float freq = f0 * pow(2, oct) * (upper / lower) * pow(2.0f, cents / 1200.0f);
@@ -835,19 +845,12 @@ struct RainbowScaleExpander : core::PrismModule {
 			currFreqs[currPosinBank] = freq;
 			currState[currPosinBank] = EDITED;
 
-			char aText[20];
-			char oText[20];
-			char iText[20];
-			char cText[20];
-			snprintf(aText, sizeof(aText), "%.2f", f0);
 			snprintf(oText, sizeof(oText), "%d", oct);
 			snprintf(iText, sizeof(iText), "%.1f/%.1f", upper, lower);
 
-			notedesc[currPosinBank] = "";
+			notedesc[currPosinBank] = "/o=" + std::string(oText);
+			notedesc[currPosinBank] += "/r=" + std::string(iText); 
 
-			notedesc[currPosinBank] += "f0=" + std::string(aText);
-			notedesc[currPosinBank] += "/o=" + std::string(oText);
-			notedesc[currPosinBank] += "/i=" + std::string(iText); 
 			if (cents != 0.0) {
 				snprintf(cText, sizeof(cText), "%.2f", cents);
 				notedesc[currPosinBank] += "/c=" + std::string(cText);
@@ -860,6 +863,11 @@ struct RainbowScaleExpander : core::PrismModule {
 				break;
 			} 
 		}
+
+		char aText[20];
+		snprintf(aText, sizeof(aText), "%.2f", f0);
+		scalename[currScale] = "f0=" + std::string(aText);
+
 	}
 
 	void applyScale() {
@@ -1248,7 +1256,7 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 		addParam(createParamCentered<gui::PrismLargeKnobSnap>(mm2px(Vec(9.89, 49.118)), module, RainbowScaleExpander::SCALE_PARAM));
 		addParam(createParamCentered<gui::PrismSSwitch>(mm2px(Vec(107.39, 94.118)), module, RainbowScaleExpander::CALC_PARAM));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(137.39, 94.118)), module, RainbowScaleExpander::EXECUTE_PARAM));
-		addParam(createParamCentered<gui::PrismLargeKnobSnap>(mm2px(Vec(9.89, 109.118)), module, RainbowScaleExpander::PAGE_PARAM));
+		addParam(createParamCentered<gui::PrismSSwitch3>(mm2px(Vec(9.89, 109.118)), module, RainbowScaleExpander::PAGE_PARAM));
 		addParam(createParamCentered<gui::PrismLargeKnobSnap>(mm2px(Vec(98.328, 109.118)), module, RainbowScaleExpander::BANK_PARAM));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(107.59, 109.118)), module, RainbowScaleExpander::BANKLOAD_PARAM));
 
