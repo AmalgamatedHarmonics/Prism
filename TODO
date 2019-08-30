@@ -13,13 +13,11 @@ Specific
 
 Expander
 1.1
-- Remove base offset from ET/JI
-- Limit execute to 30kHz
 - Set/Page/Bank switch to control calc button
 - Revise/simplify automatically generated note names
 - scala file name into bank name
 > 1.1
-- Set name, description and scale description - osdiaglog?
+- Set name, description and scale description - osdialog?
 - refactor execute/set code
 - Revise UI
 
