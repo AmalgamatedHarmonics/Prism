@@ -604,7 +604,7 @@ void Rainbow::process(const ProcessArgs &args) {
 
 	main.io->FREQCV1_CHAN		= inputs[FREQCV1_INPUT].getChannels();
 	main.io->FREQCV6_CHAN		= inputs[FREQCV6_INPUT].getChannels();
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 3; i++) {
 		main.io->FREQCV1_CV[i] = clamp(inputs[FREQCV1_INPUT].getVoltage(i) * 0.5, -5.0f, 5.0f); 
 		main.io->FREQCV6_CV[i] = clamp(inputs[FREQCV6_INPUT].getVoltage(i) * 0.5, -5.0f, 5.0f); 
 	}

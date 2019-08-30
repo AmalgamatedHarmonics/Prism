@@ -295,10 +295,10 @@ struct IO {
 	uint16_t				SPREAD_ADC;
 	uint16_t				ROTCV_ADC;
 
-	float					FREQCV1_CV[6];
+	float					FREQCV1_CV[3];
 	int						FREQCV1_CHAN;
 
-	float					FREQCV6_CV[6];
+	float					FREQCV6_CV[3];
 	int						FREQCV6_CHAN;
 
 	FilterSetting			FILTER_SWITCH;
