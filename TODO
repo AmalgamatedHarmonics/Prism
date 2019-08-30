@@ -12,8 +12,6 @@ Specific
 - refactor filter code
 
 Expander
-1.1
-- scala file name into bank name
 > 1.1
 - Set name, description and scale description - osdialog?
 - refactor execute/set code

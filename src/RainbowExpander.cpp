@@ -933,6 +933,8 @@ struct RainbowScaleExpander : core::PrismModule {
 				scalaPos = 0;
 			} 
 
+			int scale = currPosinBank / 21;
+		 	scalename[scale] = string::filename(path) + " page " + std::to_string(scale + 1);
 		}
 
 		description = scala.description;
@@ -1204,6 +1206,7 @@ static void loadFile(RainbowScaleExpander *module) {
 
 	char *path = osdialog_file(OSDIALOG_OPEN, dir.c_str(), filename.c_str(), NULL);
 	if (path) {
+		module->path = path;
 		if (!module->scala.load(path)) {
 			std::string message = module->scala.lastError;
 			osdialog_message(OSDIALOG_WARNING, OSDIALOG_OK, message.c_str());
