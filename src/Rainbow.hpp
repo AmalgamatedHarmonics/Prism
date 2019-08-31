@@ -162,7 +162,6 @@ struct Audio {
 
 
    	float generateNoise();
-	void nChannelProcess(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output);
 	void ChannelProcess1(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output);
 	void ChannelProcess2(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output);
 	void ChannelProcess6(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output);
