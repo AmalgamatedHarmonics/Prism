@@ -35,16 +35,31 @@ void Levels::configure(IO *_io) {
 	io =	_io;
 }
 
+
+	// // apply LPF to scale CV ADC readout	
+	// lpf_buf *= SCALECV_LPF;
+	// lpf_buf += (1 - SCALECV_LPF) * io->SCALE_ADC;
+
+	float global_cv_lpf;
+	float level_cv_lpf[6];
+
+
 void Levels::update(void) {
 
 	if (level_update_ctr++ > LEVEL_UPDATE_RATE) { 
 		level_update_ctr = 0;
 
-		float globalL = io->GLOBAL_LEVEL_ADC + io->GLOBAL_LEVEL_CV;
+		global_cv_lpf *= channel_level_lpf;
+		global_cv_lpf += (1 - channel_level_lpf) * io->GLOBAL_LEVEL_CV;
+
+		float globalL = io->GLOBAL_LEVEL_ADC + global_cv_lpf;
 
 		for (int j = 0; j < NUM_CHANNELS; j++) {
 
-			float level_lpf = globalL * io->LEVEL_CV[j] * io->LEVEL_ADC[j];
+			level_cv_lpf[j] *= channel_level_lpf;
+			level_cv_lpf[j] += (1 - channel_level_lpf) * io->LEVEL_CV[j];
+
+			float level_lpf = globalL * level_cv_lpf[j] * io->LEVEL_ADC[j];
 			if (level_lpf <= SLIDER_LPF_MIN) {
 				level_lpf = 0.0f;
 			}
@@ -53,9 +68,7 @@ void Levels::update(void) {
 			}
 
 			prev_level[j] = level_goal[j];
-
-			level_goal[j] *= channel_level_lpf;
-			level_goal[j] += (1.0f - channel_level_lpf) * level_lpf;
+			level_goal[j] = level_lpf;
 
 			level_inc[j] = (level_goal[j] - prev_level[j]) / LEVEL_RATE;
 			channel_level[j] = prev_level[j];

@@ -596,6 +596,9 @@ struct Levels {
 	float CHANNEL_LEVEL_MIN_LPF			= 0.75f;
 	float channel_level_lpf				= CHANNEL_LEVEL_MIN_LPF;
 
+	float global_cv_lpf;
+	float level_cv_lpf[6];
+
 	// Private
 	uint32_t level_update_ctr			= UINT32_MAX; // Initialise to always fire on first pass
 	uint32_t LEVEL_UPDATE_RATE			= 50; 
