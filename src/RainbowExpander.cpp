@@ -244,6 +244,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		CALC_PARAM,
 		EXECUTE_PARAM,
 		ENUMS(PARAMETER_PARAM, 10),
+		STACKMODE_PARAM,
 		NUM_PARAMS
 	};
 	enum InputIds {
@@ -255,6 +256,8 @@ struct RainbowScaleExpander : core::PrismModule {
 	enum LightIds {
 		NUM_LIGHTS
 	};
+
+	int stackMode = 0;
 
 	const static int NUM_PAGES = 3;
 
@@ -431,10 +434,10 @@ struct RainbowScaleExpander : core::PrismModule {
 		parameterValues[0][1] = 0.0f;		// -	
 		parameterValues[0][2] = 0.0f;		// -
 		parameterValues[0][3] = 0.0f;		// -
-		parameterValues[0][4] = 0.0f;		// -
+		parameterValues[0][4] = 1.0f;		// Slot step
 		parameterValues[0][5] = 0.0f;		// -
 		parameterValues[0][6] = 0.0f;		// Cents
-		parameterValues[0][7] = 1.0f;		// Slot step
+		parameterValues[0][7] = 0.0f;		// -
 		parameterValues[0][8] = 0.0f;		// -
 		parameterValues[0][9] = 21.0f;		// Max steps
 
@@ -442,10 +445,10 @@ struct RainbowScaleExpander : core::PrismModule {
 		parameterActive[0][1] = false;		// -
 		parameterActive[0][2] = false;		// -
 		parameterActive[0][3] = false;  	// -
-		parameterActive[0][4] = false;  	// -
-		parameterActive[0][5] = false;  	// -
+		parameterActive[0][4] = true;  		// Slot step
+		parameterActive[0][5] = false; 		// -
 		parameterActive[0][6] = true;		// Cents
-		parameterActive[0][7] = true;		// Slot step
+		parameterActive[0][7] = false;		// -
 		parameterActive[0][8] = false;		// -
 		parameterActive[0][9] = true;		// Max steps
 
@@ -453,10 +456,10 @@ struct RainbowScaleExpander : core::PrismModule {
 		parameterLabels[0][1] = "";
 		parameterLabels[0][2] =	"";
 		parameterLabels[0][3] =	"";
-		parameterLabels[0][4] =	"";
+		parameterLabels[0][4] =	"Slot step";
 		parameterLabels[0][5] =	"";
 		parameterLabels[0][6] = "Cents";
-		parameterLabels[0][7] =	"Slot step";
+		parameterLabels[0][7] =	"";
 		parameterLabels[0][8] =	"";
 		parameterLabels[0][9] =	"Max steps";
 
@@ -464,101 +467,101 @@ struct RainbowScaleExpander : core::PrismModule {
 		parameterDescriptions[0][1] = 	"";
 		parameterDescriptions[0][2] =	"";
 		parameterDescriptions[0][3] =	"";
-		parameterDescriptions[0][4] =	"";
+		parameterDescriptions[0][4] =	"Number of slots to jump after each calculation step";
 		parameterDescriptions[0][5] =	"";
 		parameterDescriptions[0][6] = 	"Cents to be added to frequency";
-		parameterDescriptions[0][7] =	"Number of slots to jump after each calculation step";
+		parameterDescriptions[0][7] =	"";
 		parameterDescriptions[0][8] =	"";
 		parameterDescriptions[0][9] =	"Maximum number of steps to apply";
 
 		// ET page
 		parameterValues[1][0] = 440.0f;		// Root A	
 		parameterValues[1][1] = 4.0f;		// Octave
-		parameterValues[1][2] = 0.0f;		// -	
-		parameterValues[1][3] = 12.0f;		// Interval
-		parameterValues[1][4] = 0.0f;		// -
+		parameterValues[1][2] = 1.0f;		// Interval	
+		parameterValues[1][3] = 0.0f;		// -
+		parameterValues[1][4] = 1.0f;		// Slot step
 		parameterValues[1][5] = 12.0f;		// EDO
 		parameterValues[1][6] = 0.0f;		// Cents
-		parameterValues[1][7] = 1.0f;		// Slot step
+		parameterValues[1][7] = 0.0f;		// Offset Interval
 		parameterValues[1][8] = 0.0f;		// -
 		parameterValues[1][9] = 21.0f;		// Max steps
 
 		parameterActive[1][0] = true;		// Root A
 		parameterActive[1][1] = true;		// Octave
-		parameterActive[1][2] = false;		// Root Interval
-		parameterActive[1][3] = true;		// Interval
-		parameterActive[1][4] = false;		// -
+		parameterActive[1][2] = true;		// Interval
+		parameterActive[1][3] = false;		// -
+		parameterActive[1][4] = true;		// Slot step
 		parameterActive[1][5] = true;		// EDO
 		parameterActive[1][6] = true;		// Cents
-		parameterActive[1][7] = true;		// Slot step
+		parameterActive[1][7] = true;		// Offset Interval
 		parameterActive[1][8] = false;		// -
 		parameterActive[1][9] = true;		// Max steps
 
 		parameterLabels[1][0] =	"A = ";
 		parameterLabels[1][1] =	"Octave";
-		parameterLabels[1][2] =	"";
-		parameterLabels[1][3] =	"Interval";
-		parameterLabels[1][4] =	"";
+		parameterLabels[1][2] =	"Interval";
+		parameterLabels[1][3] =	"";
+		parameterLabels[1][4] =	"Slot step";
 		parameterLabels[1][5] =	"EDO";
 		parameterLabels[1][6] =	"Cents";
-		parameterLabels[1][7] =	"Slot step";
+		parameterLabels[1][7] =	"Offset";
 		parameterLabels[1][8] =	"";
 		parameterLabels[1][9] =	"Max steps";
 
 		parameterDescriptions[1][0] =	"Frequency of pitch standard A4";
 		parameterDescriptions[1][1] =	"Octave";
-		parameterDescriptions[1][2] =	"";
-		parameterDescriptions[1][3] =	"Additional interval (semitones) to be added to the octave";
-		parameterDescriptions[1][4] =	"";
+		parameterDescriptions[1][2] =	"Interval to add";
+		parameterDescriptions[1][3] =	"";
+		parameterDescriptions[1][4] =	"Number of slots to jump after each calculation step";
 		parameterDescriptions[1][5] =	"Equal Division of Octave, how many intervals are in 1 octave";
 		parameterDescriptions[1][6] =	"Cents to be added to the final interval";
-		parameterDescriptions[1][7] =	"Number of slots to jump after each calculation step";
+		parameterDescriptions[1][7] =	"Initial offset interval from octave";
 		parameterDescriptions[1][8] =	"";
 		parameterDescriptions[1][9] =	"Maximum number of steps to apply";
 
 		// JI page
 		parameterValues[2][0] = 16.35f;		// f0
 		parameterValues[2][1] = 4.0f;		// Octave
-		parameterValues[2][2] = 0.0f;		// -
-		parameterValues[2][3] = 3.0f;		// Upper
-		parameterValues[2][4] = 2.0f;		// Lower
+		parameterValues[2][2] = 3.0f;		// Upper
+		parameterValues[2][3] = 2.0f;		// Lower
+		parameterValues[2][4] = 1.0f;		// Slot step
 		parameterValues[2][5] = 0.0f;		// -
 		parameterValues[2][6] = 0.0f;		// Cents
-		parameterValues[2][7] = 1.0f;		// Slot step
-		parameterValues[2][8] = 0.0f;		// -
+		parameterValues[2][7] = 1.0f;		// Upper offset
+		parameterValues[2][8] = 1.0f;		// Lower offset
 		parameterValues[2][9] = 21.0f;		// Max steps
 
 		parameterActive[2][0] = true;		// f0
 		parameterActive[2][1] = true;		// Octave
-		parameterActive[2][2] = false;		// -
-		parameterActive[2][3] = true;		// Upper
-		parameterActive[2][4] = true;		// Lower
+		parameterActive[2][2] = true;		// Upper
+		parameterActive[2][3] = true;		// Lower
+		parameterActive[2][4] = true;		// Slot step
 		parameterActive[2][5] = false;		// -
 		parameterActive[2][6] = true;		// Cents
-		parameterActive[2][7] = true;		// Slot step
-		parameterActive[2][8] = false;		// -
+		parameterActive[2][7] = true;		// Upper offset
+		parameterActive[2][8] = true;		// Lower offset
 		parameterActive[2][9] = true;		// Max steps
 
 		parameterLabels[2][0] =	"f0";
 		parameterLabels[2][1] =	"Octave";
-		parameterLabels[2][2] =	"";
-		parameterLabels[2][3] =	"Upper";
-		parameterLabels[2][4] =	"Lower";
+		parameterLabels[2][2] =	"Upper";
+		parameterLabels[2][3] =	"Lower";
+		parameterLabels[2][4] =	"Slot step";
 		parameterLabels[2][5] =	"";
 		parameterLabels[2][6] =	"Cents";
-		parameterLabels[2][7] =	"Slot step";
-		parameterLabels[2][8] =	"";
+		parameterLabels[2][7] =	"Upper offset";
+		parameterLabels[2][8] =	"Lower offset";
 		parameterLabels[2][9] =	"Max steps";
 
 		parameterDescriptions[2][0] =	"Fundamental frequency; JI octaves are calculated w.r.t. this frequency";
 		parameterDescriptions[2][1] =	"Octave";
-		parameterDescriptions[2][2] =	"";
-		parameterDescriptions[2][3] =	"Denominator of the interval ratio";
-		parameterDescriptions[2][4] =	"Numerator of the interval ratio, set this to 1 to allow a precise numerical ratio in Upper";
+		parameterDescriptions[2][2] =	"Denominator of the interval ratio";
+		parameterDescriptions[2][3] =	"Numerator of the interval ratio";
+		parameterDescriptions[2][4] =	"Number of slots to jump after each calculation step";
 		parameterDescriptions[2][5] =	"";
 		parameterDescriptions[2][6] =	"Cents to be added to the final interval";
-		parameterDescriptions[2][7] =	"Number of slots to jump after each calculation step";
-		parameterDescriptions[2][8] =	"";
+		parameterDescriptions[2][7] =	"Denominator of initial offet interval";
+		parameterDescriptions[2][8] =	"Numerator of initial offet interval";
 		parameterDescriptions[2][9] =	"Maximum number of steps to apply";
 
 		for (int i = 0; i < NUM_PARAMETERS; i++) {
@@ -582,6 +585,7 @@ struct RainbowScaleExpander : core::PrismModule {
 
 		configParam(PAGE_PARAM, 0, NUM_PAGES - 1, 1, "Select page: Frequency, ET, JI"); 
 		configParam(CALC_PARAM, 0, 1, 0, "Set Single note/in page"); 
+		configParam(STACKMODE_PARAM, 0, 1, 0, "Calculate interval per octave or stack intervals"); 
 		configParam(EXECUTE_PARAM, 0, 1, 0, "Set frequencies in scale"); 
 
 		for (int i = 0; i < NUM_PARAMETERS; i++) {
@@ -615,15 +619,14 @@ struct RainbowScaleExpander : core::PrismModule {
 		currFreqs[currNote + currScale * NUM_SCALENOTES] = freq * pow(2.0f, cents / 1200.0f);
 		currState[currNote + currScale * NUM_SCALENOTES] = EDITED;
 
-		char fText[20];
-		snprintf(fText, sizeof(fText), "%.2f", freq);
+		char text[20];
 
-		notedesc[currNote + currScale * NUM_SCALENOTES] = "f=" + std::string(fText);
+		snprintf(text, sizeof(text), "%.2f", freq);
+		notedesc[currNote + currScale * NUM_SCALENOTES] = "/f=" + std::string(text);
 
 		if (cents != 0.0f) {
-			char cText[20];
-			snprintf(cText, sizeof(cText), "%.2f", cents);
-			notedesc[currNote + currScale * NUM_SCALENOTES] += "/c=" + std::string(cText);
+			snprintf(text, sizeof(text), "%.2f", cents);
+			notedesc[currNote + currScale * NUM_SCALENOTES] += "/c=" + std::string(text);
 		}
 
 		this->moveNote();
@@ -631,41 +634,43 @@ struct RainbowScaleExpander : core::PrismModule {
 	}
 
 	void setFromET() {
-		float rootA	= params[PARAMETER_PARAM + 0].getValue() / 32.0f;
-		int oct 	= params[PARAMETER_PARAM + 1].getValue();
-		int semi	= params[PARAMETER_PARAM + 3].getValue();
-		int edo		= params[PARAMETER_PARAM + 5].getValue();
-		float cents	= params[PARAMETER_PARAM + 6].getValue();
+		float rootA		= params[PARAMETER_PARAM + 0].getValue() / 32.0f;
+		int oct 		= params[PARAMETER_PARAM + 1].getValue();
+		int interval	= params[PARAMETER_PARAM + 2].getValue();
+		int offset		= params[PARAMETER_PARAM + 7].getValue();
+		int edo			= params[PARAMETER_PARAM + 5].getValue();
+		float cents		= params[PARAMETER_PARAM + 6].getValue();
 
-		float freq = rootA * pow(2, oct) * pow(2.0, semi / (float)edo) * pow(2.0f, cents / 1200.0f);
+		float freq = rootA * pow(2, oct) * pow(2.0, (float)(interval + offset) / (float)edo) * pow(2.0f, cents / 1200.0f);
 
 		currFreqs[currNote + currScale * NUM_SCALENOTES] = freq;
 		currState[currNote + currScale * NUM_SCALENOTES] = EDITED;
 
-		char oText[20];
-		char sText[20];
-		snprintf(oText, sizeof(oText), "%d", oct);
-		snprintf(sText, sizeof(sText), "%d", semi);
-
-		notedesc[currNote + currScale * NUM_SCALENOTES] = "o=" + std::string(oText) + 
-		notedesc[currNote + currScale * NUM_SCALENOTES] += "/i=" + std::string(sText); 
-
-		if (cents != 0.0f) {
-			char cText[20];
-			snprintf(cText, sizeof(cText), "%.2f", cents);
-			notedesc[currNote + currScale * NUM_SCALENOTES] += "/c=" + std::string(cText);
-		}
+		char text[20];
 
 		scalename[currScale] = "";
 		if (rootA != 13.75f) {
-			char aText[20];
-			snprintf(aText, sizeof(aText), "%.1f", params[PARAMETER_PARAM + 0].getValue());
-			scalename[currScale] += "A=" + std::string(aText) + "/";
+			snprintf(text, sizeof(text), "%.1f", params[PARAMETER_PARAM + 0].getValue());
+			scalename[currScale] += "/A=" + std::string(text);
 		}
 		if (edo != 12) {
-			char eText[20];
-			snprintf(eText, sizeof(eText), "%d", edo);
-			scalename[currScale] += "e=" + std::string(eText);
+			snprintf(text, sizeof(text), "%d", edo);
+			scalename[currScale] += "/edo=" + std::string(text);
+		}
+
+		snprintf(text, sizeof(text), "%d", interval);
+		notedesc[currNote + currScale * NUM_SCALENOTES] = "/int=" + std::string(text); 
+
+		snprintf(text, sizeof(text), "%d", oct);
+		notedesc[currNote + currScale * NUM_SCALENOTES] += "/oct=" + std::string(text);
+
+		if (offset != 0) {
+			snprintf(text, sizeof(text), "%d", offset);
+			notedesc[currNote + currScale * NUM_SCALENOTES] += "/off=" + std::string(text);
+		}
+		if (cents != 0.0f) {
+			snprintf(text, sizeof(text), "%.2f", cents);
+			notedesc[currNote + currScale * NUM_SCALENOTES] += "/c=" + std::string(text);
 		}
 
 		this->moveNote();
@@ -673,34 +678,38 @@ struct RainbowScaleExpander : core::PrismModule {
 	}
 
 	void setFromJI() {
-		float f0	= params[PARAMETER_PARAM + 0].getValue();
-		int oct 	= params[PARAMETER_PARAM + 1].getValue();
-		float upper	= params[PARAMETER_PARAM + 3].getValue();
-		float lower	= params[PARAMETER_PARAM + 4].getValue();
-		float cents	= params[PARAMETER_PARAM + 6].getValue();
+		float f0		= params[PARAMETER_PARAM + 0].getValue();
+		int oct 		= params[PARAMETER_PARAM + 1].getValue();
+		float upper		= params[PARAMETER_PARAM + 2].getValue();
+		float lower		= params[PARAMETER_PARAM + 3].getValue();
+		float upperO	= params[PARAMETER_PARAM + 7].getValue();
+		float lowerO	= params[PARAMETER_PARAM + 8].getValue();
+		float cents		= params[PARAMETER_PARAM + 6].getValue();
 		
-		float freq = f0 * pow(2, oct) * (upper / lower) * pow(2.0f, cents / 1200.0f);
+		float freq = f0 * pow(2, oct) * (upperO / lowerO) * (upper / lower) * pow(2.0f, cents / 1200.0f);
 
 		currFreqs[currNote + currScale * NUM_SCALENOTES] = freq;
 		currState[currNote + currScale * NUM_SCALENOTES] = EDITED;
 
-		char oText[20];
-		char iText[20];
-		snprintf(oText, sizeof(oText), "%d", oct);
-		snprintf(iText, sizeof(iText), "%.1f/%.1f", upper, lower);
+		char text[20];
 
-		notedesc[currNote + currScale * NUM_SCALENOTES] = "o=" + std::string(oText);
-		notedesc[currNote + currScale * NUM_SCALENOTES] += "/i=" + std::string(iText);
+		snprintf(text, sizeof(text), "%.2f", f0);
+		scalename[currScale] = "/f0=" + std::string(text);
 
-		if (cents != 0.0) {
-			char cText[20];
-			notedesc[currNote + currScale * NUM_SCALENOTES] += "/c=" + std::string(cText);
-			snprintf(cText, sizeof(cText), "%.2f", cents);
+		snprintf(text, sizeof(text), "%.1f:%.1f", upper, lower);
+		notedesc[currNote + currScale * NUM_SCALENOTES] = "/int=" + std::string(text);
+
+		snprintf(text, sizeof(text), "%d", oct);
+		notedesc[currNote + currScale * NUM_SCALENOTES] += "/oct=" + std::string(text);
+
+		if (upperO != 1.0f && lowerO != 1.0f) {
+			snprintf(text, sizeof(text), "%.1f:%.1f", upperO, lowerO);
+			notedesc[currNote + currScale * NUM_SCALENOTES] += "/off=" + std::string(text);
 		}
-
-		char aText[20];
-		snprintf(aText, sizeof(aText), "%.2f", f0);
-		scalename[currScale] += "f0=" + std::string(aText);
+		if (cents != 0.0) {
+			snprintf(text, sizeof(text), "%.2f", cents);
+			notedesc[currNote + currScale * NUM_SCALENOTES] += "/c=" + std::string(text);
+		}
 
 		this->moveNote();
 	}
@@ -710,15 +719,14 @@ struct RainbowScaleExpander : core::PrismModule {
 
 		float frequency	 	= params[PARAMETER_PARAM + 0].getValue();
 		float cents			= params[PARAMETER_PARAM + 6].getValue();
-		int nStepsinBank 	= params[PARAMETER_PARAM + 7].getValue();
+		int nStepsinBank 	= params[PARAMETER_PARAM + 4].getValue();
 		int maxSteps 		= params[PARAMETER_PARAM + 9].getValue();
 
 		// Only update within current scale
 		int minSlot = currScale * NUM_SCALENOTES;
 		int maxSlot = std::min((currScale + 1) * NUM_SCALENOTES - 1, NUM_BANKNOTES);
 
-		char fText[20];
-		char cText[20];
+		char text[20];
 
 		for (int i = 0; i < maxSteps; i++) {
 
@@ -732,13 +740,15 @@ struct RainbowScaleExpander : core::PrismModule {
 			currFreqs[currPosinBank] = freq;
 			currState[currPosinBank] = EDITED;
 
-			snprintf(fText, sizeof(fText), "%.2f", freq);
-			snprintf(cText, sizeof(cText), "%.2f", dCents);
+			snprintf(text, sizeof(text), "/f0=%.2f", frequency);
+			scalename[currScale] = text;
 
-			notedesc[currPosinBank] = "f=" + std::string(fText);
+			snprintf(text, sizeof(text), "%.2f", freq);
+			notedesc[currPosinBank] = "/f=" + std::string(text);
 
 			if (dCents != 0.0) {
-				notedesc[currPosinBank] += "/c=" + std::string(cText);
+				snprintf(text, sizeof(text), "%.2f", dCents);
+				notedesc[currPosinBank] += "/c=" + std::string(text);
 			}
 
 			currPosinBank += nStepsinBank;
@@ -747,10 +757,6 @@ struct RainbowScaleExpander : core::PrismModule {
 				break;
 			} 
 		}
-
-		char aText[20];
-		snprintf(aText, sizeof(aText), "f0=%.2f", frequency);
-		scalename[currScale] = aText;
 
 	}
 
@@ -759,25 +765,43 @@ struct RainbowScaleExpander : core::PrismModule {
 
 		float rootA			= params[PARAMETER_PARAM + 0].getValue() / 32.0f;
 		int oct 			= params[PARAMETER_PARAM + 1].getValue();
-		int semi			= params[PARAMETER_PARAM + 3].getValue();
+		int interval		= params[PARAMETER_PARAM + 2].getValue();
+		int offset			= params[PARAMETER_PARAM + 7].getValue();
 		int edo				= params[PARAMETER_PARAM + 5].getValue();
 		float cents			= params[PARAMETER_PARAM + 6].getValue();
-		int nStepsinBank 	= params[PARAMETER_PARAM + 7].getValue();
+		int nStepsinBank 	= params[PARAMETER_PARAM + 4].getValue();
 		int maxSteps 		= params[PARAMETER_PARAM + 9].getValue();
 
 		// Only update within current scale
 		int minSlot = currScale * NUM_SCALENOTES;
 		int maxSlot = std::min((currScale + 1) * NUM_SCALENOTES - 1, NUM_BANKNOTES);
 
-		char oText[20];
-		char iText[20];
-		char cText[20];
+		char text[20];
 
-		int interval = 0;
+		scalename[currScale] = "";
+		if (rootA != 13.75f) {
+			snprintf(text, sizeof(text), "%.1f", params[PARAMETER_PARAM + 0].getValue());
+			scalename[currScale] += "/A=" + std::string(text);
+		}
+		if (edo != 12) {
+			snprintf(text, sizeof(text), "%d", edo);
+			scalename[currScale] += "/edo=" + std::string(text);
+		}
+		if (stackMode) {
+			snprintf(text, sizeof(text), "%d", oct);
+			scalename[currScale] += "/oct=" + std::string(text);
+		}
+		if (offset != 0) {
+			snprintf(text, sizeof(text), "%d", offset);
+			scalename[currScale] += "/off=" + std::string(text);
+		}
+	
+		int intv = interval;
+		float dCents = pow(2.0f, cents / 1200.0f);
 
 		for (int i = 0; i < maxSteps; i++) {
 
-			float freq = rootA * pow(2, oct) * pow(2.0, (float)interval / (float)edo) * pow(2.0f, cents / 1200.0f);
+			float freq = rootA * pow(2, oct) * pow(2.0, (float)(intv + offset) / (float)edo) * dCents;
 
 			if (freq > maxFreq) {
 				break;
@@ -786,33 +810,30 @@ struct RainbowScaleExpander : core::PrismModule {
 			currFreqs[currPosinBank] = freq;
 			currState[currPosinBank] = EDITED;
 
-			snprintf(oText, sizeof(oText), "%d", oct);
-			snprintf(iText, sizeof(iText), "%d", interval);
+			snprintf(text, sizeof(text), "%d", interval);
+			notedesc[currPosinBank] = "/int=" + std::string(text); 
 
-			notedesc[currPosinBank] = "o=" + std::string(oText);
-			notedesc[currPosinBank] += "/i=" + std::string(iText); 
+			if (stackMode) {
+				intv += interval;				
+			} else {
+				// Add octave to text
+				snprintf(text, sizeof(text), "%d", oct);
+				notedesc[currPosinBank] += "/oct=" + std::string(text);			
 
+				// Then increment octave
+				oct++;
+			}
 			if (cents != 0.0) {
-				snprintf(cText, sizeof(cText), "%.2f", cents);
-				notedesc[currPosinBank] += "/c=" + std::string(cText);
+				snprintf(text, sizeof(text), "%.2f", cents);
+				notedesc[currPosinBank] += "/c=" + std::string(text);
 			}
 
-			interval += semi;				
 			currPosinBank += nStepsinBank;
 
 			if (currPosinBank < minSlot || currPosinBank > maxSlot) {
 				break;
 			} 
 		}
-
-		char aText[20];
-		snprintf(aText, sizeof(aText), "%.1f", params[PARAMETER_PARAM + 0].getValue());
-		scalename[currScale] = "A=" + std::string(aText) + "/";
-
-		char eText[20];
-		snprintf(eText, sizeof(eText), "%d", edo);
-		scalename[currScale] += "e=" + std::string(eText);
-
 	}
 
 	void executeFromJI() {
@@ -820,23 +841,39 @@ struct RainbowScaleExpander : core::PrismModule {
 
 		float f0			= params[PARAMETER_PARAM + 0].getValue();
 		int oct 			= params[PARAMETER_PARAM + 1].getValue();
-		float upper			= params[PARAMETER_PARAM + 3].getValue();
-		float lower			= params[PARAMETER_PARAM + 4].getValue();
+		float upper			= params[PARAMETER_PARAM + 2].getValue();
+		float lower			= params[PARAMETER_PARAM + 3].getValue();
+		float upperO		= params[PARAMETER_PARAM + 7].getValue();
+		float lowerO		= params[PARAMETER_PARAM + 8].getValue();
 		float cents			= params[PARAMETER_PARAM + 6].getValue();
-		int nStepsinBank 	= params[PARAMETER_PARAM + 7].getValue();
+		int nStepsinBank 	= params[PARAMETER_PARAM + 4].getValue();
 		int maxSteps 		= params[PARAMETER_PARAM + 9].getValue();
 
 		// Only update within current scale
 		int minSlot = currScale * NUM_SCALENOTES;
 		int maxSlot = std::min((currScale + 1) * NUM_SCALENOTES - 1, NUM_BANKNOTES);
 
-		char oText[20];
-		char iText[20];
-		char cText[20];
+		char text[20];
+
+		snprintf(text, sizeof(text), "%.2f", f0);
+		scalename[currScale] = "/f0=" + std::string(text);
+		if (stackMode) {
+			snprintf(text, sizeof(text), "%d", oct);
+			scalename[currScale] += "/oct=" + std::string(text);
+		}
+		if (upperO != 1.0f && lowerO != 1.0f) {
+			snprintf(text, sizeof(text), "%.1f:%.1f", upperO, lowerO);
+			scalename[currScale] += "/off=" + std::string(text);
+		}
+
+		int nOcts = 1;
+		float offsetRatio = upperO / lowerO;
+		float dCents = pow(2.0f, cents / 1200.0f);
 
 		for (int i = 0; i < maxSteps; i++) {
 
-			float freq = f0 * pow(2, oct) * (upper / lower) * pow(2.0f, cents / 1200.0f);
+			float ratio = pow(upper, nOcts) / pow(lower, nOcts);	
+			float freq = f0 * pow(2, oct) * offsetRatio * ratio * dCents;
 
 			if (freq > maxFreq) {
 				break;
@@ -845,18 +882,28 @@ struct RainbowScaleExpander : core::PrismModule {
 			currFreqs[currPosinBank] = freq;
 			currState[currPosinBank] = EDITED;
 
-			snprintf(oText, sizeof(oText), "%d", oct);
-			snprintf(iText, sizeof(iText), "%.1f/%.1f", upper, lower);
+			snprintf(text, sizeof(text), "%d", oct);
+			notedesc[currPosinBank] = "/oct=" + std::string(text);
 
-			notedesc[currPosinBank] = "/o=" + std::string(oText);
-			notedesc[currPosinBank] += "/r=" + std::string(iText); 
+			snprintf(text, sizeof(text), "%.1f:%.1f", upper, lower);
+			notedesc[currPosinBank] += "/int=" + std::string(text); 
 
 			if (cents != 0.0) {
-				snprintf(cText, sizeof(cText), "%.2f", cents);
-				notedesc[currPosinBank] += "/c=" + std::string(cText);
+				snprintf(text, sizeof(text), "%.2f", cents);
+				notedesc[currPosinBank] += "/c=" + std::string(text);
 			}
 
-			oct++;
+			if (stackMode) {
+				nOcts++;
+			} else {
+				// Add octave to text
+				snprintf(text, sizeof(text), "%d", oct);
+				notedesc[currPosinBank] += "/oct=" + std::string(text);			
+
+				// Then increment octave
+				oct++;
+			}
+
 			currPosinBank += nStepsinBank;
 
 			if (currPosinBank < minSlot || currPosinBank > maxSlot) {
@@ -864,30 +911,26 @@ struct RainbowScaleExpander : core::PrismModule {
 			} 
 		}
 
-		char aText[20];
-		snprintf(aText, sizeof(aText), "%.2f", f0);
-		scalename[currScale] = "f0=" + std::string(aText);
-
 	}
 
 	void applyScale() {
 
 		float f0;
 
-		float rootA 	= params[PARAMETER_PARAM + 0].getValue() / 32.0f;
-		float f		 	= params[PARAMETER_PARAM + 0].getValue();
+		float f			= params[PARAMETER_PARAM + 0].getValue();
+		float rootA		= params[PARAMETER_PARAM + 0].getValue() / 32.0f;
 		int oct 		= params[PARAMETER_PARAM + 1].getValue();
-		int semi		= params[PARAMETER_PARAM + 3].getValue();
+		int interval	= params[PARAMETER_PARAM + 2].getValue();
 		int edo			= params[PARAMETER_PARAM + 5].getValue();
-		float upper		= params[PARAMETER_PARAM + 3].getValue();
-		float lower		= params[PARAMETER_PARAM + 4].getValue();
+		float upper		= params[PARAMETER_PARAM + 2].getValue();
+		float lower		= params[PARAMETER_PARAM + 3].getValue();
 
 		switch(currPage) {
 			case 0:
 				f0 = f;
 				break;
 			case 1:
-				f0 = rootA * pow(2, oct) * pow(2.0, (float)semi / (float)edo);
+				f0 = rootA * pow(2, oct) * pow(2.0, (float)interval / (float)edo);
 				break;
 			case 2:
 				f0 = f * pow(2, oct) * (upper / lower);
@@ -934,7 +977,7 @@ struct RainbowScaleExpander : core::PrismModule {
 			} 
 
 			int scale = currPosinBank / 21;
-		 	scalename[scale] = string::filename(path) + " page " + std::to_string(scale + 1);
+		 	scalename[scale] = string::filename(path) + ", Page " + std::to_string(scale + 1);
 		}
 
 		description = scala.description;
@@ -947,6 +990,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		currScale = params[SCALE_PARAM].getValue();
 		currNote = params[SLOT_PARAM].getValue();
 		currBank = params[BANK_PARAM].getValue();
+		stackMode = params[STACKMODE_PARAM].getValue();
 
 		if (loadBankTrigger.process(params[BANKLOAD_PARAM].getValue())) {
 			int bank = params[BANK_PARAM].getValue();
@@ -1273,6 +1317,7 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(9.89, 79.118)), module, RainbowScaleExpander::TRANSFER_PARAM));
 		addParam(createParamCentered<gui::PrismLargeKnobSnap>(mm2px(Vec(9.89, 49.118)), module, RainbowScaleExpander::SCALE_PARAM));
 		addParam(createParamCentered<gui::PrismSSwitch>(mm2px(Vec(107.39, 94.118)), module, RainbowScaleExpander::CALC_PARAM));
+		addParam(createParamCentered<gui::PrismSSwitch>(mm2px(Vec(122.39, 94.118)), module, RainbowScaleExpander::STACKMODE_PARAM));
 		addParam(createParamCentered<gui::PrismButton>(mm2px(Vec(137.39, 94.118)), module, RainbowScaleExpander::EXECUTE_PARAM));
 		addParam(createParamCentered<gui::PrismSSwitch3>(mm2px(Vec(9.89, 109.118)), module, RainbowScaleExpander::PAGE_PARAM));
 		addParam(createParamCentered<gui::PrismLargeKnobSnap>(mm2px(Vec(98.328, 109.118)), module, RainbowScaleExpander::BANK_PARAM));

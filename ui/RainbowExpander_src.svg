@@ -556,11 +556,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.1743191"
-     inkscape:cx="407.86599"
-     inkscape:cy="77.265569"
+     inkscape:zoom="1.9445437"
+     inkscape:cx="459.88486"
+     inkscape:cy="129.94771"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer3"
+     inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1187"
      inkscape:window-height="697"
@@ -639,13 +639,6 @@
        style="display:inline;opacity:1;fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.00035002;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        r="4.999825"
        inkscape:label="BANK_PARAM,gui::PrismKnobSnap" />
-    <circle
-       inkscape:label="SET_PARAM,gui::PrismLargeButton"
-       r="4.999825"
-       cy="94.117996"
-       cx="107.39029"
-       id="circle5193"
-       style="display:inline;opacity:1;fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.00035002;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <circle
        inkscape:label="EXECUTE_PARAM,gui::PrismLargeButton"
        r="4.999825"
@@ -760,6 +753,12 @@
        id="path1006"
        d="m 107.39028,259.443 c -0.9483,0 -1.71979,0.77149 -1.71979,1.71979 v 2.91042 c 0,0.9483 0.77149,1.71979 1.71979,1.71979 0.94829,0 1.71979,-0.77149 1.71979,-1.71979 v -2.91042 c 0,-0.9483 -0.7715,-1.71979 -1.71979,-1.71979 z"
        sodipodi:nodetypes="sssssss" />
+    <path
+       sodipodi:nodetypes="sssssss"
+       d="m 122.39029,90.943 c -0.9483,0 -1.71979,0.77149 -1.71979,1.71979 v 2.91042 c 0,0.9483 0.77149,1.71979 1.71979,1.71979 0.94829,0 1.71979,-0.77149 1.71979,-1.71979 v -2.91042 c 0,-0.9483 -0.7715,-1.71979 -1.71979,-1.71979 z"
+       id="path6335"
+       inkscape:connector-curvature="0"
+       style="display:inline;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-opacity:1" />
   </g>
   <g
      inkscape:groupmode="layer"
@@ -1191,5 +1190,43 @@
          x="100.20429"
          id="tspan1649"
          sodipodi:role="line">ALL</tspan></text>
+    <text
+       transform="scale(0.99420903,1.0058247)"
+       id="text6339"
+       y="255.74884"
+       x="118.32354"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.88055563px;line-height:1.25;font-family:'Roboto Condensed';-inkscape-font-specification:'Roboto Condensed, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#848484;fill-opacity:1;stroke:none;stroke-width:0.26305112"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.88055563px;font-family:'Roboto Condensed';-inkscape-font-specification:'Roboto Condensed, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#848484;fill-opacity:1;stroke-width:0.26305112"
+         y="255.74884"
+         x="118.32354"
+         id="tspan6337"
+         sodipodi:role="line">MODE</tspan></text>
+    <text
+       inkscape:transform-center-y="-1.9469697"
+       inkscape:transform-center-x="-7.3011364"
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499995px;line-height:1.25;font-family:'Roboto Condensed';-inkscape-font-specification:'Roboto Condensed, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#848484;fill-opacity:1;stroke:none;stroke-width:0.26305112"
+       x="114.99574"
+       y="264.16632"
+       id="text6343"
+       transform="scale(0.99420903,1.0058247)"><tspan
+         sodipodi:role="line"
+         id="tspan6341"
+         x="114.99574"
+         y="264.16632"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499995px;font-family:'Roboto Condensed';-inkscape-font-specification:'Roboto Condensed, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#848484;fill-opacity:1;stroke-width:0.26305112">OCT.</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499995px;line-height:1.25;font-family:'Roboto Condensed';-inkscape-font-specification:'Roboto Condensed, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#848484;fill-opacity:1;stroke:none;stroke-width:0.26305112"
+       x="112.05791"
+       y="260.22882"
+       id="text6347"
+       transform="scale(0.99420903,1.0058247)"><tspan
+         sodipodi:role="line"
+         id="tspan6345"
+         x="112.05791"
+         y="260.22882"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499995px;font-family:'Roboto Condensed';-inkscape-font-specification:'Roboto Condensed, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#848484;fill-opacity:1;stroke-width:0.26305112">STACK</tspan></text>
   </g>
 </svg>
