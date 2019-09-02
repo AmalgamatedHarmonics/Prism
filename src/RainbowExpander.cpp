@@ -634,7 +634,7 @@ struct RainbowScaleExpander : core::PrismModule {
 
 	void setFromET() {
 		float rootA		= params[PARAMETER_PARAM + 0].getValue() / 32.0f;
-		int oct 		= params[PARAMETER_PARAM + 1].getValue();
+		int oct 		= (int)params[PARAMETER_PARAM + 1].getValue() + 1;
 		int interval	= params[PARAMETER_PARAM + 2].getValue();
 		int offset		= params[PARAMETER_PARAM + 7].getValue();
 		int edo			= params[PARAMETER_PARAM + 5].getValue();
@@ -660,7 +660,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		snprintf(text, sizeof(text), "%d", interval);
 		notedesc[currNote + currScale * NUM_SCALENOTES] = "/int=" + std::string(text); 
 
-		snprintf(text, sizeof(text), "%d", oct);
+		snprintf(text, sizeof(text), "%d", oct - 1); // Display normal value for octave
 		notedesc[currNote + currScale * NUM_SCALENOTES] += "/oct=" + std::string(text);
 
 		if (offset != 0) {
@@ -760,7 +760,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		int currPosinBank = currNote + currScale * NUM_SCALENOTES;
 
 		float rootA			= params[PARAMETER_PARAM + 0].getValue() / 32.0f;
-		int oct 			= params[PARAMETER_PARAM + 1].getValue();
+		int oct 			= (int)params[PARAMETER_PARAM + 1].getValue() + 1; // Calcuate with one octave more
 		int interval		= params[PARAMETER_PARAM + 2].getValue();
 		int offset			= params[PARAMETER_PARAM + 7].getValue();
 		int edo				= params[PARAMETER_PARAM + 5].getValue();
@@ -784,7 +784,7 @@ struct RainbowScaleExpander : core::PrismModule {
 			scalename[currScale] += "/edo=" + std::string(text);
 		}
 		if (stackMode) {
-			snprintf(text, sizeof(text), "%d", oct);
+			snprintf(text, sizeof(text), "%d", oct - 1); // Display normal value for octave
 			scalename[currScale] += "/oct=" + std::string(text);
 		}
 		if (offset != 0) {
@@ -819,7 +819,7 @@ struct RainbowScaleExpander : core::PrismModule {
 				notedesc[currPosinBank] = "/int=" + std::string(text); 
 
 				// Add octave to text
-				snprintf(text, sizeof(text), "%d", oct);
+				snprintf(text, sizeof(text), "%d", oct - 1); // Display normal value for octave
 				notedesc[currPosinBank] += "/oct=" + std::string(text);			
 
 				// Then increment octave
@@ -919,20 +919,20 @@ struct RainbowScaleExpander : core::PrismModule {
 		float f			= params[PARAMETER_PARAM + 0].getValue();
 		float rootA		= params[PARAMETER_PARAM + 0].getValue() / 32.0f;
 		int oct 		= params[PARAMETER_PARAM + 1].getValue();
-		int interval	= params[PARAMETER_PARAM + 2].getValue();
+		int offset		= params[PARAMETER_PARAM + 7].getValue();
 		int edo			= params[PARAMETER_PARAM + 5].getValue();
-		float upper		= params[PARAMETER_PARAM + 2].getValue();
-		float lower		= params[PARAMETER_PARAM + 3].getValue();
+		float upperO	= params[PARAMETER_PARAM + 7].getValue();
+		float lowerO	= params[PARAMETER_PARAM + 8].getValue();
 
 		switch(currPage) {
 			case 0:
 				f0 = f;
 				break;
 			case 1:
-				f0 = rootA * pow(2, oct) * pow(2.0, (float)interval / (float)edo);
+				f0 = rootA * pow(2, oct) * pow(2.0, (float)offset / (float)edo);
 				break;
 			case 2:
-				f0 = f * pow(2, oct) * (upper / lower);
+				f0 = f * pow(2, oct) * (upperO / lowerO);
 				break;
 			default:
 				f0 = f;
