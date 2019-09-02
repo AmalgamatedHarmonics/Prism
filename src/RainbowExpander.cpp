@@ -792,7 +792,8 @@ struct RainbowScaleExpander : core::PrismModule {
 			scalename[currScale] += "/off=" + std::string(text);
 		}
 	
-		int intv = interval;
+		int intv = stackMode ? 0 : interval;
+
 		float dCents = pow(2.0f, cents / 1200.0f);
 
 		for (int i = 0; i < maxSteps; i++) {
@@ -867,7 +868,7 @@ struct RainbowScaleExpander : core::PrismModule {
 			scalename[currScale] += "/off=" + std::string(text);
 		}
 
-		int nOcts = 1;
+		int nOcts = 0;
 		float offsetRatio = upperO / lowerO;
 		float dCents = pow(2.0f, cents / 1200.0f);
 
