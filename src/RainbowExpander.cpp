@@ -621,8 +621,7 @@ struct RainbowScaleExpander : core::PrismModule {
 
 		char text[20];
 
-		snprintf(text, sizeof(text), "%.2f", freq);
-		notedesc[currNote + currScale * NUM_SCALENOTES] = "/f=" + std::string(text);
+		notedesc[currNote + currScale * NUM_SCALENOTES] = "";
 
 		if (cents != 0.0f) {
 			snprintf(text, sizeof(text), "%.2f", cents);
@@ -745,10 +744,8 @@ struct RainbowScaleExpander : core::PrismModule {
 			snprintf(text, sizeof(text), "/f0=%.2f", f0);
 			scalename[currScale] = text;
 
-			if (dCents != 0.0) {
-				snprintf(text, sizeof(text), "%.2f", dCents);
-				notedesc[currPosinBank] += "/c=" + std::string(text);
-			}
+			snprintf(text, sizeof(text), "%.2f", dCents);
+			notedesc[currPosinBank] = "/c=" + std::string(text);
 
 			currPosinBank += nStepsinBank;
 
