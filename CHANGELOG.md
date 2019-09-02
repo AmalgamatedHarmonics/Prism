@@ -18,7 +18,8 @@
 * Freq CV now plus/minus 5V, 1V/Oct
 * Nudge CV now +-1 semitone
 * Transpose now +- 1 octave in semitone steps
-* A polyphonic input to the FREQ CV1 port addresses all channels individually, but input does not pass through a LPF
+* A polyphonic input to the FREQ CV1 port addresses all channels 1,3 and 5, and on the CV6 port to channels 2, 4 and 6. These inputs to do not pass through a LPF
+* Revised Level and Q calculations again
 
 1.0.2
 * Split Level and Q CV inputs into separate global and channel inputs
