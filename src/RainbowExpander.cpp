@@ -717,7 +717,7 @@ struct RainbowScaleExpander : core::PrismModule {
 	void executeFromFrequency() {
 		int currPosinBank = currNote + currScale * NUM_SCALENOTES;
 
-		float frequency	 	= params[PARAMETER_PARAM + 0].getValue();
+		float f0		 	= params[PARAMETER_PARAM + 0].getValue();
 		float cents			= params[PARAMETER_PARAM + 6].getValue();
 		int nStepsinBank 	= params[PARAMETER_PARAM + 4].getValue();
 		int maxSteps 		= params[PARAMETER_PARAM + 9].getValue();
@@ -727,6 +727,8 @@ struct RainbowScaleExpander : core::PrismModule {
 		int maxSlot = std::min((currScale + 1) * NUM_SCALENOTES - 1, NUM_BANKNOTES);
 
 		char text[20];
+
+		float frequency = f0;
 
 		for (int i = 0; i < maxSteps; i++) {
 
@@ -740,11 +742,8 @@ struct RainbowScaleExpander : core::PrismModule {
 			currFreqs[currPosinBank] = freq;
 			currState[currPosinBank] = EDITED;
 
-			snprintf(text, sizeof(text), "/f0=%.2f", frequency);
+			snprintf(text, sizeof(text), "/f0=%.2f", f0);
 			scalename[currScale] = text;
-
-			snprintf(text, sizeof(text), "%.2f", freq);
-			notedesc[currPosinBank] = "/f=" + std::string(text);
 
 			if (dCents != 0.0) {
 				snprintf(text, sizeof(text), "%.2f", dCents);
@@ -810,12 +809,17 @@ struct RainbowScaleExpander : core::PrismModule {
 			currFreqs[currPosinBank] = freq;
 			currState[currPosinBank] = EDITED;
 
-			snprintf(text, sizeof(text), "%d", interval);
-			notedesc[currPosinBank] = "/int=" + std::string(text); 
+			notedesc[currPosinBank] = "";
 
 			if (stackMode) {
+				snprintf(text, sizeof(text), "%d", intv);
+				notedesc[currPosinBank] = "/int=" + std::string(text); 
+
 				intv += interval;				
 			} else {
+				snprintf(text, sizeof(text), "%d", interval);
+				notedesc[currPosinBank] = "/int=" + std::string(text); 
+
 				// Add octave to text
 				snprintf(text, sizeof(text), "%d", oct);
 				notedesc[currPosinBank] += "/oct=" + std::string(text);			
@@ -882,16 +886,8 @@ struct RainbowScaleExpander : core::PrismModule {
 			currFreqs[currPosinBank] = freq;
 			currState[currPosinBank] = EDITED;
 
-			snprintf(text, sizeof(text), "%d", oct);
-			notedesc[currPosinBank] = "/oct=" + std::string(text);
-
 			snprintf(text, sizeof(text), "%.1f:%.1f", upper, lower);
-			notedesc[currPosinBank] += "/int=" + std::string(text); 
-
-			if (cents != 0.0) {
-				snprintf(text, sizeof(text), "%.2f", cents);
-				notedesc[currPosinBank] += "/c=" + std::string(text);
-			}
+			notedesc[currPosinBank] = "/int=" + std::string(text); 
 
 			if (stackMode) {
 				nOcts++;
@@ -903,6 +899,11 @@ struct RainbowScaleExpander : core::PrismModule {
 				// Then increment octave
 				oct++;
 			}
+			if (cents != 0.0) {
+				snprintf(text, sizeof(text), "%.2f", cents);
+				notedesc[currPosinBank] += "/c=" + std::string(text);
+			}
+
 
 			currPosinBank += nStepsinBank;
 
