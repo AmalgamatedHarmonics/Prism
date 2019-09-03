@@ -996,6 +996,9 @@ struct RainbowScaleExpander : core::PrismModule {
 			currState[currPosinBank] = EDITED;
 			notedesc[currPosinBank] = note->description;
 
+			int scale = currPosinBank / 21;
+		 	scalename[scale] = string::filename(path) + ", Page " + std::to_string(scale + 1);
+
 			currPosinBank++;
 
 			// Wrap
@@ -1004,8 +1007,6 @@ struct RainbowScaleExpander : core::PrismModule {
 				scalaPos = 0;
 			} 
 
-			int scale = currPosinBank / 21;
-		 	scalename[scale] = string::filename(path) + ", Page " + std::to_string(scale + 1);
 		}
 
 		description = scala.description;
