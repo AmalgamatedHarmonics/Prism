@@ -3,11 +3,8 @@ On-going
 - optimisation
 
 Specific
-1.1
-- revise level code and global control gain max to 2.0
-- Manual
 > 1.1
-- check output level calc
+- check env level calc
 - refactor filter code
 
 Expander
@@ -26,6 +23,7 @@ Fidlib module
 BUG    system_mode.c:  if (ctr==80000){ //User took too long, start over // bug will never timeout
 BUG? } else if (controller->scale_bank[i] == 0xFF) { // TODO Should be NUM_SCALEBANK - 1?
 BUG? level slider attenuates: level_lpf = ((float)(io->LEVEL_ADC[j]) / 4096.0) * (float)(t) / 4096.0; // TODO should be 4095.0??
+BUG CV Slew applied to sliders as well
 Repeating indian scale
 Intervals (JI) why 27.25 not 27.5?
 filter.c line 729, surely this is wrong ( j & 1 is even channels and should go to right channel)
