@@ -520,7 +520,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		parameterDescriptions[1][9] =	"Maximum number of steps to apply";
 
 		// JI page
-		parameterValues[2][0] = 16.35f;		// f0
+		parameterValues[2][0] = 16.5f;		// f0
 		parameterValues[2][1] = 4.0f;		// Octave
 		parameterValues[2][2] = 3.0f;		// Upper
 		parameterValues[2][3] = 2.0f;		// Lower
@@ -611,6 +611,31 @@ struct RainbowScaleExpander : core::PrismModule {
 		}
 	}
 
+	void calculateRoot(float A440, float edo, float *root, float *distance) {
+
+		if (A440 == 440.0f && edo == 12) {
+			*root = 16.3516f;
+		} else {
+			float rootA = A440 / 32.0f;
+			float m3 = 0.0f;
+			float finalm3 = 0.0f;
+			float closest = 1000000.0f;
+			float diff;
+
+			for (int i = 1; i < edo; i++) {
+				m3 = pow(2.0, (float)i / (float)edo);
+				diff = fabs(1.2f - m3);
+				if (diff < closest) {
+					closest = diff;
+					finalm3 = m3;
+					*distance = 1200.0f * log2f(m3) - 1200.0f * log2f(1.2f);
+				}
+			}
+			*root = rootA * finalm3;
+		}
+
+	}
+
 	void setFromFrequency() {
 
 		float freq 	= params[PARAMETER_PARAM + 0].getValue();
@@ -640,29 +665,9 @@ struct RainbowScaleExpander : core::PrismModule {
 		int edo			= params[PARAMETER_PARAM + 5].getValue();
 		float cents		= params[PARAMETER_PARAM + 6].getValue();
 
-		float root;
-		float distance = 0.0f;
-
-		if (A440 == 440.0f && edo == 12) {
-			root = 16.3516f;
-		} else {
-			float rootA = A440 / 32.0f;
-			float m3 = 0.0f;
-			float finalm3 = 0.0f;
-			float closest = 1000000.0f;
-			float diff;
-
-			for (int i = 1; i < edo; i++) {
-				m3 = pow(2.0, (float)i / (float)edo);
-				diff = fabs(1.2f - m3);
-				if (diff < closest) {
-					closest = diff;
-					finalm3 = m3;
-					distance = 1200.0f * log2f(m3) - 1200.0f * log2f(1.2f);
-				}
-			}
-			root = rootA * finalm3;
-		}
+		float root = 0.0;
+		float distance = 0.0;
+		calculateRoot(A440, edo, &root, &distance);
 
 		float freq = root * pow(2, oct) * pow(2.0, (float)(interval + offset) / (float)edo) * pow(2.0f, cents / 1200.0f);
 
@@ -708,7 +713,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		float lowerO	= params[PARAMETER_PARAM + 8].getValue();
 		float cents		= params[PARAMETER_PARAM + 6].getValue();
 		
-		float freq = f0 * pow(2, oct) * (upperO / lowerO) * (upper / lower) * pow(2.0f, cents / 1200.0f);
+		float freq = f0 * pow(2, oct) * fabs(upperO / lowerO) * fabs(upper / lower) * pow(2.0f, cents / 1200.0f);
 
 		currFreqs[currNote + currScale * NUM_SCALENOTES] = freq;
 		currState[currNote + currScale * NUM_SCALENOTES] = EDITED;
@@ -724,7 +729,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		snprintf(text, sizeof(text), "%d", oct);
 		notedesc[currNote + currScale * NUM_SCALENOTES] += "/oct=" + std::string(text);
 
-		if (upperO != 1.0f && lowerO != 1.0f) {
+		if (upperO != 1.0f || lowerO != 1.0f) {
 			snprintf(text, sizeof(text), "%.1f:%.1f", upperO, lowerO);
 			notedesc[currNote + currScale * NUM_SCALENOTES] += "/off=" + std::string(text);
 		}
@@ -791,29 +796,9 @@ struct RainbowScaleExpander : core::PrismModule {
 		int nStepsinBank 	= params[PARAMETER_PARAM + 4].getValue();
 		int maxSteps 		= params[PARAMETER_PARAM + 9].getValue();
 
-		float root;
-		float distance = 0.0f;
-
-		if (A440 == 440.0f && edo == 12) {
-			root = 16.3516f;
-		} else {
-			float rootA = A440 / 32.0f;
-			float m3 = 0.0f;
-			float finalm3 = 0.0f;
-			float closest = 1000000.0f;
-			float diff;
-
-			for (int i = 1; i < edo; i++) {
-				m3 = pow(2.0, (float)i / (float)edo);
-				diff = fabs(1.2f - m3);
-				if (diff < closest) {
-					closest = diff;
-					finalm3 = m3;
-					distance = 1200.0f * log2f(m3) - 1200.0f * log2f(1.2f);
-				}
-			}
-			root = rootA * finalm3;
-		}
+		float root = 0.0;
+		float distance = 0.0;
+		calculateRoot(A440, edo, &root, &distance);
 
 		// Only update within current scale
 		int minSlot = currScale * NUM_SCALENOTES;
@@ -840,7 +825,7 @@ struct RainbowScaleExpander : core::PrismModule {
 
 		for (int i = 0; i < maxSteps; i++) {
 
-			float freq = root * pow(2, oct) * pow(2.0, (float)(intv + offset) / (float)edo) * dCents;
+			float freq = fabs(root * pow(2, oct) * pow(2.0, (float)(intv + offset) / (float)edo) * dCents);
 
 			if (freq > maxFreq) {
 				break;
@@ -911,13 +896,13 @@ struct RainbowScaleExpander : core::PrismModule {
 		}
 
 		int nOcts = 0;
-		float offsetRatio = upperO / lowerO;
+		float offsetRatio = fabs(upperO / lowerO);
 		float dCents = pow(2.0f, cents / 1200.0f);
 
 		for (int i = 0; i < maxSteps; i++) {
 
-			float ratio = pow(upper, nOcts) / pow(lower, nOcts);	
-			float freq = f0 * pow(2, oct) * offsetRatio * ratio * dCents;
+			float ratio = fabs(pow(upper, nOcts) / pow(lower, nOcts));	
+			float freq = fabs(f0 * pow(2, oct) * offsetRatio * ratio * dCents);
 
 			if (freq > maxFreq) {
 				break;
@@ -939,7 +924,7 @@ struct RainbowScaleExpander : core::PrismModule {
 				// Then increment octave
 				oct++;
 			}
-			if (upperO != 1.0f && lowerO != 1.0f) {
+			if (upperO != 1.0f || lowerO != 1.0f) {
 				snprintf(text, sizeof(text), "%.1f:%.1f", upperO, lowerO);
 				notedesc[currPosinBank] += "/off=" + std::string(text);
 			}
@@ -962,25 +947,24 @@ struct RainbowScaleExpander : core::PrismModule {
 		float f0;
 
 		float f			= params[PARAMETER_PARAM + 0].getValue();
-		float rootA		= params[PARAMETER_PARAM + 0].getValue() / 32.0f;
+		float A440		= params[PARAMETER_PARAM + 0].getValue();
 		int oct 		= params[PARAMETER_PARAM + 1].getValue();
 		int offset		= params[PARAMETER_PARAM + 7].getValue();
 		int edo			= params[PARAMETER_PARAM + 5].getValue();
 		float upperO	= params[PARAMETER_PARAM + 7].getValue();
 		float lowerO	= params[PARAMETER_PARAM + 8].getValue();
 
-		switch(currPage) {
-			case 0:
-				f0 = f;
-				break;
-			case 1:
-				f0 = rootA * pow(2, oct) * pow(2.0, (float)offset / (float)edo);
-				break;
-			case 2:
-				f0 = f * pow(2, oct) * (upperO / lowerO);
-				break;
-			default:
-				f0 = f;
+		if (currPage == 0) {
+			f0 = f;
+		} else if (currPage == 1) {
+			float root = 0.0;
+			float distance = 0.0;
+			calculateRoot(A440, edo, &root, &distance);
+			f0 = root * pow(2, oct) * pow(2.0, (float)offset / (float)edo);
+		} else if (currPage == 2) {
+			f0 = f * pow(2, oct) * fabs(upperO / lowerO);
+		} else {
+			f0 = 16.3516f;
 		}
 
 		int currPosinBank = currNote + currScale * NUM_SCALENOTES;
