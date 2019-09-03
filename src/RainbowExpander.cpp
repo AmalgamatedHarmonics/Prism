@@ -1277,7 +1277,8 @@ static void loadFile(RainbowScaleExpander *module) {
 		filename = "";
 	}
 
-	char *path = osdialog_file(OSDIALOG_OPEN, dir.c_str(), filename.c_str(), NULL);
+	osdialog_filters *filter = osdialog_filters_parse("Scala file:scl");
+	char *path = osdialog_file(OSDIALOG_OPEN, dir.c_str(), filename.c_str(), filter);
 	if (path) {
 		module->path = path;
 		if (!module->scala.load(path)) {
@@ -1286,6 +1287,7 @@ static void loadFile(RainbowScaleExpander *module) {
 		}
 		free(path);
 	}
+	osdialog_filters_free(filter);
 }
 
 static void applyFile(RainbowScaleExpander *module) {
