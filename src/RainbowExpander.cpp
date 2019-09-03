@@ -833,10 +833,6 @@ struct RainbowScaleExpander : core::PrismModule {
 			snprintf(text, sizeof(text), "%d", oct); 
 			scalename[currScale] += "/oct=" + std::string(text);
 		}
-		if (offset != 0) {
-			snprintf(text, sizeof(text), "%d", offset);
-			scalename[currScale] += "/off=" + std::string(text);
-		}
 	
 		int intv = stackMode ? 0 : interval;
 
@@ -870,6 +866,10 @@ struct RainbowScaleExpander : core::PrismModule {
 
 				// Then increment octave
 				oct++;
+			}
+			if (offset != 0) {
+				snprintf(text, sizeof(text), "%d", offset);
+				notedesc[currPosinBank] += "/off=" + std::string(text);
 			}
 			if (cents != 0.0) {
 				snprintf(text, sizeof(text), "%.2f", cents);
@@ -909,10 +909,6 @@ struct RainbowScaleExpander : core::PrismModule {
 			snprintf(text, sizeof(text), "%d", oct);
 			scalename[currScale] += "/oct=" + std::string(text);
 		}
-		if (upperO != 1.0f && lowerO != 1.0f) {
-			snprintf(text, sizeof(text), "%.1f:%.1f", upperO, lowerO);
-			scalename[currScale] += "/off=" + std::string(text);
-		}
 
 		int nOcts = 0;
 		float offsetRatio = upperO / lowerO;
@@ -942,6 +938,10 @@ struct RainbowScaleExpander : core::PrismModule {
 
 				// Then increment octave
 				oct++;
+			}
+			if (upperO != 1.0f && lowerO != 1.0f) {
+				snprintf(text, sizeof(text), "%.1f:%.1f", upperO, lowerO);
+				notedesc[currPosinBank] += "/off=" + std::string(text);
 			}
 			if (cents != 0.0) {
 				snprintf(text, sizeof(text), "%.2f", cents);
