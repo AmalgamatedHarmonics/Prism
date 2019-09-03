@@ -633,14 +633,38 @@ struct RainbowScaleExpander : core::PrismModule {
 	}
 
 	void setFromET() {
-		float rootA		= params[PARAMETER_PARAM + 0].getValue() / 32.0f;
-		int oct 		= (int)params[PARAMETER_PARAM + 1].getValue() + 1;
+		float A440		= params[PARAMETER_PARAM + 0].getValue();
+		int oct 		= params[PARAMETER_PARAM + 1].getValue();
 		int interval	= params[PARAMETER_PARAM + 2].getValue();
 		int offset		= params[PARAMETER_PARAM + 7].getValue();
 		int edo			= params[PARAMETER_PARAM + 5].getValue();
 		float cents		= params[PARAMETER_PARAM + 6].getValue();
 
-		float freq = rootA * pow(2, oct) * pow(2.0, (float)(interval + offset) / (float)edo) * pow(2.0f, cents / 1200.0f);
+		float root;
+		float distance = 0.0f;
+
+		if (A440 == 440.0f && edo == 12) {
+			root = 16.3516f;
+		} else {
+			float rootA = A440 / 32.0f;
+			float m3 = 0.0f;
+			float finalm3 = 0.0f;
+			float closest = 1000000.0f;
+			float diff;
+
+			for (int i = 1; i < edo; i++) {
+				m3 = pow(2.0, (float)i / (float)edo);
+				diff = fabs(1.2f - m3);
+				if (diff < closest) {
+					closest = diff;
+					finalm3 = m3;
+					distance = 1200.0f * log2f(m3) - 1200.0f * log2f(1.2f);
+				}
+			}
+			root = rootA * finalm3;
+		}
+
+		float freq = root * pow(2, oct) * pow(2.0, (float)(interval + offset) / (float)edo) * pow(2.0f, cents / 1200.0f);
 
 		currFreqs[currNote + currScale * NUM_SCALENOTES] = freq;
 		currState[currNote + currScale * NUM_SCALENOTES] = EDITED;
@@ -648,11 +672,10 @@ struct RainbowScaleExpander : core::PrismModule {
 		char text[20];
 
 		scalename[currScale] = "";
-		if (rootA != 13.75f) {
-			snprintf(text, sizeof(text), "%.1f", params[PARAMETER_PARAM + 0].getValue());
-			scalename[currScale] += "/A=" + std::string(text);
-		}
-		if (edo != 12) {
+		if (A440 != 440.0f || edo != 12) {
+			snprintf(text, sizeof(text), "%.1f(%.1fc)", root, distance);
+			scalename[currScale] += "/C0=" + std::string(text);
+
 			snprintf(text, sizeof(text), "%d", edo);
 			scalename[currScale] += "/edo=" + std::string(text);
 		}
@@ -660,7 +683,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		snprintf(text, sizeof(text), "%d", interval);
 		notedesc[currNote + currScale * NUM_SCALENOTES] = "/int=" + std::string(text); 
 
-		snprintf(text, sizeof(text), "%d", oct - 1); // Display normal value for octave
+		snprintf(text, sizeof(text), "%d", oct); 
 		notedesc[currNote + currScale * NUM_SCALENOTES] += "/oct=" + std::string(text);
 
 		if (offset != 0) {
@@ -759,14 +782,38 @@ struct RainbowScaleExpander : core::PrismModule {
 	void executeFromET() {
 		int currPosinBank = currNote + currScale * NUM_SCALENOTES;
 
-		float rootA			= params[PARAMETER_PARAM + 0].getValue() / 32.0f;
-		int oct 			= (int)params[PARAMETER_PARAM + 1].getValue() + 1; // Calcuate with one octave more
+		float A440			= params[PARAMETER_PARAM + 0].getValue();
+		int oct 			= params[PARAMETER_PARAM + 1].getValue(); 
 		int interval		= params[PARAMETER_PARAM + 2].getValue();
 		int offset			= params[PARAMETER_PARAM + 7].getValue();
 		int edo				= params[PARAMETER_PARAM + 5].getValue();
 		float cents			= params[PARAMETER_PARAM + 6].getValue();
 		int nStepsinBank 	= params[PARAMETER_PARAM + 4].getValue();
 		int maxSteps 		= params[PARAMETER_PARAM + 9].getValue();
+
+		float root;
+		float distance = 0.0f;
+
+		if (A440 == 440.0f && edo == 12) {
+			root = 16.3516f;
+		} else {
+			float rootA = A440 / 32.0f;
+			float m3 = 0.0f;
+			float finalm3 = 0.0f;
+			float closest = 1000000.0f;
+			float diff;
+
+			for (int i = 1; i < edo; i++) {
+				m3 = pow(2.0, (float)i / (float)edo);
+				diff = fabs(1.2f - m3);
+				if (diff < closest) {
+					closest = diff;
+					finalm3 = m3;
+					distance = 1200.0f * log2f(m3) - 1200.0f * log2f(1.2f);
+				}
+			}
+			root = rootA * finalm3;
+		}
 
 		// Only update within current scale
 		int minSlot = currScale * NUM_SCALENOTES;
@@ -775,16 +822,15 @@ struct RainbowScaleExpander : core::PrismModule {
 		char text[20];
 
 		scalename[currScale] = "";
-		if (rootA != 13.75f) {
-			snprintf(text, sizeof(text), "%.1f", params[PARAMETER_PARAM + 0].getValue());
-			scalename[currScale] += "/A=" + std::string(text);
-		}
-		if (edo != 12) {
+		if (A440 != 440.0f || edo != 12) {
+			snprintf(text, sizeof(text), "%.1f(%.1fc)", root, distance);
+			scalename[currScale] += "/C0=" + std::string(text);
+
 			snprintf(text, sizeof(text), "%d", edo);
 			scalename[currScale] += "/edo=" + std::string(text);
 		}
 		if (stackMode) {
-			snprintf(text, sizeof(text), "%d", oct - 1); // Display normal value for octave
+			snprintf(text, sizeof(text), "%d", oct); 
 			scalename[currScale] += "/oct=" + std::string(text);
 		}
 		if (offset != 0) {
@@ -798,7 +844,7 @@ struct RainbowScaleExpander : core::PrismModule {
 
 		for (int i = 0; i < maxSteps; i++) {
 
-			float freq = rootA * pow(2, oct) * pow(2.0, (float)(intv + offset) / (float)edo) * dCents;
+			float freq = root * pow(2, oct) * pow(2.0, (float)(intv + offset) / (float)edo) * dCents;
 
 			if (freq > maxFreq) {
 				break;
@@ -819,7 +865,7 @@ struct RainbowScaleExpander : core::PrismModule {
 				notedesc[currPosinBank] = "/int=" + std::string(text); 
 
 				// Add octave to text
-				snprintf(text, sizeof(text), "%d", oct - 1); // Display normal value for octave
+				snprintf(text, sizeof(text), "%d", oct);
 				notedesc[currPosinBank] += "/oct=" + std::string(text);			
 
 				// Then increment octave
@@ -858,7 +904,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		char text[20];
 
 		snprintf(text, sizeof(text), "%.2f", f0);
-		scalename[currScale] = "/f0=" + std::string(text);
+		scalename[currScale] = "/C0=" + std::string(text);
 		if (stackMode) {
 			snprintf(text, sizeof(text), "%d", oct);
 			scalename[currScale] += "/oct=" + std::string(text);
@@ -901,7 +947,6 @@ struct RainbowScaleExpander : core::PrismModule {
 				snprintf(text, sizeof(text), "%.2f", cents);
 				notedesc[currPosinBank] += "/c=" + std::string(text);
 			}
-
 
 			currPosinBank += nStepsinBank;
 
