@@ -643,10 +643,10 @@ void Rainbow::process(const ProcessArgs &args) {
 	outputs[POLY_VOCT_OUTPUT].setChannels(6);
 	outputs[POLY_ENV_OUTPUT].setChannels(12);
 	for (int n = 0; n < 6; n++) {
-		outputs[POLY_ENV_OUTPUT].setVoltage(main.io->env_out[n] * 10.0f, n);
+		outputs[POLY_ENV_OUTPUT].setVoltage(clamp(main.io->env_out[n] * 100.0f, 0.0f, 10.0f), n);
 		outputs[POLY_ENV_OUTPUT].setVoltage(main.io->OUTLEVEL[n] * 10.0f, n + 6);
 		outputs[POLY_VOCT_OUTPUT].setVoltage(main.io->voct_out[n], n);
-		outputs[MONO_ENV_OUTPUT + n].setVoltage(main.io->env_out[n] * 10.0f);
+		outputs[MONO_ENV_OUTPUT + n].setVoltage(clamp(main.io->env_out[n] * 100.0f, 0.0f, 10.0f));
 		outputs[MONO_VOCT_OUTPUT + n].setVoltage(main.io->voct_out[n]);
 	}
 
