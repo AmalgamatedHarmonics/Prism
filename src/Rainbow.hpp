@@ -6,7 +6,7 @@
 #include <vector>
 #include <inttypes.h>
 
-#include "common.hpp"
+#include "plugin.hpp"
 
 #include "dsp/noise.hpp"
 #include "scales/Scales.hpp"
@@ -72,31 +72,16 @@ enum Mod246Setting {
 	Mod_246
 };
 
-// enum ScaleRotationSetting {
-// 	RotateOff = 0,
-// 	RotateOn
-// };
-
 enum VOctTrackSetting {
 	VOctTrackOff = 0,
 	VOctTrackOn
 };
-
-// enum PrePostSetting {
-// 	Pre = 0,
-// 	Post
-// };
 
 enum EnvelopeMode {
 	Fast = 0,
 	Slow,
 	Trigger
 };
-
-// enum GlideSetting {
-// 	GlideOff = 0,
-// 	GlideOn,
-// };
 
 uint32_t diff(uint32_t a, uint32_t b);
 
