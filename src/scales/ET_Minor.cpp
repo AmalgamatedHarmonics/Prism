@@ -2,7 +2,7 @@
 
 // Not done
 
-Scale minor = {
+Scale et_minor = {
 	.name = "Minor (ET)",
 	.description = "Scales from C Minor",
 	.scalename = {

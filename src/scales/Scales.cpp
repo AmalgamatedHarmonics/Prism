@@ -2,8 +2,8 @@
 
 ScaleSet::ScaleSet() {
 
-	presets.push_back(&major);
-	presets.push_back(&minor);
+	presets.push_back(&et_major);
+	presets.push_back(&et_minor);
 	presets.push_back(&et_intervals);
 	presets.push_back(&et_triads);
 	presets.push_back(&et_chromatic);
@@ -19,12 +19,12 @@ ScaleSet::ScaleSet() {
 	presets.push_back(&wc_alpha1);
 	presets.push_back(&wc_gamma);
 	presets.push_back(&seventeen);
-	presets.push_back(&bp);
+	presets.push_back(&bohlenppierce);
 	presets.push_back(&buchla296);
 	presets.push_back(&userscale);
 
-	full.push_back(&major);
-	full.push_back(&minor);
+	full.push_back(&et_major);
+	full.push_back(&et_minor);
 	full.push_back(&et_intervals);
 	full.push_back(&et_triads);
 	full.push_back(&et_chromatic);
@@ -40,7 +40,7 @@ ScaleSet::ScaleSet() {
 	full.push_back(&wc_alpha1);
 	full.push_back(&wc_gamma);
 	full.push_back(&seventeen);
-	full.push_back(&bp);
+	full.push_back(&bohlenppierce);
 	full.push_back(&buchla296);
 	full.push_back(&userscale);
 	full.push_back(&gamma_notused);

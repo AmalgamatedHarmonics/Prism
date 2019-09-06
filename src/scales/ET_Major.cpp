@@ -2,7 +2,7 @@
 
 // Not done
 
-Scale major = {
+Scale et_major = {
 	.name = "Major (ET)",
 	.description = "Scales from C Major",
 	.scalename = {

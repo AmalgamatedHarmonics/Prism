@@ -2,7 +2,7 @@
 
 // Not done
 
-Scale bp = {
+Scale bohlenppierce = {
 	.name = "Bohlen Pierce",
 	.description = "The Bohlen Pierce scale is derived from 13 divisions of a 'tritave' - a frequency ratio of 3:1, compared to the octave ratio of 2:1. Here the scale consists of various intervals taken from an justly intonation scale.",
 	.scalename = {

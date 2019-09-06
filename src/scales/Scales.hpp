@@ -21,8 +21,8 @@ struct ScaleSet {
 	
 };
 
-extern Scale major;
-extern Scale minor;
+extern Scale et_major;
+extern Scale et_minor;
 extern Scale et_intervals;
 extern Scale et_triads;
 extern Scale et_chromatic;
@@ -38,7 +38,7 @@ extern Scale wc_alpha1;
 extern Scale wc_alpha2;
 extern Scale wc_gamma;
 extern Scale seventeen;
-extern Scale bp;
+extern Scale bohlenppierce;
 extern Scale buchla296;
 extern Scale userscale;
 extern Scale gamma_notused;
