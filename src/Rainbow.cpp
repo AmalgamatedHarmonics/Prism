@@ -134,6 +134,9 @@ struct Rainbow : core::PrismModule {
 		PREPOST_LIGHT,
 		POLYCV1IN_LIGHT,
 		POLYCV6IN_LIGHT,
+		MONOIN_LIGHT,
+		ENUMS(OEIN_LIGHT,2),
+		POLYIN_LIGHT,
 		NUM_LIGHTS
 	};
 
@@ -670,6 +673,39 @@ void Rainbow::process(const ProcessArgs &args) {
 	main.io->FREQCV1_CHAN > 1 ? lights[POLYCV1IN_LIGHT].setBrightness(1.0f) : lights[POLYCV1IN_LIGHT].setBrightness(0.0f); 
 	main.io->FREQCV6_CHAN > 1 ? lights[POLYCV6IN_LIGHT].setBrightness(1.0f) : lights[POLYCV6IN_LIGHT].setBrightness(0.0f); 
 
+	switch(audio.inputChannels) {
+		case 0:
+				lights[MONOIN_LIGHT].setBrightness(0.0f);
+				lights[OEIN_LIGHT].setBrightness(0.0f);
+				lights[OEIN_LIGHT + 1].setBrightness(0.0f);
+				lights[POLYIN_LIGHT].setBrightness(0.0f);
+				break;
+		case 1:
+				lights[MONOIN_LIGHT].setBrightness(1.0f);
+				lights[OEIN_LIGHT].setBrightness(0.0f);
+				lights[OEIN_LIGHT + 1].setBrightness(0.0f);
+				lights[POLYIN_LIGHT].setBrightness(0.0f);
+				break;
+		case 2:
+				lights[MONOIN_LIGHT].setBrightness(0.0f);
+				lights[OEIN_LIGHT].setBrightness(0.0f);
+				lights[OEIN_LIGHT + 1].setBrightness(1.0f);
+				lights[POLYIN_LIGHT].setBrightness(0.0f);
+				break;
+		case 3:
+				lights[MONOIN_LIGHT].setBrightness(0.0f);
+				lights[OEIN_LIGHT].setBrightness(1.0f);
+				lights[OEIN_LIGHT + 1].setBrightness(0.0f);
+				lights[POLYIN_LIGHT].setBrightness(0.0f);
+				break;
+		default:
+				lights[MONOIN_LIGHT].setBrightness(0.0f);
+				lights[OEIN_LIGHT].setBrightness(0.0f);
+				lights[OEIN_LIGHT + 1].setBrightness(0.0f);
+				lights[POLYIN_LIGHT].setBrightness(1.0f);
+				break;
+	}
+
 	for (int i = 0; i < NUM_FILTS; i++) {
 		if (main.io->FREQ_BLOCK[i]) {
 			ringLEDs[i]->color 			= nvgRGBf(0.0f, 0.0f, 0.0f);
@@ -942,6 +978,10 @@ struct RainbowWidget : ModuleWidget {
 
 		addChild(createLightCentered<TinyLight<RedLight>>(Vec((256.5 + 5.0) + 6 * 40.0, 380.0 - 77.500 - 4.5), module, Rainbow::POLYCV1IN_LIGHT));
 		addChild(createLightCentered<TinyLight<RedLight>>(Vec((256.5 + 5.0) + 6 * 40.0, 380.0 - 77.500 - 4.5 + 30.0), module, Rainbow::POLYCV6IN_LIGHT));
+
+		addChild(createLightCentered<SmallLight<RedLight>>(Vec(5.500f, 380.0f - 272.500f - 30.500f), module, Rainbow::MONOIN_LIGHT));
+		addChild(createLightCentered<SmallLight<GreenRedLight>>(Vec(5.500f, 380.0f - 272.500f - 18.400f), module, Rainbow::OEIN_LIGHT));
+		addChild(createLightCentered<SmallLight<RedLight>>(Vec(5.500f, 380.0f - 272.500f - 6.300f), module, Rainbow::POLYIN_LIGHT));
 
 		if(module) {
 
