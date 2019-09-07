@@ -440,7 +440,15 @@ struct Rainbow : core::PrismModule {
 
 void Rainbow::process(const ProcessArgs &args) {
 
+	static int frameC = 0;
+	bool uiUpdate = false;
+
 	PrismModule::step();
+
+	if (++frameC > 735) {
+		frameC = 0;
+		uiUpdate = true;
+	}
 
 	main.io->USER_SCALE_CHANGED = false;
 	if (rightExpander.module) {
@@ -651,114 +659,117 @@ void Rainbow::process(const ProcessArgs &args) {
 		outputs[POLY_VOCT_OUTPUT].setVoltage(main.io->voct_out[n], n);
 		outputs[MONO_ENV_OUTPUT + n].setVoltage(clamp(main.io->env_out[n] * 100.0f, 0.0f, 10.0f));
 		outputs[MONO_VOCT_OUTPUT + n].setVoltage(main.io->voct_out[n]);
+
+		params[Rainbow::LEVEL_OUT_PARAM + n].setValue(main.io->OUTLEVEL[n]);
 	}
 
 	for (int n = 0; n < 6; n++) {
 		vuMeters[n].process(args.sampleTime, main.io->channelLevel[n]);
 	}
 
-	// Set VCV LEDs
-	for (int n = 0; n < 6; n++) {
-		main.io->LOCK_ON[n] ? lights[LOCK_LIGHT + n].setBrightness(1.0f) : lights[LOCK_LIGHT + n].setBrightness(0.0f); 
-		main.io->CHANNEL_Q_ON[n] ? lights[QLOCK_LIGHT + n].setBrightness(1.0f) : lights[QLOCK_LIGHT + n].setBrightness(0.0f); 
-	}
+	if (uiUpdate) {
 
-	main.io->INPUT_CLIP ? lights[CLIP_LIGHT].setBrightness(1.0f) : lights[CLIP_LIGHT].setBrightness(0.0f); 
-
-	inputs[POLY_IN_INPUT].getChannels() ? lights[NOISE_LIGHT].setBrightness(0.0f) : lights[NOISE_LIGHT].setBrightness(1.0f); 
-	main.io->GLIDE_SWITCH ? lights[VOCTGLIDE_LIGHT].setBrightness(1.0f) : lights[VOCTGLIDE_LIGHT].setBrightness(0.0f); 
-	main.io->PREPOST_SWITCH ? lights[PREPOST_LIGHT].setBrightness(0.0f) : lights[PREPOST_LIGHT].setBrightness(1.0f); // Light on if PRE (inverted)
-	main.io->SCALEROT_SWITCH ? lights[SCALEROT_LIGHT].setBrightness(1.0f) : lights[SCALEROT_LIGHT].setBrightness(0.0f);
-
-	main.io->FREQCV1_CHAN > 1 ? lights[POLYCV1IN_LIGHT].setBrightness(1.0f) : lights[POLYCV1IN_LIGHT].setBrightness(0.0f); 
-	main.io->FREQCV6_CHAN > 1 ? lights[POLYCV6IN_LIGHT].setBrightness(1.0f) : lights[POLYCV6IN_LIGHT].setBrightness(0.0f); 
-
-	switch(audio.inputChannels) {
-		case 0:
-				lights[MONOIN_LIGHT].setBrightness(0.0f);
-				lights[OEIN_LIGHT].setBrightness(0.0f);
-				lights[OEIN_LIGHT + 1].setBrightness(0.0f);
-				lights[POLYIN_LIGHT].setBrightness(0.0f);
-				break;
-		case 1:
-				lights[MONOIN_LIGHT].setBrightness(1.0f);
-				lights[OEIN_LIGHT].setBrightness(0.0f);
-				lights[OEIN_LIGHT + 1].setBrightness(0.0f);
-				lights[POLYIN_LIGHT].setBrightness(0.0f);
-				break;
-		case 2:
-				lights[MONOIN_LIGHT].setBrightness(0.0f);
-				lights[OEIN_LIGHT].setBrightness(0.0f);
-				lights[OEIN_LIGHT + 1].setBrightness(1.0f);
-				lights[POLYIN_LIGHT].setBrightness(0.0f);
-				break;
-		case 3:
-				lights[MONOIN_LIGHT].setBrightness(0.0f);
-				lights[OEIN_LIGHT].setBrightness(1.0f);
-				lights[OEIN_LIGHT + 1].setBrightness(0.0f);
-				lights[POLYIN_LIGHT].setBrightness(0.0f);
-				break;
-		default:
-				lights[MONOIN_LIGHT].setBrightness(0.0f);
-				lights[OEIN_LIGHT].setBrightness(0.0f);
-				lights[OEIN_LIGHT + 1].setBrightness(0.0f);
-				lights[POLYIN_LIGHT].setBrightness(1.0f);
-				break;
-	}
-
-	for (int i = 0; i < NUM_FILTS; i++) {
-		if (main.io->FREQ_BLOCK[i]) {
-			ringLEDs[i]->color 			= nvgRGBf(0.0f, 0.0f, 0.0f);
-			ringLEDs[i]->colorBorder 	= blockedBorder;
-		} else {
-			ringLEDs[i]->color = nvgRGBf(
-				main.io->ring[i][0], 
-				main.io->ring[i][1],
-				main.io->ring[i][2]);
-			ringLEDs[i]->colorBorder = defaultBorder;
-		}
-	}
-
-	for (int i = 0; i < NUM_SCALES; i++) {
-		scaleLEDs[i]->color = nvgRGBf(
-			main.io->scale[i][0], 
-			main.io->scale[i][1],
-			main.io->scale[i][2]);
-		scaleLEDs[i]->colorBorder = defaultBorder;
-	}
-
-	bool procVu = lightDivider.process();
-	for (int i = 0; i < NUM_CHANNELS; i++) {
-
-		if (procVu) {
-			vuMeters[i].getBrightness(clipLimit, clipLimit) == 1.0f ? channelClipCnt[i]++ : channelClipCnt[i] = 0;
+		// Set VCV LEDs
+		for (int n = 0; n < 6; n++) {
+			main.io->LOCK_ON[n] ? lights[LOCK_LIGHT + n].setBrightness(1.0f) : lights[LOCK_LIGHT + n].setBrightness(0.0f); 
+			main.io->CHANNEL_Q_ON[n] ? lights[QLOCK_LIGHT + n].setBrightness(1.0f) : lights[QLOCK_LIGHT + n].setBrightness(0.0f); 
 		}
 
-		if (channelClipCnt[i] & 32) {
-			envelopeLEDs[i]->color = nvgRGBf(0.0f, 0.0f, 0.0f);
-			envelopeLEDs[i]->colorBorder = defaultBorder;
-		} else {
-			envelopeLEDs[i]->color = nvgRGBf(
-				main.io->envelope_leds[i][0], 
-				main.io->envelope_leds[i][1],
-				main.io->envelope_leds[i][2]);
-			envelopeLEDs[i]->colorBorder = defaultBorder;
+		main.io->INPUT_CLIP ? lights[CLIP_LIGHT].setBrightness(1.0f) : lights[CLIP_LIGHT].setBrightness(0.0f); 
+
+		inputs[POLY_IN_INPUT].getChannels() ? lights[NOISE_LIGHT].setBrightness(0.0f) : lights[NOISE_LIGHT].setBrightness(1.0f); 
+		main.io->GLIDE_SWITCH ? lights[VOCTGLIDE_LIGHT].setBrightness(1.0f) : lights[VOCTGLIDE_LIGHT].setBrightness(0.0f); 
+		main.io->PREPOST_SWITCH ? lights[PREPOST_LIGHT].setBrightness(0.0f) : lights[PREPOST_LIGHT].setBrightness(1.0f); // Light on if PRE (inverted)
+		main.io->SCALEROT_SWITCH ? lights[SCALEROT_LIGHT].setBrightness(1.0f) : lights[SCALEROT_LIGHT].setBrightness(0.0f);
+
+		main.io->FREQCV1_CHAN > 1 ? lights[POLYCV1IN_LIGHT].setBrightness(1.0f) : lights[POLYCV1IN_LIGHT].setBrightness(0.0f); 
+		main.io->FREQCV6_CHAN > 1 ? lights[POLYCV6IN_LIGHT].setBrightness(1.0f) : lights[POLYCV6IN_LIGHT].setBrightness(0.0f); 
+
+		switch(audio.inputChannels) {
+			case 0:
+					lights[MONOIN_LIGHT].setBrightness(0.0f);
+					lights[OEIN_LIGHT].setBrightness(0.0f);
+					lights[OEIN_LIGHT + 1].setBrightness(0.0f);
+					lights[POLYIN_LIGHT].setBrightness(0.0f);
+					break;
+			case 1:
+					lights[MONOIN_LIGHT].setBrightness(1.0f);
+					lights[OEIN_LIGHT].setBrightness(0.0f);
+					lights[OEIN_LIGHT + 1].setBrightness(0.0f);
+					lights[POLYIN_LIGHT].setBrightness(0.0f);
+					break;
+			case 2:
+					lights[MONOIN_LIGHT].setBrightness(0.0f);
+					lights[OEIN_LIGHT].setBrightness(0.0f);
+					lights[OEIN_LIGHT + 1].setBrightness(1.0f);
+					lights[POLYIN_LIGHT].setBrightness(0.0f);
+					break;
+			case 3:
+					lights[MONOIN_LIGHT].setBrightness(0.0f);
+					lights[OEIN_LIGHT].setBrightness(1.0f);
+					lights[OEIN_LIGHT + 1].setBrightness(0.0f);
+					lights[POLYIN_LIGHT].setBrightness(0.0f);
+					break;
+			default:
+					lights[MONOIN_LIGHT].setBrightness(0.0f);
+					lights[OEIN_LIGHT].setBrightness(0.0f);
+					lights[OEIN_LIGHT + 1].setBrightness(0.0f);
+					lights[POLYIN_LIGHT].setBrightness(1.0f);
+					break;
 		}
 
-		qLEDs[i]->color = nvgRGBf(
-			main.io->q_leds[i][0], 
-			main.io->q_leds[i][1],
-			main.io->q_leds[i][2]);
-		qLEDs[i]->colorBorder = defaultBorder;
+		for (int i = 0; i < NUM_FILTS; i++) {
+			if (main.io->FREQ_BLOCK[i]) {
+				ringLEDs[i]->color 			= nvgRGBf(0.0f, 0.0f, 0.0f);
+				ringLEDs[i]->colorBorder 	= blockedBorder;
+			} else {
+				ringLEDs[i]->color = nvgRGBf(
+					main.io->ring[i][0], 
+					main.io->ring[i][1],
+					main.io->ring[i][2]);
+				ringLEDs[i]->colorBorder = defaultBorder;
+			}
+		}
 
-		tuningLEDs[i]->color = nvgHSL(
-			main.io->tuning_out_leds[i][0], 
-			main.io->tuning_out_leds[i][1],
-			main.io->tuning_out_leds[i][2]);
-		tuningLEDs[i]->colorBorder = defaultBorder;
+		for (int i = 0; i < NUM_SCALES; i++) {
+			scaleLEDs[i]->color = nvgRGBf(
+				main.io->scale[i][0], 
+				main.io->scale[i][1],
+				main.io->scale[i][2]);
+			scaleLEDs[i]->colorBorder = defaultBorder;
+		}
 
-		params[Rainbow::LEVEL_OUT_PARAM+i].setValue(main.io->OUTLEVEL[i]);
+		bool procVu = lightDivider.process();
+		for (int i = 0; i < NUM_CHANNELS; i++) {
 
+			if (procVu) {
+				vuMeters[i].getBrightness(clipLimit, clipLimit) == 1.0f ? channelClipCnt[i]++ : channelClipCnt[i] = 0;
+			}
+
+			if (channelClipCnt[i] & 32) {
+				envelopeLEDs[i]->color = nvgRGBf(0.0f, 0.0f, 0.0f);
+				envelopeLEDs[i]->colorBorder = defaultBorder;
+			} else {
+				envelopeLEDs[i]->color = nvgRGBf(
+					main.io->envelope_leds[i][0], 
+					main.io->envelope_leds[i][1],
+					main.io->envelope_leds[i][2]);
+				envelopeLEDs[i]->colorBorder = defaultBorder;
+			}
+
+			qLEDs[i]->color = nvgRGBf(
+				main.io->q_leds[i][0], 
+				main.io->q_leds[i][1],
+				main.io->q_leds[i][2]);
+			qLEDs[i]->colorBorder = defaultBorder;
+
+			tuningLEDs[i]->color = nvgHSL(
+				main.io->tuning_out_leds[i][0], 
+				main.io->tuning_out_leds[i][1],
+				main.io->tuning_out_leds[i][2]);
+			tuningLEDs[i]->colorBorder = defaultBorder;
+
+		}
 	}
 }
 
