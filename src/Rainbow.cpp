@@ -190,6 +190,8 @@ struct Rainbow : core::PrismModule {
 
 	rainbow::Audio audio;
 
+	int frameRate = 735;
+
 	json_t *dataToJson() override {
 
 		json_t *rootJ = json_object();
@@ -415,6 +417,12 @@ struct Rainbow : core::PrismModule {
 		pMessage->updated = false;
 		cMessage->updated = false;
 
+		onSampleRateChange();
+
+	}
+
+	void onSampleRateChange() override {
+		frameRate = APP->engine->getSampleRate() / 60;
 	}
 
 	void onReset() override {
@@ -441,13 +449,13 @@ struct Rainbow : core::PrismModule {
 void Rainbow::process(const ProcessArgs &args) {
 
 	static int frameC = 0;
-	bool uiUpdate = false;
+	main.io->UI_UPDATE = false;
 
 	PrismModule::step();
 
-	if (++frameC > 735) {
+	if (++frameC > frameRate) {
 		frameC = 0;
-		uiUpdate = true;
+		main.io->UI_UPDATE = true;
 	}
 
 	main.io->USER_SCALE_CHANGED = false;
@@ -667,7 +675,7 @@ void Rainbow::process(const ProcessArgs &args) {
 		vuMeters[n].process(args.sampleTime, main.io->channelLevel[n]);
 	}
 
-	if (uiUpdate) {
+	if (main.io->UI_UPDATE) {
 
 		// Set VCV LEDs
 		for (int n = 0; n < 6; n++) {

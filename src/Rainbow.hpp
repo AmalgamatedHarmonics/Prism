@@ -261,6 +261,8 @@ struct Filter {
 
 struct IO {
 
+	bool					UI_UPDATE;
+
 	uint16_t				MORPH_ADC;
 
 	int16_t					GLOBAL_Q_LEVEL;
@@ -525,7 +527,7 @@ struct Q {
 	float		qlockpot_lpf[NUM_CHANNELS]	= {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
 	uint32_t q_update_ctr					= UINT32_MAX; // Initialise to always fire on first pass 
-   	uint32_t Q_UPDATE_RATE					= 15; 
+   	uint32_t Q_UPDATE_RATE					= 50; 
 
 	uint32_t QPOT_MIN_CHANGE				= 100;
 	float QGLOBAL_LPF						= 0.95f;

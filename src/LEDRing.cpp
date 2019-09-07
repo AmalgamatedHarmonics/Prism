@@ -226,9 +226,8 @@ void LEDRing::display_scale() {
 
 void LEDRing::update_led_ring() {
 
-	if (led_ring_update_ctr++ > 2000 || io->FORCE_RING_UPDATE) {
+	if (io->UI_UPDATE || io->FORCE_RING_UPDATE) {
 
-		led_ring_update_ctr  	= 0;
 		io->FORCE_RING_UPDATE 	= false;
 
 		display_scale();
