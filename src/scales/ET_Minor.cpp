@@ -16,7 +16,7 @@ Scale et_minor = {
 		"Blues scale; F4-",
 		"Harmonic Minor; C1-",
 		"Harmonic Minor; B3-",
-		"Harmonic Minoe; A6-"},
+		"Harmonic Minor; A6-"},
 	.notedesc = {
 	//mCHO_32.7: 
 		"",
