@@ -28,6 +28,8 @@ void Audio::ChannelProcess1(rainbow::Controller &main, rack::engine::Input &inpu
 	switch(inputChannels) {
 			case 0:
 			case 1:
+					inChannels = 1;
+					break;
 			case 2:
 					inChannels = 2;
 					break;
@@ -68,6 +70,14 @@ void Audio::ChannelProcess1(rainbow::Controller &main, rack::engine::Input &inpu
 				int32_t v = (int32_t)clamp(nInputFrames[i][j].samples[0] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
 
 				switch(inChannels) {
+					case 1:
+						main.io->in[i][j] 			= v;
+						main.io->in[1 + i][j] 		= v;
+						main.io->in[2 + i][j] 		= v;
+						main.io->in[3 + i][j] 		= v;
+						main.io->in[4 + i][j] 		= v;
+						main.io->in[5 + i][j] 		= v;
+						break;
 					case 2:
 						main.io->in[i][j] 			= v;
 						main.io->in[2 + i][j] 		= v;
@@ -123,6 +133,8 @@ void Audio::ChannelProcess2(rainbow::Controller &main, rack::engine::Input &inpu
 	switch(inputChannels) {
 			case 0:
 			case 1:
+					inChannels = 1;
+					break;
 			case 2:
 					inChannels = 2;
 					break;
@@ -163,6 +175,14 @@ void Audio::ChannelProcess2(rainbow::Controller &main, rack::engine::Input &inpu
 				int32_t v = (int32_t)clamp(nInputFrames[i][j].samples[0] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
 
 				switch(inChannels) {
+					case 1:
+						main.io->in[i][j] 			= v;
+						main.io->in[1 + i][j] 		= v;
+						main.io->in[2 + i][j] 		= v;
+						main.io->in[3 + i][j] 		= v;
+						main.io->in[4 + i][j] 		= v;
+						main.io->in[5 + i][j] 		= v;
+						break;
 					case 2:
 						main.io->in[i][j] 			= v;
 						main.io->in[2 + i][j] 		= v;
@@ -225,6 +245,8 @@ void Audio::ChannelProcess6(rainbow::Controller &main, rack::engine::Input &inpu
 	switch(inputChannels) {
 			case 0:
 			case 1:
+					inChannels = 1;
+					break;
 			case 2:
 					inChannels = 2;
 					break;
@@ -265,6 +287,14 @@ void Audio::ChannelProcess6(rainbow::Controller &main, rack::engine::Input &inpu
 				int32_t v = (int32_t)clamp(nInputFrames[i][j].samples[0] * MAX_12BIT, MIN_12BIT, MAX_12BIT);
 
 				switch(inChannels) {
+					case 1:
+						main.io->in[i][j] 			= v;
+						main.io->in[1 + i][j] 		= v;
+						main.io->in[2 + i][j] 		= v;
+						main.io->in[3 + i][j] 		= v;
+						main.io->in[4 + i][j] 		= v;
+						main.io->in[5 + i][j] 		= v;
+						break;
 					case 2:
 						main.io->in[i][j] 			= v;
 						main.io->in[2 + i][j] 		= v;
