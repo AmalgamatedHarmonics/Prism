@@ -170,12 +170,12 @@ void Filter::filter_twopass() {
 		}
 
 		// CROSSFADE between the two filters
-		if (qc[channel_num] < CF_MIN) {
+		if (qc[channel_num] < CROSSFADE_MIN) {
 			ratio_a = 1.0f;
-		} else if (qc[channel_num] > CF_MAX) {
+		} else if (qc[channel_num] > CROSSFADE_MAX) {
 			ratio_a = 0.0f;
 		} else {
-			pos_in_cf = (qc[channel_num] - CF_MIN) / CROSSFADE_WIDTH;
+			pos_in_cf = (qc[channel_num] - CROSSFADE_MIN) / CROSSFADE_WIDTH;
 			ratio_a   = 1.0f - pos_in_cf;
 		}
 
