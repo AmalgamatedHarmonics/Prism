@@ -2,6 +2,11 @@
 
 ## Rainbow
 
+1.1.1
+* Performance improvements
+* Add lights to show input mode for Poly In
+* Tweaks to UI 
+
 1.1.0
 * Complete UI overhaul by Pyer
 * Polyphonic audio input and output, with 1,2 and 6 channels in and out
