@@ -22,8 +22,7 @@
 #define NUM_BANKNOTES 231
 
 // Audio buffer sizing
-#define BUFFER_SIZE 8
-#define NUM_SAMPLES 4
+#define NUM_SAMPLES 32
 
 // LPF
 #define MAX_FIR_LPF_SIZE 40
