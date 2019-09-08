@@ -113,7 +113,9 @@ struct Audio {
 	int inputChannels;
 	int outputChannels;
 	int noiseSelected;
-	float sampleRate;
+	int sampleRate;
+	int internalSampleRate = 48000;
+	float outputScale = 2.0f;
 
 	bogaudio::dsp::PinkNoiseGenerator pink;
 	bogaudio::dsp::RedNoiseGenerator brown;
@@ -261,6 +263,7 @@ struct Filter {
 struct IO {
 
 	bool					UI_UPDATE;
+	float 					FREQSCALE;
 
 	uint16_t				MORPH_ADC;
 

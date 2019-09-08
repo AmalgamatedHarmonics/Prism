@@ -159,12 +159,13 @@ void Filter::filter_twopass() {
 		} // 1000 to 3925
 		
 		// Q/RESONANCE: c0 = 1 - 2/(decay * samplerate), where decay is around 0.01 to 4.0
-		c0_a = 1.0f - exp_4096[(uint32_t)(qval_a[channel_num] / 1.4f) + 200] / 10.0f; //exp[200...3125]
-		c0   = 1.0f - exp_4096[(uint32_t)(qval_b[channel_num] / 1.4f) + 200] / 10.0f; //exp[200...3125]
+		c0_a = 1.0f - exp_4096[(uint32_t)(qval_a[channel_num] / 1.4f) + 200] / (10.0f / io->FREQSCALE); //exp[200...3125]
+		c0   = 1.0f - exp_4096[(uint32_t)(qval_b[channel_num] / 1.4f) + 200] / (10.0f / io->FREQSCALE); //exp[200...3125]
 
 		// FREQ: c1 = 2 * pi * freq / samplerate
 		c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
 		c1 *= tuning->freq_nudge[channel_num] * tuning->freq_shift[channel_num];
+		c1 *= io->FREQSCALE;
 		if (c1 > 1.30899581f) {
 			c1 = 1.30899581f; //hard limit at 20k
 		}
@@ -230,6 +231,7 @@ void Filter::filter_twopass() {
 			c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
 			c1 *= tuning->freq_nudge[channel_num];
 			c1 *= tuning->freq_shift[channel_num];
+			c1 *= io->FREQSCALE;
 			if (c1 > 1.30899581f) {
 				c1 = 1.30899581f; //hard limit at 20k
 			}
@@ -315,12 +317,13 @@ void Filter::filter_onepass() {
 			}
 
 			// Q/RESONANCE: c0 = 1 - 2/(decay * samplerate), where decay is around 0.01 to 4.0
-			c0 = 1.0f - exp_4096[(uint32_t)(q->qval[channel_num] / 1.4f) + 200] / 10.0; //exp[200...3125]
+			c0 = 1.0f - exp_4096[(uint32_t)(q->qval[channel_num] / 1.4f) + 200] / (10.0 / io->FREQSCALE); //exp[200...3125]
 
 			// FREQ: c1 = 2 * pi * freq / samplerate
 			c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
 			c1 *= tuning->freq_nudge[channel_num];
 			c1 *= tuning->freq_shift[channel_num];
+			c1 *= io->FREQSCALE;
 			if (c1 > 1.30899581f) {
 				c1 = 1.30899581f; //hard limit at 20k
 			}

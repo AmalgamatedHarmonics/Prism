@@ -59,7 +59,7 @@ void Audio::ChannelProcess1(rainbow::Controller &main, rack::engine::Input &inpu
 	if (outputBuffer1.empty()) {
 
 		for (int i = 0; i < inChannels; i++) {
-			nInputSrc[i].setRates(sampleRate, 96000);
+			nInputSrc[i].setRates(sampleRate, internalSampleRate);
 
 			int inLen = nInputBuffer[i].size();
 			int outLen = NUM_SAMPLES;
@@ -109,7 +109,7 @@ void Audio::ChannelProcess1(rainbow::Controller &main, rack::engine::Input &inpu
 			}
 		}
 
-		outputSrc1.setRates(96000, sampleRate);
+		outputSrc1.setRates(internalSampleRate, sampleRate);
 		int inLen = NUM_SAMPLES;
 		int outLen = outputBuffer1.capacity();
 		outputSrc1.process(outputFrames1, &inLen, outputBuffer1.endData(), &outLen);
@@ -120,7 +120,7 @@ void Audio::ChannelProcess1(rainbow::Controller &main, rack::engine::Input &inpu
 	if (!outputBuffer1.empty()) {
 		outputFrame1 = outputBuffer1.shift();
 		output.setChannels(1);
-		output.setVoltage(outputFrame1.samples[0] * 5.0f, 0);
+		output.setVoltage(outputFrame1.samples[0] * 5.0f * outputScale, 0);
 	}
 
 }
@@ -164,7 +164,7 @@ void Audio::ChannelProcess2(rainbow::Controller &main, rack::engine::Input &inpu
 	if (outputBuffer2.empty()) {
 
 		for (int i = 0; i < inChannels; i++) {
-			nInputSrc[i].setRates(sampleRate, 96000);
+			nInputSrc[i].setRates(sampleRate, internalSampleRate);
 
 			int inLen = nInputBuffer[i].size();
 			int outLen = NUM_SAMPLES;
@@ -220,7 +220,7 @@ void Audio::ChannelProcess2(rainbow::Controller &main, rack::engine::Input &inpu
 			}
 		}
 
-		outputSrc2.setRates(96000, sampleRate);
+		outputSrc2.setRates(internalSampleRate, sampleRate);
 		int inLen = NUM_SAMPLES;
 		int outLen = outputBuffer2.capacity();
 		outputSrc2.process(outputFrames2, &inLen, outputBuffer2.endData(), &outLen);
@@ -231,8 +231,8 @@ void Audio::ChannelProcess2(rainbow::Controller &main, rack::engine::Input &inpu
 	if (!outputBuffer2.empty()) {
 		outputFrame2 = outputBuffer2.shift();
 		output.setChannels(2);
-		output.setVoltage(outputFrame2.samples[0] * 5.0f, 0);
-		output.setVoltage(outputFrame2.samples[1] * 5.0f, 1);
+		output.setVoltage(outputFrame2.samples[0] * 5.0f * outputScale, 0);
+		output.setVoltage(outputFrame2.samples[1] * 5.0f * outputScale, 1);
 	}
 
 }
@@ -276,7 +276,7 @@ void Audio::ChannelProcess6(rainbow::Controller &main, rack::engine::Input &inpu
 	if (outputBuffer6.empty()) {
 
 		for (int i = 0; i < inChannels; i++) {
-			nInputSrc[i].setRates(sampleRate, 96000);
+			nInputSrc[i].setRates(sampleRate, internalSampleRate);
 
 			int inLen = nInputBuffer[i].size();
 			int outLen = NUM_SAMPLES;
@@ -320,7 +320,7 @@ void Audio::ChannelProcess6(rainbow::Controller &main, rack::engine::Input &inpu
 			}
 		}
 
-		outputSrc6.setRates(96000, sampleRate);
+		outputSrc6.setRates(internalSampleRate, sampleRate);
 		int inLen = NUM_SAMPLES;
 		int outLen = outputBuffer6.capacity();
 		outputSrc6.process(outputFrames6, &inLen, outputBuffer6.endData(), &outLen);
@@ -332,7 +332,7 @@ void Audio::ChannelProcess6(rainbow::Controller &main, rack::engine::Input &inpu
 		outputFrame6 = outputBuffer6.shift();
 		output.setChannels(6);
 		for (int i = 0; i < NUM_CHANNELS; i++) {
-			output.setVoltage(outputFrame6.samples[i] * 5.0f, i);
+			output.setVoltage(outputFrame6.samples[i] * 5.0f * outputScale, i);
 		}
 	}
 }

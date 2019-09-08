@@ -10,11 +10,6 @@
 
 using namespace prism;
 
-struct frame {
-	int16_t l;
-	int16_t r;
-};
-
 struct Rainbow;
 
 struct LED : Widget {
@@ -150,6 +145,7 @@ struct Rainbow : core::PrismModule {
 	dsp::ClockDivider lightDivider;
 	uint32_t channelClipCnt[6];
 	float clipLimit = -5.2895f; // Clip at 10V;
+	int frameRate = 735; // 44100Hz / 60fps
 
 	NVGcolor defaultBorder = nvgRGB(73, 73, 73);
 	NVGcolor blockedBorder = nvgRGB(255, 0, 0);
@@ -190,11 +186,17 @@ struct Rainbow : core::PrismModule {
 
 	rainbow::Audio audio;
 
-	int frameRate = 735;
+	bool highCPUMode = false;
+	int internalSampleRate = 48000;
+	float scale = 2.0f;
 
 	json_t *dataToJson() override {
 
 		json_t *rootJ = json_object();
+
+		// highcpu
+		json_t *cpuJ = json_integer((int) highCPUMode);
+		json_object_set_new(rootJ, "highcpu", cpuJ);
 
 		// gliss
 		json_t *glissJ = json_integer((int) main.io->GLIDE_SWITCH);
@@ -261,6 +263,11 @@ struct Rainbow : core::PrismModule {
 	}
 
 	void dataFromJson(json_t *rootJ) override {
+
+		// gliss
+		json_t *cpuJ = json_object_get(rootJ, "highcpu");
+		if (cpuJ)
+			highCPUMode = json_integer_value(cpuJ);
 
 		// gliss
 		json_t *glissJ = json_object_get(rootJ, "gliss");
@@ -448,7 +455,7 @@ struct Rainbow : core::PrismModule {
 
 void Rainbow::process(const ProcessArgs &args) {
 
-	static int frameC = 0;
+	static int frameC = 100000000;
 	main.io->UI_UPDATE = false;
 
 	PrismModule::step();
@@ -637,12 +644,16 @@ void Rainbow::process(const ProcessArgs &args) {
 		main.io->SCALEROT_SWITCH = !main.io->SCALEROT_SWITCH;
 	} 
 
+	main.io->FREQSCALE = scale;
+
 	main.prepare();
 
 	audio.inputChannels = inputs[POLY_IN_INPUT].getChannels();
 	audio.outputChannels = params[OUTCHAN_PARAM].getValue(); 
 	audio.noiseSelected = noiseSelected;
 	audio.sampleRate = args.sampleRate;
+	audio.internalSampleRate = internalSampleRate;
+	audio.outputScale = scale;
 
 	switch(audio.outputChannels) {
 		case 0:
@@ -1074,6 +1085,52 @@ struct RainbowWidget : ModuleWidget {
 			}
 		}
 	}
+
+	void appendContextMenu(Menu *menu) override {
+
+		Rainbow *rainbow = dynamic_cast<Rainbow*>(module);
+		assert(rainbow);
+
+		struct CPUItem : MenuItem {
+			Rainbow *module;
+			bool cpuMode;
+			int rate;
+			float scale;
+			void onAction(const rack::event::Action &e) override {
+				module->highCPUMode = cpuMode;
+				module->internalSampleRate = rate;
+				module->scale = scale;
+			}
+		};
+
+		struct CPUMenu : MenuItem {
+			Rainbow *module;
+			Menu *createChildMenu() override {
+				Menu *menu = new Menu;
+				std::vector<bool> modes = {true, false};
+				std::vector<int> rates = {96000, 48000};
+				std::vector<float> scales = {1.0f, 2.0f};
+
+				std::vector<std::string> names = {"High CPU Mode (96Khz)", "Low CPU Mode (48KHz)"};
+				for (size_t i = 0; i < modes.size(); i++) {
+					CPUItem *item = createMenuItem<CPUItem>(names[i], CHECKMARK(module->highCPUMode == modes[i]));
+					item->module = module;
+					item->cpuMode = modes[i];
+					item->rate = rates[i];
+					item->scale = scales[i];
+					menu->addChild(item);
+				}
+				return menu;
+			}
+		};
+
+		menu->addChild(construct<MenuLabel>());
+		CPUMenu *item = createMenuItem<CPUMenu>("CPU Mode");
+		item->module = rainbow;
+		menu->addChild(item);
+
+     }
+
 };
 
 Model *modelRainbow = createModel<Rainbow, RainbowWidget>("Rainbow");
