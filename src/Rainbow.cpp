@@ -186,6 +186,7 @@ struct Rainbow : core::PrismModule {
 
 	rainbow::Audio audio;
 
+	int frameC = 100000000;
 	bool highCPUMode = false;
 	int internalSampleRate = 48000;
 	float scale = 2.0f;
@@ -455,7 +456,6 @@ struct Rainbow : core::PrismModule {
 
 void Rainbow::process(const ProcessArgs &args) {
 
-	static int frameC = 100000000;
 	main.io->UI_UPDATE = false;
 
 	PrismModule::step();
