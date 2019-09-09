@@ -132,6 +132,7 @@ struct Rainbow : core::PrismModule {
 		MONOIN_LIGHT,
 		ENUMS(OEIN_LIGHT,2),
 		POLYIN_LIGHT,
+		CPUMODE_LIGHT,
 		NUM_LIGHTS
 	};
 
@@ -704,6 +705,8 @@ void Rainbow::process(const ProcessArgs &args) {
 		main.io->FREQCV1_CHAN > 1 ? lights[POLYCV1IN_LIGHT].setBrightness(1.0f) : lights[POLYCV1IN_LIGHT].setBrightness(0.0f); 
 		main.io->FREQCV6_CHAN > 1 ? lights[POLYCV6IN_LIGHT].setBrightness(1.0f) : lights[POLYCV6IN_LIGHT].setBrightness(0.0f); 
 
+		highCPUMode ? lights[CPUMODE_LIGHT].setBrightness(1.0f) : lights[CPUMODE_LIGHT].setBrightness(0.0f); 
+
 		switch(audio.inputChannels) {
 			case 0:
 					lights[MONOIN_LIGHT].setBrightness(0.0f);
@@ -1012,6 +1015,8 @@ struct RainbowWidget : ModuleWidget {
 		addChild(createLightCentered<SmallLight<RedLight>>(Vec(5.500f, 380.0f - 272.500f - 30.500f), module, Rainbow::MONOIN_LIGHT));
 		addChild(createLightCentered<SmallLight<GreenRedLight>>(Vec(5.500f, 380.0f - 272.500f - 18.400f), module, Rainbow::OEIN_LIGHT));
 		addChild(createLightCentered<SmallLight<RedLight>>(Vec(5.500f, 380.0f - 272.500f - 6.300f), module, Rainbow::POLYIN_LIGHT));
+
+		addChild(createLightCentered<SmallLight<RedLight>>(Vec(5.500f, 5.500f), module, Rainbow::CPUMODE_LIGHT));
 
 		if(module) {
 
