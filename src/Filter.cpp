@@ -166,8 +166,15 @@ void Filter::filter_twopass() {
 		c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
 		c1 *= tuning->freq_nudge[channel_num] * tuning->freq_shift[channel_num];
 		c1 *= io->FREQSCALE;
-		if (c1 > 1.30899581f) {
-			c1 = 1.30899581f; //hard limit at 20k
+		if (io->FREQSCALE == 1.0f) {
+			if (c1 > 1.30899581f) {
+				c1 = 1.30899581f; //hard limit at 20k
+			}
+		}
+		if (io->FREQSCALE == 2.0f) {
+			if (c1 > 1.9f) {
+				c1 = 1.9f; //hard limit at 20k
+			}
 		}
 
 		// CROSSFADE between the two filters
@@ -232,8 +239,15 @@ void Filter::filter_twopass() {
 			c1 *= tuning->freq_nudge[channel_num];
 			c1 *= tuning->freq_shift[channel_num];
 			c1 *= io->FREQSCALE;
-			if (c1 > 1.30899581f) {
-				c1 = 1.30899581f; //hard limit at 20k
+			if (io->FREQSCALE == 1.0f) {
+				if (c1 > 1.30899581f) {
+					c1 = 1.30899581f; //hard limit at 20k
+				}
+			}
+			if (io->FREQSCALE == 2.0f) {
+				if (c1 > 1.9f) {
+					c1 = 1.9f; //hard limit at 20k
+				}
 			}
 
 			destvoct[channel_num] = c1;
