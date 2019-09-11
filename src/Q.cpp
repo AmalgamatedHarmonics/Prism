@@ -77,7 +77,7 @@ void Q::update(void) {
  	
  	// SMOOTH OUT DATA BETWEEN ADC READS
 	for (int i = 0; i < NUM_CHANNELS; i++) {
-		qval[i] = (uint32_t)(prev_qval[i] + (q_update_ctr * (qval_goal[i] - prev_qval[i]) / 16.0f));
+		qval[i] = (uint32_t)(prev_qval[i] + (q_update_ctr * (qval_goal[i] - prev_qval[i]) / 51.0f)); // Q_UPDATE_RATE + 1
  	}
 
 }
