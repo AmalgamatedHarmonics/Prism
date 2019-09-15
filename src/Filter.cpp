@@ -184,8 +184,17 @@ void Filter::filter_twopass() {
 
 		// FREQ: c1 = 2 * pi * freq / samplerate
 		c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
-		// if (channel_num == 0) {	std::cout << c1 << std::endl; }
 		c1 *= tuning->freq_nudge[channel_num] * tuning->freq_shift[channel_num];
+
+		if (io->HICPUMODE) {
+			if (c1 > 1.30899581f) {
+				c1 = 1.30899581f; //hard limit at 20k
+			}
+		} else {
+			if (c1 > 1.9f) {
+				c1 = 1.9f; //hard limit at 20k
+			}
+		}
 
 		// CROSSFADE between the two filters
 		if (qc[channel_num] < CROSSFADE_MIN) {
@@ -246,8 +255,17 @@ void Filter::filter_twopass() {
 
 			//FREQ: c1 = 2 * pi * freq / samplerate
 			c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
-			c1 *= tuning->freq_nudge[channel_num];
-			c1 *= tuning->freq_shift[channel_num];
+			c1 *= tuning->freq_nudge[channel_num] * tuning->freq_shift[channel_num];
+
+			if (io->HICPUMODE) {
+				if (c1 > 1.30899581f) {
+					c1 = 1.30899581f; //hard limit at 20k
+				}
+			} else {
+				if (c1 > 1.9f) {
+					c1 = 1.9f; //hard limit at 20k
+				}
+			}
 
 			destvoct[channel_num] = c1;
 
@@ -338,9 +356,17 @@ void Filter::filter_onepass() {
 
 			// FREQ: c1 = 2 * pi * freq / samplerate
 			c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
-			// if (channel_num == 0) {	std::cout << c1 << std::endl; }
-			c1 *= tuning->freq_nudge[channel_num];
-			c1 *= tuning->freq_shift[channel_num];
+			c1 *= tuning->freq_nudge[channel_num] * tuning->freq_shift[channel_num];
+
+			if (io->HICPUMODE) {
+				if (c1 > 1.30899581f) {
+					c1 = 1.30899581f; //hard limit at 20k
+				}
+			} else {
+				if (c1 > 1.9f) {
+					c1 = 1.9f; //hard limit at 20k
+				}
+			}
 
 			// Set VOCT output
 			if (j < NUM_CHANNELS) { // Starting v/oct for gliss calc comes from first pass

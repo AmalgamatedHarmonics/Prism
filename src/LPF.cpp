@@ -43,13 +43,7 @@ void LPF::setup_fir_filter() {
 
 	//initialize the moving average buffer
 	for (int i = 0; i < MAX_FIR_LPF_SIZE; i++) {
-		//Bipolar CVs default to value of 2048
-		//Other CVs default to 0
-		if (polarity == AP_BIPOLAR) {
-			fir_lpf[i] = 0.0f;
-		} else {
-			fir_lpf[i] = 5.0f;
-		}
+		fir_lpf[i] = 0.0f;
 	}
 
 	//set inital values

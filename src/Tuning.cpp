@@ -89,9 +89,9 @@ void Tuning::update(void) {
 				freq_jack_conditioning[1].apply_bracket();
 
 				// Convert to 1VOCT
-				f_shift_all[1] = pow(2.0, freq_jack_conditioning[1].bracketed_val);
-				f_shift_all[3] = f_shift_all[1];
-				f_shift_all[5] = f_shift_all[1];
+				f_shift_all[5] = pow(2.0, freq_jack_conditioning[1].bracketed_val);
+				f_shift_all[1] = f_shift_all[5];
+				f_shift_all[3] = f_shift_all[5];
 			} 
 
 			freq_shift[0] = f_shift_all[0]; 
