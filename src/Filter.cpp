@@ -109,7 +109,7 @@ void Filter::process_scale_bank(void) {
 					if (io->HICPUMODE) {
 						c_hiq[i] = (float *)(scales.presets[scale_bank[i]]->c_maxq96000);
 					} else {
-						c_hiq[i] = (float *)(scales.presets[scale_bank[i]]->c_maxq96000);
+						c_hiq[i] = (float *)(scales.presets[scale_bank[i]]->c_maxq48000);
 					}
 				}	
 			} else if (filter_mode != TWOPASS && filter_type == BPRE) {
