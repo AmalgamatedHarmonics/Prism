@@ -19,7 +19,7 @@ ScaleSet::ScaleSet() {
 	presets.push_back(&wc_alpha1);
 	presets.push_back(&wc_gamma);
 	presets.push_back(&seventeen);
-	presets.push_back(&bohlenppierce);
+	presets.push_back(&bohlenpierce);
 	presets.push_back(&buchla296);
 	presets.push_back(&userscale);
 
@@ -40,7 +40,7 @@ ScaleSet::ScaleSet() {
 	full.push_back(&wc_alpha1);
 	full.push_back(&wc_gamma);
 	full.push_back(&seventeen);
-	full.push_back(&bohlenppierce);
+	full.push_back(&bohlenpierce);
 	full.push_back(&buchla296);
 	full.push_back(&userscale);
 	full.push_back(&gamma_notused);

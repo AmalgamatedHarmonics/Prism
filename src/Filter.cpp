@@ -58,9 +58,10 @@ void Filter::process_bank_change(void) {
 }
 
 void Filter::process_user_scale_change() {
-	if (io->USER_SCALE_CHANGED) {
+	if (io->USERSCALE_CHANGED) {
 		for (int i = 0; i < NUM_BANKNOTES; i++) {
-			user_scale_bank[i] = io->USER_SCALE[i];
+			userscale_bank96[i] = io->USERSCALE96[i];
+			userscale_bank48[i] = io->USERSCALE48[i];
  		}
 	}
 }
@@ -86,7 +87,7 @@ void Filter::process_scale_bank(void) {
 			scale[i] = NUM_SCALES - 1;
 		}
 
-		if (scale_bank[i] != old_scale_bank[i] || filter_type_changed || io->USER_SCALE_CHANGED) {
+		if (scale_bank[i] != old_scale_bank[i] || filter_type_changed || io->READCOEFFS ) {
 
 			old_scale_bank[i] = scale_bank[i];
 
@@ -99,14 +100,28 @@ void Filter::process_scale_bank(void) {
 
 			if (filter_type == MAXQ) {
 				if (scale_bank[i] == NUM_SCALEBANKS - 1) {
-					c_hiq[i] = (float *)(user_scale_bank);
+					if (io->HICPUMODE) {
+						c_hiq[i] = (float *)(userscale_bank96); 
+					} else {
+						c_hiq[i] = (float *)(userscale_bank48); 
+					}
 				} else {
-					c_hiq[i] = (float *)(scales.presets[scale_bank[i]]->c_maxq);
+					if (io->HICPUMODE) {
+						c_hiq[i] = (float *)(scales.presets[scale_bank[i]]->c_maxq96000);
+					} else {
+						c_hiq[i] = (float *)(scales.presets[scale_bank[i]]->c_maxq96000);
+					}
 				}	
 			} else if (filter_mode != TWOPASS && filter_type == BPRE) {
-				c_hiq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre_hi);
-				c_loq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre_lo);
-				bpretuning[i]	= (float *)(scales.presets[scale_bank[i]]->c_maxq); // Filter tuning, no exact tracking
+				if (io->HICPUMODE) {
+					c_hiq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre9600080040);
+					c_loq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre9600022);
+					bpretuning[i]	= (float *)(scales.presets[scale_bank[i]]->c_maxq96000); // Filter tuning, no exact tracking
+				} else {
+					c_hiq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre4800080040);
+					c_loq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre4800022);
+					bpretuning[i]	= (float *)(scales.presets[scale_bank[i]]->c_maxq48000); // Filter tuning, no exact tracking
+				}
 			}
 		}	// new scale bank or filter type changed
 	}	// channels
@@ -159,23 +174,18 @@ void Filter::filter_twopass() {
 		} // 1000 to 3925
 		
 		// Q/RESONANCE: c0 = 1 - 2/(decay * samplerate), where decay is around 0.01 to 4.0
-		c0_a = 1.0f - exp_4096[(uint32_t)(qval_a[channel_num] / 1.4f) + 200] / (10.0f / io->FREQSCALE); //exp[200...3125]
-		c0   = 1.0f - exp_4096[(uint32_t)(qval_b[channel_num] / 1.4f) + 200] / (10.0f / io->FREQSCALE); //exp[200...3125]
+		if (io->HICPUMODE) {
+			c0_a = 1.0f - exp_4096[(uint32_t)(qval_a[channel_num] / 1.4f) + 200] / 10.0f; //exp[200...3125]
+			c0   = 1.0f - exp_4096[(uint32_t)(qval_b[channel_num] / 1.4f) + 200] / 10.0f; //exp[200...3125]
+		} else {
+			c0_a = 1.0f - exp_4096[(uint32_t)(qval_a[channel_num] / 1.4f) + 200] / 5.0f; //exp[200...3125]
+			c0   = 1.0f - exp_4096[(uint32_t)(qval_b[channel_num] / 1.4f) + 200] / 5.0f; //exp[200...3125]
+		}
 
 		// FREQ: c1 = 2 * pi * freq / samplerate
 		c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
+		// if (channel_num == 0) {	std::cout << c1 << std::endl; }
 		c1 *= tuning->freq_nudge[channel_num] * tuning->freq_shift[channel_num];
-		c1 *= io->FREQSCALE;
-		if (io->FREQSCALE == 1.0f) {
-			if (c1 > 1.30899581f) {
-				c1 = 1.30899581f; //hard limit at 20k
-			}
-		}
-		if (io->FREQSCALE == 2.0f) {
-			if (c1 > 1.9f) {
-				c1 = 1.9f; //hard limit at 20k
-			}
-		}
 
 		// CROSSFADE between the two filters
 		if (qc[channel_num] < CROSSFADE_MIN) {
@@ -238,17 +248,6 @@ void Filter::filter_twopass() {
 			c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
 			c1 *= tuning->freq_nudge[channel_num];
 			c1 *= tuning->freq_shift[channel_num];
-			c1 *= io->FREQSCALE;
-			if (io->FREQSCALE == 1.0f) {
-				if (c1 > 1.30899581f) {
-					c1 = 1.30899581f; //hard limit at 20k
-				}
-			}
-			if (io->FREQSCALE == 2.0f) {
-				if (c1 > 1.9f) {
-					c1 = 1.9f; //hard limit at 20k
-				}
-			}
 
 			destvoct[channel_num] = c1;
 
@@ -331,16 +330,17 @@ void Filter::filter_onepass() {
 			}
 
 			// Q/RESONANCE: c0 = 1 - 2/(decay * samplerate), where decay is around 0.01 to 4.0
-			c0 = 1.0f - exp_4096[(uint32_t)(q->qval[channel_num] / 1.4f) + 200] / (10.0 / io->FREQSCALE); //exp[200...3125]
+			if (io->HICPUMODE) {
+				c0 = 1.0f - exp_4096[(uint32_t)(q->qval[channel_num] / 1.4f) + 200] / 10.0; //exp[200...3125]
+			} else {
+				c0 = 1.0f - exp_4096[(uint32_t)(q->qval[channel_num] / 1.4f) + 200] / 5.0; //exp[200...3125]
+			}
 
 			// FREQ: c1 = 2 * pi * freq / samplerate
 			c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
+			// if (channel_num == 0) {	std::cout << c1 << std::endl; }
 			c1 *= tuning->freq_nudge[channel_num];
 			c1 *= tuning->freq_shift[channel_num];
-			c1 *= io->FREQSCALE;
-			if (c1 > 1.30899581f) {
-				c1 = 1.30899581f; //hard limit at 20k
-			}
 
 			// Set VOCT output
 			if (j < NUM_CHANNELS) { // Starting v/oct for gliss calc comes from first pass
@@ -348,7 +348,6 @@ void Filter::filter_onepass() {
 			} else {
 				destvoct[channel_num] = c1;
 			}
-
 
 			// AMPLITUDE: Boost high freqs and boost low resonance
 			c2  = (0.003f * c1) - (0.1f * c0) + 0.102f;
@@ -564,12 +563,14 @@ void Filter::process_audio_block() {
 	}
 	
 	filter_type_changed = false;
-	io->USER_SCALE_CHANGED = false;
+	io->USERSCALE_CHANGED = false;
+	io->READCOEFFS = false;
 
 }
 
 void Filter::set_default_user_scalebank(void) {
 	for (int j = 0; j < NUM_BANKNOTES; j++) {
-		user_scale_bank[j] = scales.presets[NUM_SCALEBANKS - 1]->c_maxq[j];
+		userscale_bank96[j] = scales.presets[NUM_SCALEBANKS - 1]->c_maxq96000[j];
+		userscale_bank48[j] = scales.presets[NUM_SCALEBANKS - 1]->c_maxq48000[j];
 	}
 }

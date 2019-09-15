@@ -65,7 +65,7 @@ void Inputs::param_read_switches(void) {
 		rotation->rotate_to_next_scale = 0;
 	}
 
-	switch (io->FILTER_SWITCH) {
+	switch (io->FILTER_SWITCH) {	
 		case OnePass:
 			filter->filter_mode = ONEPASS;
 			filter->change_filter_type(MAXQ);
@@ -78,6 +78,11 @@ void Inputs::param_read_switches(void) {
 			filter->filter_mode = ONEPASS;
 			filter->change_filter_type(BPRE);
 			break;
+	}
+
+	if (oldFilter != io->FILTER_SWITCH) {
+		oldFilter = io->FILTER_SWITCH;
+		io->READCOEFFS = true;
 	}
 
 	switch (io->ENV_SWITCH) {

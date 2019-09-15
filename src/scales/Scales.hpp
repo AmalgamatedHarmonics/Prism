@@ -8,9 +8,12 @@ struct Scale {
 	std::string description;
 	std::string scalename[11];
 	std::string notedesc[231];
-	float c_maxq[231];
-	float c_bpre_hi[231][3];
-	float c_bpre_lo[231][3];
+	float c_maxq48000[231];
+	float c_maxq96000[231];
+	float c_bpre4800022[231][3];
+	float c_bpre9600022[231][3];
+	float c_bpre4800080040[231][3];
+	float c_bpre9600080040[231][3];
 };
 
 struct ScaleSet {
@@ -38,7 +41,7 @@ extern Scale wc_alpha1;
 extern Scale wc_alpha2;
 extern Scale wc_gamma;
 extern Scale seventeen;
-extern Scale bohlenppierce;
+extern Scale bohlenpierce;
 extern Scale buchla296;
 extern Scale userscale;
 extern Scale gamma_notused;

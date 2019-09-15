@@ -168,7 +168,8 @@ void Controller::load_from_state(void) {
 		}
 
 		for (int i = 0; i < NUM_BANKNOTES; i++) {
-			filter->user_scale_bank[i] = state->userscale[i];
+			filter->userscale_bank96[i] = state->userscale96[i];
+			filter->userscale_bank48[i] = state->userscale48[i];
 		}
 
 		rotation->motion_notejump	= 0;
@@ -191,7 +192,8 @@ void Controller::populate_state(void) {
 	}
 
 	for (int i = 0; i < NUM_BANKNOTES; i++) {
-		state->userscale[i] = filter->user_scale_bank[i]; 
+		state->userscale96[i] = filter->userscale_bank96[i]; 
+		state->userscale48[i] = filter->userscale_bank48[i]; 
 	}
 
 }

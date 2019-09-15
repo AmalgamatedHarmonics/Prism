@@ -273,8 +273,12 @@ struct RainbowScaleExpander : core::PrismModule {
 
 	std::string path;
 
-	const float CtoF = 96000.0f / (2.0f * core::PI);
-	const float FtoC = (2.0f * core::PI) / 96000.0f;
+	const float CtoF96 = 96000.0f / (2.0f * core::PI);
+	const float FtoC96 = (2.0f * core::PI) / 96000.0f;
+
+	const float CtoF48 = 48000.0f / (2.0f * core::PI);
+	const float FtoC48 = (2.0f * core::PI) / 48000.0f;
+
 
 	float currFreqs[NUM_BANKNOTES];
 	int currState[NUM_BANKNOTES];
@@ -412,7 +416,7 @@ struct RainbowScaleExpander : core::PrismModule {
 		scala.reset();
 
 		for (int j = 0; j < NUM_BANKNOTES; j++) {
-			currFreqs[j] = scales.presets[NUM_SCALEBANKS - 1]->c_maxq[j] * CtoF;
+			currFreqs[j] = scales.presets[NUM_SCALEBANKS - 1]->c_maxq96000[j] * CtoF96;
 			currState[j] = FRESH;
 			notedesc[j] = "";
 		}
@@ -1028,7 +1032,7 @@ struct RainbowScaleExpander : core::PrismModule {
 			description = scales.full[bank]->description;
 
 			for (int i = 0; i < NUM_BANKNOTES; i++) {
-				currFreqs[i] = scales.full[bank]->c_maxq[i] * CtoF;
+				currFreqs[i] = scales.full[bank]->c_maxq96000[i] * CtoF96;
 				currState[i] = FRESH;
 				notedesc[i] = scales.full[bank]->notedesc[i];
 			}
@@ -1087,7 +1091,8 @@ struct RainbowScaleExpander : core::PrismModule {
 				RainbowScaleExpanderMessage *pM = (RainbowScaleExpanderMessage*)leftExpander.module->rightExpander.producerMessage;
 				if (transferTrigger.process(params[TRANSFER_PARAM].getValue())) {
 					for (int i = 0; i < NUM_BANKNOTES; i++) {
-						pM->coeffs[i] = currFreqs[i] * FtoC;
+						pM->maxq96[i] = currFreqs[i] * FtoC96;
+						pM->maxq48[i] = currFreqs[i] * FtoC48;
 						currState[i] = LOADED;
 					}
 					pM->updated = true;

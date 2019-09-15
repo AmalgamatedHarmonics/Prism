@@ -85,7 +85,8 @@ enum EnvelopeMode {
 uint32_t diff(uint32_t a, uint32_t b);
 
 struct RainbowScaleExpanderMessage {
-	float coeffs[NUM_BANKNOTES];
+	float maxq48[NUM_BANKNOTES];
+	float maxq96[NUM_BANKNOTES];
 	bool updated;
 };
 
@@ -239,7 +240,8 @@ struct Filter {
 
 	bool filter_type_changed = false;
 
-	float user_scale_bank[231];
+	float userscale_bank96[231];
+	float userscale_bank48[231];
 
 	void configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Q *_q, Tuning *_tuning, Levels *_levels);
 
@@ -263,7 +265,8 @@ struct Filter {
 struct IO {
 
 	bool					UI_UPDATE;
-	float 					FREQSCALE;
+	bool					HICPUMODE;
+	bool					READCOEFFS = true;
 
 	uint16_t				MORPH_ADC;
 
@@ -318,8 +321,9 @@ struct IO {
 	// Bank select
 	bool					CHANGED_BANK;
 	uint8_t					NEW_BANK;
-	float					USER_SCALE[NUM_BANKNOTES];
-	bool					USER_SCALE_CHANGED = false;
+	float					USERSCALE96[NUM_BANKNOTES];
+	float					USERSCALE48[NUM_BANKNOTES];
+	bool					USERSCALE_CHANGED = false;
 
 	//FREQ BLOCKS
 	std::bitset<20>			FREQ_BLOCK;
@@ -408,6 +412,8 @@ struct Inputs {
 	int32_t t_scalecv				= 0;
 	int32_t t_old_scalecv			= 0;
 	float lpf_buf;
+
+	FilterSetting oldFilter;
 
 	void configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Filter *_filter, Tuning *_tuning, Levels *_levels);
 
@@ -612,7 +618,8 @@ struct State {
 	uint8_t note[NUM_CHANNELS];
 	uint8_t scale[NUM_CHANNELS];
 	uint8_t scale_bank[NUM_CHANNELS];
-	float userscale[NUM_BANKNOTES];
+	float userscale96[NUM_BANKNOTES];
+	float userscale48[NUM_BANKNOTES];
 
 	FilterTypes filter_type;
 	FilterModes filter_mode;

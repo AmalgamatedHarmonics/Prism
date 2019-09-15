@@ -189,8 +189,22 @@ struct Rainbow : core::PrismModule {
 
 	int frameC = 100000000;
 	bool highCPUMode = false;
+	bool highCPUModeChanged = true;
 	int internalSampleRate = 48000;
-	float scale = 2.0f;
+	float freqScale = 2.0f;
+
+	void setCPUMode(bool isHigh) {
+		if (isHigh) {
+			highCPUMode = true;
+			internalSampleRate = 96000;
+			freqScale = 1.0f;
+		} else {
+			highCPUMode = false;
+			internalSampleRate = 48000;
+			freqScale = 2.0f;
+		}
+		highCPUModeChanged = true;
+	}
 
 	json_t *dataToJson() override {
 
@@ -254,12 +268,19 @@ struct Rainbow : core::PrismModule {
 		json_t *blockJ = json_string(main.io->FREQ_BLOCK.to_string().c_str());
 		json_object_set_new(rootJ, "freqblock", blockJ);
 
-		json_t *userscale_array	  	= json_array();
+		json_t *userscale96_array	= json_array();
 		for (int i = 0; i < NUM_BANKNOTES; i++) {
-			json_t *noteJ   		= json_real(main.state->userscale[i]);
-			json_array_append_new(userscale_array,   	noteJ);
+			json_t *noteJ   		= json_real(main.state->userscale96[i]);
+			json_array_append_new(userscale96_array,   	noteJ);
 		}
-		json_object_set_new(rootJ, "userscale",	userscale_array);
+		json_object_set_new(rootJ, "userscale",	userscale96_array);
+
+		json_t *userscale48_array	= json_array();
+		for (int i = 0; i < NUM_BANKNOTES; i++) {
+			json_t *noteJ   		= json_real(main.state->userscale48[i]);
+			json_array_append_new(userscale48_array,   	noteJ);
+		}
+		json_object_set_new(rootJ, "userscale48",	userscale48_array);
 
 		return rootJ;
 	}
@@ -268,8 +289,9 @@ struct Rainbow : core::PrismModule {
 
 		// gliss
 		json_t *cpuJ = json_object_get(rootJ, "highcpu");
-		if (cpuJ)
-			highCPUMode = json_integer_value(cpuJ);
+		if (cpuJ) {
+			setCPUMode(json_integer_value(cpuJ));
+		}
 
 		// gliss
 		json_t *glissJ = json_object_get(rootJ, "gliss");
@@ -350,13 +372,23 @@ struct Rainbow : core::PrismModule {
 		if (blockJ)
 			main.io->FREQ_BLOCK = std::bitset<20>(json_string_value(blockJ));
 
-		// userscale
-		json_t *uscale_array = json_object_get(rootJ, "userscale");
-		if (uscale_array) {
+		// userscale 48
+		json_t *uscale48_array = json_object_get(rootJ, "userscale48");
+		if (uscale48_array) {
 			for (int i = 0; i < NUM_BANKNOTES; i++) {
-				json_t *noteJ = json_array_get(uscale_array, i);
+				json_t *noteJ = json_array_get(uscale48_array, i);
 				if (noteJ)
-					main.state->userscale[i] = json_real_value(noteJ);
+					main.state->userscale48[i] = json_real_value(noteJ);
+			}
+		}
+
+		// userscale 96
+		json_t *uscale96_array = json_object_get(rootJ, "userscale");
+		if (uscale96_array) {
+			for (int i = 0; i < NUM_BANKNOTES; i++) {
+				json_t *noteJ = json_array_get(uscale96_array, i);
+				if (noteJ)
+					main.state->userscale96[i] = json_real_value(noteJ);
 			}
 		}
 
@@ -466,18 +498,26 @@ void Rainbow::process(const ProcessArgs &args) {
 		main.io->UI_UPDATE = true;
 	}
 
-	main.io->USER_SCALE_CHANGED = false;
+	main.io->USERSCALE_CHANGED = false;
 	if (rightExpander.module) {
 		if (rightExpander.module->model == modelRainbowScaleExpander) {
 			RainbowScaleExpanderMessage *cM = (RainbowScaleExpanderMessage*)rightExpander.consumerMessage;
 			if (cM->updated) {
 				for (int i = 0; i < NUM_BANKNOTES; i++) {
-					main.io->USER_SCALE[i] = cM->coeffs[i];
+					main.io->USERSCALE96[i] = cM->maxq96[i]; 
+					main.io->USERSCALE48[i] = cM->maxq48[i]; 
 				}
-				main.io->USER_SCALE_CHANGED = true;
+				main.io->USERSCALE_CHANGED = true;
+				main.io->READCOEFFS = true;
 			} 
 		}
 	} 
+
+	main.io->HICPUMODE = highCPUMode;
+	if (highCPUModeChanged) { // Set from widget
+		main.io->READCOEFFS = true;
+		highCPUModeChanged = false;
+	}
 
 	if (rotCWTrigger.process(inputs[ROTCW_INPUT].getVoltage())) {
 		main.io->ROTUP_TRIGGER = true;
@@ -645,8 +685,6 @@ void Rainbow::process(const ProcessArgs &args) {
 		main.io->SCALEROT_SWITCH = !main.io->SCALEROT_SWITCH;
 	} 
 
-	main.io->FREQSCALE = scale;
-
 	main.prepare();
 
 	audio.inputChannels = inputs[POLY_IN_INPUT].getChannels();
@@ -654,7 +692,7 @@ void Rainbow::process(const ProcessArgs &args) {
 	audio.noiseSelected = noiseSelected;
 	audio.sampleRate = args.sampleRate;
 	audio.internalSampleRate = internalSampleRate;
-	audio.outputScale = scale;
+	audio.outputScale = freqScale;
 
 	switch(audio.outputChannels) {
 		case 0:
@@ -1098,13 +1136,9 @@ struct RainbowWidget : ModuleWidget {
 
 		struct CPUItem : MenuItem {
 			Rainbow *module;
-			bool cpuMode;
-			int rate;
-			float scale;
+			bool mode;
 			void onAction(const rack::event::Action &e) override {
-				module->highCPUMode = cpuMode;
-				module->internalSampleRate = rate;
-				module->scale = scale;
+				module->setCPUMode(mode);
 			}
 		};
 
@@ -1113,16 +1147,12 @@ struct RainbowWidget : ModuleWidget {
 			Menu *createChildMenu() override {
 				Menu *menu = new Menu;
 				std::vector<bool> modes = {true, false};
-				std::vector<int> rates = {96000, 48000};
-				std::vector<float> scales = {1.0f, 2.0f};
-
 				std::vector<std::string> names = {"High CPU Mode (96Khz)", "Low CPU Mode (48KHz)"};
+
 				for (size_t i = 0; i < modes.size(); i++) {
 					CPUItem *item = createMenuItem<CPUItem>(names[i], CHECKMARK(module->highCPUMode == modes[i]));
 					item->module = module;
-					item->cpuMode = modes[i];
-					item->rate = rates[i];
-					item->scale = scales[i];
+					item->mode = modes[i];
 					menu->addChild(item);
 				}
 				return menu;
