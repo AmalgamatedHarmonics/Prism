@@ -476,6 +476,8 @@ struct Rainbow : core::PrismModule {
 		currBank = 0;
 		nextBank = 0;
 
+		highCPUMode = false;
+
 		main.initialise();
 	}
 
