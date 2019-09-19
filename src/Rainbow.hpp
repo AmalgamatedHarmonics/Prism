@@ -186,7 +186,7 @@ struct Envelope {
 
 	void initialise(void);
 	void update();
-	float freqCoeftoVOct(uint32_t k, float v);
+	float freqCoeftoVOct(float k);
 
 };
 
