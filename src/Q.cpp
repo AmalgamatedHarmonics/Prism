@@ -42,6 +42,8 @@ void Q::update(void) {
  	if (q_update_ctr++ > Q_UPDATE_RATE) { 
 		q_update_ctr = 0;
 
+		float lpf = io->HICPUMODE ? Q_LPF_96 : Q_LPF_48;
+
 		//Check jack + LPF
 		int32_t qg = io->GLOBAL_Q_LEVEL + io->GLOBAL_Q_CONTROL;
 		if (qg < 0) {
@@ -51,8 +53,8 @@ void Q::update(void) {
 			qg = 4095;
 		}
 		
-		global_lpf *= QGLOBAL_LPF;
-		global_lpf += (1.0f - QGLOBAL_LPF) * qg;
+		global_lpf *= lpf;
+		global_lpf += (1.0f - lpf) * qg;
 
 		for (int i = 0; i < NUM_CHANNELS; i++){
 			int32_t qc = io->CHANNEL_Q_LEVEL[i] + io->CHANNEL_Q_CONTROL[i];
@@ -63,8 +65,8 @@ void Q::update(void) {
 				qc = 4095;
 			}
 
-			qlockpot_lpf[i] *= QCHANNEL_LPF;
-			qlockpot_lpf[i] += (1.0f - QCHANNEL_LPF) * qc;
+			qlockpot_lpf[i] *= lpf;
+			qlockpot_lpf[i] += (1.0f - lpf) * qc;
 
 			prev_qval[i] = qval_goal[i];
 			if (io->CHANNEL_Q_ON[i]) {

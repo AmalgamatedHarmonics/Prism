@@ -538,8 +538,8 @@ struct Q {
    	uint32_t Q_UPDATE_RATE					= 50; 
 
 	uint32_t QPOT_MIN_CHANGE				= 100;
-	float QGLOBAL_LPF						= 0.95f;
-	float QCHANNEL_LPF						= 0.95f;
+	float Q_LPF_96							= 0.95f;
+	float Q_LPF_48							= 0.90f;
 
 	void configure(IO *_io);
 	void update(void);
