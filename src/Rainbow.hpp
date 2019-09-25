@@ -482,7 +482,7 @@ struct Rotation {
 	int8_t motion_fadeto_note[NUM_CHANNELS];
 	int8_t motion_fadeto_scale[NUM_CHANNELS];
 
-	int8_t motion_rotate;
+	int32_t motion_rotate;
 	int8_t motion_spread_dest[NUM_CHANNELS];
 	int8_t motion_spread_dir[NUM_CHANNELS];
 
