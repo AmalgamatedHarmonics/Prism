@@ -79,7 +79,7 @@ void Filter::process_scale_bank(void) {
 	// To-Do: move this somewhere else, so it runs on a timer
 	for (int i = 0; i < NUM_CHANNELS; i++) {
 
-		if (scale_bank[i] >= NUM_SCALEBANKS && scale_bank[i] != 0xFF) {
+		if (scale_bank[i] >= NUM_SCALEBANKS) {
 			scale_bank[i] = NUM_SCALEBANKS - 1;
 		}
 
@@ -96,6 +96,15 @@ void Filter::process_scale_bank(void) {
 				*(ff+j)		= 0.0f;
 				*(ff+j+1)	= 0.0f;
 				*(ff+j+2)	= 0.0f;
+			}
+
+			if (filter_type == MAXQ && filter_mode == TWOPASS) {
+				float *ffa = (float *)buf_a[i];
+				for (int j = 0; j < (NUM_SCALES * NUM_FILTS); j++) {
+					*(ffa+j)        = 0.0f;
+					*(ffa+j+1)      = 0.0f;
+					*(ffa+j+2)      = 0.0f;
+				}
 			}
 
 			if (filter_type == MAXQ) {
