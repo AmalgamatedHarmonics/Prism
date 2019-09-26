@@ -1125,6 +1125,11 @@ struct FrequencyDisplay : TransparentWidget {
 	}
 
 	void draw(const DrawArgs &ctx) override {
+
+		if (module == NULL) {
+			return;		
+		}
+
 		if (!module->stepX % 60 != 0) {
 			return;
 		}
