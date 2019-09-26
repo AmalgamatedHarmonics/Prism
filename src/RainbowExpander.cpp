@@ -986,12 +986,14 @@ struct RainbowScaleExpander : core::PrismModule {
 
 			ScalaDef *note = scala.notes[scalaPos];
 			float freq;
+			float delta;
 			if (note->isRatio) {
-				freq = f0 * ((float)note->upper / (float)note->lower);
+				delta = (float)note->upper / (float)note->lower;
 			} else {
-				freq = f0 * pow(2.0f, note->cents / 1200.0f);
+				delta = pow(2.0f, note->cents / 1200.0f);
 			}
 
+			freq = f0 * delta;
 			if (freq > maxFreq) {
 				break;
 			}
@@ -1007,7 +1009,7 @@ struct RainbowScaleExpander : core::PrismModule {
 
 			// Wrap
 			if (++scalaPos == scala.notes.size()) {
-				f0 *= 2.0f;
+				f0 *= delta;
 				scalaPos = 0;
 			} 
 
