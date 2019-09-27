@@ -23,27 +23,19 @@ float Audio::generateNoise() {
 void Audio::ChannelProcess1(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output) {
 
 	int inChannels;
+	float n = 0.0f;
 
-	// Must generate 2, 3 or 6 input streams
-	switch(inputChannels) {
-			case 0:
-			case 1:
-					inChannels = 1;
-					break;
-			case 2:
-					inChannels = 2;
-					break;
-			case 3:
-					inChannels = 3;
-					break;
-			default:
-					inChannels = 6;
+	if (inputChannels == 0) {
+		n = generateNoise();
+		inChannels = 1;
+	} else {
+		inChannels = inputChannels;
 	}
 
 	for (int i = 0; i < inChannels; i++) {
 		if (!nInputBuffer[i].full()) {
 			if (inputChannels == 0) {
-				nInputFrame[i].samples[0] = generateNoise() / 5.0f;
+				nInputFrame[i].samples[0] = n / 5.0f;
 			} else if (inputChannels == 1) {
 				nInputFrame[i].samples[0] = input.getVoltage(0) / 5.0f;
 			} else {
@@ -128,27 +120,19 @@ void Audio::ChannelProcess1(rainbow::Controller &main, rack::engine::Input &inpu
 void Audio::ChannelProcess2(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output) {
 
 	int inChannels;
+	float n = 0.0f;
 
-	// Must generate 2, 3 or 6 input streams
-	switch(inputChannels) {
-			case 0:
-			case 1:
-					inChannels = 1;
-					break;
-			case 2:
-					inChannels = 2;
-					break;
-			case 3:
-					inChannels = 3;
-					break;
-			default:
-					inChannels = 6;
+	if (inputChannels == 0) {
+		n = generateNoise();
+		inChannels = 1;
+	} else {
+		inChannels = inputChannels;
 	}
 
 	for (int i = 0; i < inChannels; i++) {
 		if (!nInputBuffer[i].full()) {
 			if (inputChannels == 0) {
-				nInputFrame[i].samples[0] = generateNoise() / 5.0f;
+				nInputFrame[i].samples[0] = n / 5.0f;
 			} else if (inputChannels == 1) {
 				nInputFrame[i].samples[0] = input.getVoltage(0) / 5.0f;
 			} else {
@@ -240,27 +224,19 @@ void Audio::ChannelProcess2(rainbow::Controller &main, rack::engine::Input &inpu
 void Audio::ChannelProcess6(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output) {
 
 	int inChannels;
+	float n = 0.0f;
 
-	// Must generate 2, 3 or 6 input streams
-	switch(inputChannels) {
-			case 0:
-			case 1:
-					inChannels = 1;
-					break;
-			case 2:
-					inChannels = 2;
-					break;
-			case 3:
-					inChannels = 3;
-					break;
-			default:
-					inChannels = 6;
+	if (inputChannels == 0) {
+		n = generateNoise();
+		inChannels = 1;
+	} else {
+		inChannels = inputChannels;
 	}
 
 	for (int i = 0; i < inChannels; i++) {
 		if (!nInputBuffer[i].full()) {
 			if (inputChannels == 0) {
-				nInputFrame[i].samples[0] = generateNoise() / 5.0f;
+				nInputFrame[i].samples[0] = n / 5.0f;
 			} else if (inputChannels == 1) {
 				nInputFrame[i].samples[0] = input.getVoltage(0) / 5.0f;
 			} else {
