@@ -568,6 +568,11 @@ void Filter::process_audio_block() {
 	} 	// Filter-mode
 
 	rotation->update_morph();
+	// Since process_audio_block is called half as frequently in 48Khz mode as in 96Khz mode
+	// We must call update_morph twice, instead of once, to compensate
+	if (!io->HICPUMODE) { 
+		rotation->update_morph();
+	}
 
 	// MORPHING
 	for (int i = 0; i < NUM_SAMPLES; i++) {
