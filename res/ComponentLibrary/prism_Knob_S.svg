@@ -1,20 +1,67 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Generator: Adobe Illustrator 23.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="22px" height="22px" viewBox="0 0 22 22" enable-background="new 0 0 22 22" xml:space="preserve">
-<g id="KNOBS">
-	<g>
-		<g id="layer1_2_" transform="translate(-168.09312,-67.39659)">
-			<path id="path110598_4_" fill="#161616" d="M190.09312,78.39848c0,6.0751-4.92294,10.99811-10.99808,10.99811
-				c-6.07515,0-11.00192-4.92299-11.00192-10.99811c0-6.0789,4.92677-11.00189,11.00192-11.00189
-				C185.17014,67.39658,190.09312,72.31958,190.09312,78.39848"/>
-			<path id="path110598_3_" fill="#1E1E1E" d="M188.08868,78.39814c0,4.96809-4.02588,8.99402-8.99399,8.99402
-				c-4.96812,0-8.99713-4.02592-8.99713-8.99402c0-4.97119,4.02901-8.99711,8.99713-8.99711
-				C184.06277,69.40102,188.08868,73.42694,188.08868,78.39814"/>
-			<path fill-rule="evenodd" clip-rule="evenodd" fill="#DFDFDF" d="M179.11562,78.39658h-0.04466
-				c-0.80907,0-1.46495-0.65588-1.46495-1.46495v-4.91961c0-0.80907,0.65588-1.46495,1.46495-1.46495h0.04466
-				c0.80907,0,1.46495,0.65588,1.46495,1.46495v4.91961C180.58057,77.7407,179.92468,78.39658,179.11562,78.39658z"/>
-		</g>
-	</g>
-</g>
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.0"
+   id="Layer_1"
+   x="0px"
+   y="0px"
+   width="22px"
+   height="22px"
+   viewBox="0 0 22 22"
+   enable-background="new 0 0 22 22"
+   xml:space="preserve"
+   sodipodi:docname="prism_Knob_S.svg"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"><metadata
+   id="metadata16061"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /></cc:Work></rdf:RDF></metadata><defs
+   id="defs16059">
+	
+
+		
+	
+			
+			
+			
+		</defs><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1060"
+   inkscape:window-height="812"
+   id="namedview16057"
+   showgrid="false"
+   inkscape:zoom="10.727273"
+   inkscape:cx="-0.6059322"
+   inkscape:cy="11"
+   inkscape:window-x="415"
+   inkscape:window-y="109"
+   inkscape:window-maximized="0"
+   inkscape:current-layer="Layer_1" />
+<path
+   style="fill:#161616"
+   inkscape:connector-curvature="0"
+   d="M 22,11.00189 C 22,17.07699 17.07706,22 11.00192,22 4.92677,22 0,17.07701 0,11.00189 0,4.92299 4.92677,0 11.00192,0 17.07702,-1e-5 22,4.92299 22,11.00189"
+   id="path110598_4_" /><path
+   style="fill:#5a5a5a;fill-opacity:1"
+   inkscape:connector-curvature="0"
+   d="m 19.99556,11.00155 c 0,4.96809 -4.02588,8.99402 -8.99399,8.99402 -4.96812,0 -8.99713,-4.02592 -8.99713,-8.99402 0,-4.97119 4.02901,-8.99711 8.99713,-8.99711 4.96808,-1e-5 8.99399,4.02591 8.99399,8.99711"
+   id="path110598_3_" /><path
+   style="clip-rule:evenodd;fill:#dfdfdf;fill-rule:evenodd"
+   inkscape:connector-curvature="0"
+   id="path16050"
+   d="m 11.0225,10.99999 h -0.0447 c -0.80907,0 -1.46495,-0.65588 -1.46495,-1.46495 V 4.61543 c 0,-0.80907 0.65588,-1.46495 1.46495,-1.46495 h 0.0447 c 0.80907,0 1.46495,0.65588 1.46495,1.46495 v 4.91961 c 0,0.80907 -0.65589,1.46495 -1.46495,1.46495 z" />
 </svg>
