@@ -267,14 +267,14 @@ struct FloatReadout : PrismReadoutParam {
 			char text[128];
 
 			nvgFontSize(ctx.vg, 14.0f);
-			nvgFillColor(ctx.vg, nvgRGBA(0x84, 0x84, 0x8f, 0xFF));
+			nvgFillColor(ctx.vg, nvgRGBA(0xBE, 0xBE, 0xBE, 0xFF));
 			snprintf(text, sizeof(text), "%s", title.c_str());
 			nvgText(ctx.vg, pos.x, pos.y, text, NULL);
 
 			if (isActive) {
 				nvgFillColor(ctx.vg, nvgRGBA(0xff, 0xff, 0xff, 0xFF));
 			} else {
-				nvgFillColor(ctx.vg, nvgRGBA(0x84, 0x84, 0x84, 0xFF));
+				nvgFillColor(ctx.vg, nvgRGBA(0x00, 0x00, 0x00, 0xFF));
 			}
 
 			nvgFontSize(ctx.vg, 17.0f);
@@ -304,11 +304,14 @@ struct IntegerReadout : PrismReadoutParam {
 
 			char text[128];
 
+			nvgFillColor(ctx.vg, nvgRGBA(0xBE, 0xBE, 0xBE, 0xFF));
 			snprintf(text, sizeof(text), "%s", title.c_str());
 			nvgText(ctx.vg, pos.x, pos.y, text, NULL);
 
-			if (!isActive) {
-				nvgFillColor(ctx.vg, nvgRGBA(0x80, 0x80, 0x80, 0xFF));
+			if (isActive) {
+				nvgFillColor(ctx.vg, nvgRGBA(0xff, 0xff, 0xff, 0xFF));
+			} else {
+				nvgFillColor(ctx.vg, nvgRGBA(0x00, 0x00, 0x00, 0xFF));
 			}
 
 			snprintf(text, sizeof(text), "%d", (int)paramQuantity->getValue());
