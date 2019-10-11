@@ -2,9 +2,14 @@
 
 ## Rainbow
 
-1.1.1
-* Performance improvements
+1.2.0
+* Performance improvements with a 25%-45% reduction in CPU load
+* New scale structure for 48/96 mode
 * Add lights to show input mode for Poly In
+* Fix BP scale
+* Fix V/Oct in for 246 mode
+* Fix overflow im motion_rotate
+* Fix scale repeats for non-octave scales
 * Tweaks to UI 
 
 1.1.0
@@ -45,6 +50,9 @@
 
 ## Spectrum
 
-1.1.0
+1.2.0
+* New scale structure for 48/96 mode
+* Scales now have note information
 
+1.1.0
 * First version
