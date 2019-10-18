@@ -3,7 +3,7 @@ Prism is a plugin for the VCV virtual Eurorack environment.
 ![All](./doc/all.jpg)
 
 * Rainbow a port of the 4ms SMR module to the VCV system.
-* Spcetrum, an expander module for Rainbow. It creates User Scales for Rainbow.
+* Spectrum, an expander module for Rainbow. It creates User Scales for Rainbow.
 
 The latest release is 1.2.0. It is available through the [Plugin Manager](https://vcvrack.com/plugins.html). You can contact us at amalgamatedharmonics@outlook.com. 
 
