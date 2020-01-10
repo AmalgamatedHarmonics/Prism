@@ -20,7 +20,7 @@ float Audio::generateNoise() {
 	return nO;
 }
 
-void Audio::ChannelProcess1(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output) {
+void Audio::ChannelProcess1(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::Filter &filter) {
 
 	int inChannels;
 	float n = 0.0f;
@@ -63,30 +63,30 @@ void Audio::ChannelProcess1(rainbow::Controller &main, rack::engine::Input &inpu
 
 				switch(inChannels) {
 					case 1:
-						main.io->in[i][j] 			= v;
-						main.io->in[1 + i][j] 		= v;
-						main.io->in[2 + i][j] 		= v;
-						main.io->in[3 + i][j] 		= v;
-						main.io->in[4 + i][j] 		= v;
-						main.io->in[5 + i][j] 		= v;
+						io.in[i][j] 			= v;
+						io.in[1 + i][j] 		= v;
+						io.in[2 + i][j] 		= v;
+						io.in[3 + i][j] 		= v;
+						io.in[4 + i][j] 		= v;
+						io.in[5 + i][j] 		= v;
 						break;
 					case 2:
-						main.io->in[i][j] 			= v;
-						main.io->in[2 + i][j] 		= v;
-						main.io->in[4 + i][j] 		= v;
+						io.in[i][j] 			= v;
+						io.in[2 + i][j] 		= v;
+						io.in[4 + i][j] 		= v;
 						break;
 					case 3:
-						main.io->in[i * 2][j] 		= v;
-						main.io->in[1 + i * 2][j] 	= v;
+						io.in[i * 2][j] 		= v;
+						io.in[1 + i * 2][j] 	= v;
 						break;
 					default:
-						main.io->in[i][j] 			= v;
+						io.in[i][j] 			= v;
 				}
 			}
 		}
 
-		// Pass to module
-		main.process_audio();
+		// Pass to filter
+		filter.process_audio_block();
 
 		// Convert output buffer
 		for (int chan = 0; chan < NUM_CHANNELS; chan++) {
@@ -97,7 +97,7 @@ void Audio::ChannelProcess1(rainbow::Controller &main, rack::engine::Input &inpu
 
 		for (int chan = 0; chan < NUM_CHANNELS; chan++) {
 			for (int i = 0; i < NUM_SAMPLES; i++) {
-				outputFrames1[i].samples[0] += main.io->out[chan][i] / MAX_12BIT;
+				outputFrames1[i].samples[0] += io.out[chan][i] / MAX_12BIT;
 			}
 		}
 
@@ -117,7 +117,7 @@ void Audio::ChannelProcess1(rainbow::Controller &main, rack::engine::Input &inpu
 
 }
 
-void Audio::ChannelProcess2(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output) {
+void Audio::ChannelProcess2(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::Filter &filter) {
 
 	int inChannels;
 	float n = 0.0f;
@@ -160,30 +160,30 @@ void Audio::ChannelProcess2(rainbow::Controller &main, rack::engine::Input &inpu
 
 				switch(inChannels) {
 					case 1:
-						main.io->in[i][j] 			= v;
-						main.io->in[1 + i][j] 		= v;
-						main.io->in[2 + i][j] 		= v;
-						main.io->in[3 + i][j] 		= v;
-						main.io->in[4 + i][j] 		= v;
-						main.io->in[5 + i][j] 		= v;
+						io.in[i][j] 			= v;
+						io.in[1 + i][j] 		= v;
+						io.in[2 + i][j] 		= v;
+						io.in[3 + i][j] 		= v;
+						io.in[4 + i][j] 		= v;
+						io.in[5 + i][j] 		= v;
 						break;
 					case 2:
-						main.io->in[i][j] 			= v;
-						main.io->in[2 + i][j] 		= v;
-						main.io->in[4 + i][j] 		= v;
+						io.in[i][j] 			= v;
+						io.in[2 + i][j] 		= v;
+						io.in[4 + i][j] 		= v;
 						break;
 					case 3:
-						main.io->in[i * 2][j] 		= v;
-						main.io->in[1 + i * 2][j] 	= v;
+						io.in[i * 2][j] 		= v;
+						io.in[1 + i * 2][j] 	= v;
 						break;
 					default:
-						main.io->in[i][j] 			= v;
+						io.in[i][j] 			= v;
 				}
 			}
 		}
 
-		// Pass to module
-		main.process_audio();
+		// Pass to filter
+		filter.process_audio_block();
 
 		// Convert output buffer
 		for (int chan = 0; chan < NUM_CHANNELS; chan++) {
@@ -197,9 +197,9 @@ void Audio::ChannelProcess2(rainbow::Controller &main, rack::engine::Input &inpu
 		for (int chan = 0; chan < NUM_CHANNELS; chan++) {
 			for (int i = 0; i < NUM_SAMPLES; i++) {
 				if (chan & 1) {
-					outputFrames2[i].samples[1] += main.io->out[chan][i] / MAX_12BIT;
+					outputFrames2[i].samples[1] += io.out[chan][i] / MAX_12BIT;
 				} else {
-					outputFrames2[i].samples[0] += main.io->out[chan][i] / MAX_12BIT;
+					outputFrames2[i].samples[0] += io.out[chan][i] / MAX_12BIT;
 				}
 			}
 		}
@@ -221,7 +221,7 @@ void Audio::ChannelProcess2(rainbow::Controller &main, rack::engine::Input &inpu
 
 }
 
-void Audio::ChannelProcess6(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output) {
+void Audio::ChannelProcess6(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::Filter &filter) {
 
 	int inChannels;
 	float n = 0.0f;
@@ -264,35 +264,35 @@ void Audio::ChannelProcess6(rainbow::Controller &main, rack::engine::Input &inpu
 
 				switch(inChannels) {
 					case 1:
-						main.io->in[i][j] 			= v;
-						main.io->in[1 + i][j] 		= v;
-						main.io->in[2 + i][j] 		= v;
-						main.io->in[3 + i][j] 		= v;
-						main.io->in[4 + i][j] 		= v;
-						main.io->in[5 + i][j] 		= v;
+						io.in[i][j] 			= v;
+						io.in[1 + i][j] 		= v;
+						io.in[2 + i][j] 		= v;
+						io.in[3 + i][j] 		= v;
+						io.in[4 + i][j] 		= v;
+						io.in[5 + i][j] 		= v;
 						break;
 					case 2:
-						main.io->in[i][j] 			= v;
-						main.io->in[2 + i][j] 		= v;
-						main.io->in[4 + i][j] 		= v;
+						io.in[i][j] 			= v;
+						io.in[2 + i][j] 		= v;
+						io.in[4 + i][j] 		= v;
 						break;
 					case 3:
-						main.io->in[i * 2][j] 		= v;
-						main.io->in[1 + i * 2][j] 	= v;
+						io.in[i * 2][j] 		= v;
+						io.in[1 + i * 2][j] 	= v;
 						break;
 					default:
-						main.io->in[i][j] 			= v;
+						io.in[i][j] 			= v;
 				}
 			}
 		}
 
-		// Pass to module
-		main.process_audio();
+		// Pass to filter
+		filter.process_audio_block();
 
 		// Convert output buffer
 		for (int chan = 0; chan < NUM_CHANNELS; chan++) {
 			for (int i = 0; i < NUM_SAMPLES; i++) {
-				outputFrames6[i].samples[chan] = main.io->out[chan][i] / MAX_12BIT;
+				outputFrames6[i].samples[chan] = io.out[chan][i] / MAX_12BIT;
 			}
 		}
 

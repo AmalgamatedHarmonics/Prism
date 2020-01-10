@@ -99,7 +99,6 @@ struct IO;
 struct Inputs;
 struct LEDRing;
 struct LPF;
-struct Controller;
 struct Rotation;
 struct Q;
 struct Tuning;
@@ -149,9 +148,9 @@ struct Audio {
 
 
    	float generateNoise();
-	void ChannelProcess1(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output);
-	void ChannelProcess2(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output);
-	void ChannelProcess6(rainbow::Controller &main, rack::engine::Input &input, rack::engine::Output &output);
+	void ChannelProcess1(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::Filter &filter);
+	void ChannelProcess2(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::Filter &filter);
+	void ChannelProcess6(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::Filter &filter);
 
 };
 
@@ -448,29 +447,29 @@ struct LPF {
 
 };
 
-struct Controller {
+// struct Controller {
 	
-	Rotation *		rotation;
-	Envelope *		envelope;
-	LEDRing *		ring;
-	Filter *		filter;
-	IO *			io;
-	Q *				q;
-	Tuning *		tuning;
-	Levels *		levels;
-	Inputs *		input;  
-	State *			state;
+// 	Rotation *		rotation;
+// 	Envelope *		envelope;
+// 	LEDRing *		ring;
+// 	Filter *		filter;
+// 	IO *			io;
+// 	Q *				q;
+// 	Tuning *		tuning;
+// 	Levels *		levels;
+// 	Inputs *		input;  
+// 	State *			state;
 
-	Controller();  
-	void set_default_param_values(void);
-	void load_from_state(void);
-	void populate_state(void);
+// 	Controller();  
+// 	void set_default_param_values(void);
+// 	void load_from_state(void);
+// 	void populate_state(void);
 
-	void initialise(void);
-	void prepare(void);
-	void process_audio(void);
+// 	void initialise(void);
+// 	void prepare(void);
+// 	void process_audio(void);
 
-};
+// };
 
 struct Rotation {
 
