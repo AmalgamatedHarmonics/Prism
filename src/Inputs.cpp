@@ -32,11 +32,11 @@ extern float exp_4096[4096];
 
 using namespace rainbow;
 
-void Inputs::configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Filter *_filter, Tuning *_tuning, Levels *_levels) {
+void Inputs::configure(IO *_io, Rotation *_rotation, Envelope *_envelope, FilterBank *_filterbank, Tuning *_tuning, Levels *_levels) {
 	rotation	= _rotation;
 	envelope	= _envelope;
 	io			= _io;
-	filter		= _filter;
+	filterbank	= _filterbank;
 	tuning		= _tuning;
 	levels		= _levels;
 }
@@ -67,16 +67,16 @@ void Inputs::param_read_switches(void) {
 
 	switch (io->FILTER_SWITCH) {	
 		case OnePass:
-			filter->filter_mode = ONEPASS;
-			filter->change_filter_type(MAXQ);
+			filterbank->filter_mode = ONEPASS;
+			filterbank->change_filter_type(MAXQ);
 			break;
 		case TwoPass:
-			filter->filter_mode = TWOPASS;
-			filter->change_filter_type(MAXQ);
+			filterbank->filter_mode = TWOPASS;
+			filterbank->change_filter_type(MAXQ);
 			break;
 		case Bpre:
-			filter->filter_mode = ONEPASS;
-			filter->change_filter_type(BPRE);
+			filterbank->filter_mode = ONEPASS;
+			filterbank->change_filter_type(BPRE);
 			break;
 	}
 

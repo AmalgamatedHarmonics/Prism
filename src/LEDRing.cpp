@@ -30,11 +30,11 @@
 
 using namespace rainbow;
 
-void LEDRing::configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Filter *_filter, Q *_q) {
+void LEDRing::configure(IO *_io, Rotation *_rotation, Envelope *_envelope, FilterBank *_filterbank, Q *_q) {
 	rotation	= _rotation;
 	envelope	= _envelope;
 	io			= _io;
-	filter		= _filter;
+	filterbank	= _filterbank;
 	q			= _q;
 }
 
@@ -125,7 +125,7 @@ void LEDRing::display_filter_rotation() {
 		for (int chan = 0; chan < NUM_CHANNELS; chan++) {
 			int next_i = rotation->motion_fadeto_note[chan];
 
-			if (filter->note[chan] == i) {
+			if (filterbank->note[chan] == i) {
 				// PROCESS REST OF LED RING
 				if (inv_fade[chan] > 0.0f) {
 					if (io->ring[i][0] + io->ring[i][1] + io->ring[i][2] == 0.0f) {

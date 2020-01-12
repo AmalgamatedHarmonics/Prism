@@ -95,6 +95,7 @@ namespace rainbow {
 struct Audio;
 struct Envelope;
 struct Filter;
+struct FilterBank;
 struct IO;
 struct Inputs;
 struct LEDRing;
@@ -148,9 +149,9 @@ struct Audio {
 
 
    	float generateNoise();
-	void ChannelProcess1(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::Filter &filter);
-	void ChannelProcess2(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::Filter &filter);
-	void ChannelProcess6(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::Filter &filter);
+	void ChannelProcess1(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::FilterBank &filterbank);
+	void ChannelProcess2(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::FilterBank &filterbank);
+	void ChannelProcess6(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::FilterBank &filterbank);
 
 };
 
@@ -191,6 +192,33 @@ struct Envelope {
 
 struct Filter {
 
+	// filter buffer
+	float buf[NUM_CHANNELS][NUM_SCALES][NUM_FILTS][3]; 
+
+	// buffer for first filter of two-pass
+	float buf_a[NUM_CHANNELS][NUM_SCALES][NUM_FILTS][3]; 
+
+   	// Filter parameters
+	float qval_b[NUM_CHANNELS]   = {0, 0, 0, 0, 0, 0};	
+	float qval_a[NUM_CHANNELS]   = {0, 0, 0, 0, 0, 0};	
+	float qc[NUM_CHANNELS]   	 = {0, 0, 0, 0, 0, 0};
+
+	float CROSSFADE_POINT = 4095.0f * 2.0f / 3.0f;
+	float CROSSFADE_WIDTH = 1800.0f;
+	float CROSSFADE_MIN = CROSSFADE_POINT - CROSSFADE_WIDTH / 2.0f;
+	float CROSSFADE_MAX = CROSSFADE_POINT + CROSSFADE_WIDTH / 2.0f;
+	int32_t INPUT_LED_CLIP_LEVEL = 0xFFFFFF;
+
+	void filter_twopass(FilterBank *fb, float **filter_out);
+	void filter_onepass(FilterBank *fb, float **filter_out);
+	void filter_bpre(FilterBank *fb, float **filter_out);
+
+	void reset_buffer(int i, bool twopass);
+
+};
+
+struct FilterBank {
+
 	Rotation *		rotation;
 	Envelope *		envelope;
 	Q *				q;
@@ -198,40 +226,7 @@ struct Filter {
 	IO *			io;
 	Levels *		levels;
 
-	ScaleSet scales;
-
-	//Filters
-	uint8_t note[NUM_CHANNELS];
-	uint8_t scale[NUM_CHANNELS];
-	uint8_t scale_bank[NUM_CHANNELS];
-
-	// filter coefficients
-	float *c_hiq[NUM_CHANNELS];
-	float *c_loq[NUM_CHANNELS];
-
-	float *bpretuning[NUM_CHANNELS];
-
-	// filter buffer
-	float buf[NUM_CHANNELS][NUM_SCALES][NUM_FILTS][3]; 
-
-	// buffer for first filter of two-pass
-	float buf_a[NUM_CHANNELS][NUM_SCALES][NUM_FILTS][3]; 
-
-	float filter_out[NUM_FILTS][NUM_SAMPLES];
-
-   	// Filter parameters
-	float qval_b[NUM_CHANNELS]   = {0, 0, 0, 0, 0, 0};	
-	float qval_a[NUM_CHANNELS]   = {0, 0, 0, 0, 0, 0};	
-	float qc[NUM_CHANNELS]   	 = {0, 0, 0, 0, 0, 0};
-
-	uint8_t old_scale_bank[NUM_CHANNELS] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-
-	float CROSSFADE_POINT = 4095.0f * 2.0f / 3.0f;
-	float CROSSFADE_WIDTH = 1800.0f;
-	float CROSSFADE_MIN = CROSSFADE_POINT - CROSSFADE_WIDTH / 2.0f;
-	float CROSSFADE_MAX = CROSSFADE_POINT + CROSSFADE_WIDTH / 2.0f;
-	int32_t INPUT_LED_CLIP_LEVEL = 0xFFFFFF;
-	uint32_t CLIP_LEVEL = 0x04C00000;
+	Filter		filter;
 
 	FilterTypes filter_type = MAXQ;
 	FilterModes filter_mode = TWOPASS;
@@ -239,22 +234,36 @@ struct Filter {
 
 	bool filter_type_changed = false;
 
+	ScaleSet scales;
+
+	//Filters
+	uint8_t note[NUM_CHANNELS];
+	uint8_t scale[NUM_CHANNELS];
+	uint8_t scale_bank[NUM_CHANNELS];
+	uint8_t old_scale_bank[NUM_CHANNELS] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+	// filter coefficients
+	float *c_hiq[NUM_CHANNELS];
+	float *c_loq[NUM_CHANNELS];
+	float *bpretuning[NUM_CHANNELS];
+
 	float userscale_bank96[231];
 	float userscale_bank48[231];
 
+	float **filter_out;
+
+	uint32_t CLIP_LEVEL = 0x04C00000;
+
 	void configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Q *_q, Tuning *_tuning, Levels *_levels);
+	~FilterBank();
 
 	void process_scale_bank(void);
-
 	void process_bank_change(void);
 	void process_user_scale_change(void);
-
-	void filter_twopass();
-	void filter_onepass();
-	void filter_bpre();
-
 	void change_filter_type(FilterTypes newtype);
+
 	void process_audio_block();
+
 	void set_default_user_scalebank();
 
 	void update_slider_leds(void);
@@ -359,7 +368,7 @@ struct LEDRing {
 	Rotation *		rotation;
 	Envelope *		envelope;
 	IO *			io;
-	Filter *		filter;
+	FilterBank *	filterbank;
 	Q *				q;
 
 
@@ -383,7 +392,7 @@ struct LEDRing {
 		{255.0f/255.0f,	 100.0f/255.0f,  255.0f/255.0f}, // Magenta
 		};
 
-	void configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Filter *_filter, Q *_q);
+	void configure(IO *_io, Rotation *_rotation, Envelope *_envelope, FilterBank *_filter, Q *_q);
 
 	void display_filter_rotation();
 	void display_scale();
@@ -397,7 +406,7 @@ struct Inputs {
 	Rotation *		rotation;
 	Envelope *		envelope;
 	IO *			io;
-	Filter *		filter;
+	FilterBank *	filterbank;
 	Tuning *		tuning;
 	Levels *		levels;
 
@@ -414,7 +423,7 @@ struct Inputs {
 
 	FilterSetting oldFilter;
 
-	void configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Filter *_filter, Tuning *_tuning, Levels *_levels);
+	void configure(IO *_io, Rotation *_rotation, Envelope *_envelope, FilterBank *_filter, Tuning *_tuning, Levels *_levels);
 
 	void param_read_switches(void);
 	int8_t read_spread(void);
@@ -447,33 +456,9 @@ struct LPF {
 
 };
 
-// struct Controller {
-	
-// 	Rotation *		rotation;
-// 	Envelope *		envelope;
-// 	LEDRing *		ring;
-// 	Filter *		filter;
-// 	IO *			io;
-// 	Q *				q;
-// 	Tuning *		tuning;
-// 	Levels *		levels;
-// 	Inputs *		input;  
-// 	State *			state;
-
-// 	Controller();  
-// 	void set_default_param_values(void);
-// 	void load_from_state(void);
-// 	void populate_state(void);
-
-// 	void initialise(void);
-// 	void prepare(void);
-// 	void process_audio(void);
-
-// };
-
 struct Rotation {
 
-	Filter *		filter;
+	FilterBank *	filterbank;
 	IO *			io;
 
 	uint16_t rotate_to_next_scale;
@@ -501,7 +486,7 @@ struct Rotation {
 
 	uint8_t scale_bank_defaultscale[NUM_SCALEBANKS]	= {4, 4, 6, 5, 9, 5, 5};
 
-	void configure(IO *_io, Filter *_filter);
+	void configure(IO *_io, FilterBank *_filter);
 
 	void update_spread(int8_t t_spread);
 	void update_morph(void);
@@ -547,7 +532,7 @@ struct Q {
 
 struct Tuning {
 
-	Filter *		filter;
+	FilterBank *	filterbank;
 	IO *			io;
 
 	//FREQ NUDGE/LOCK JACKS
@@ -573,7 +558,7 @@ struct Tuning {
 
 	LPF freq_jack_conditioning[2];	//LPF and bracketing for freq jacks
 
-	void configure(IO *_io, Filter * _filter);
+	void configure(IO *_io, FilterBank * _filter);
 
 	void initialise(void);
 	void update(void);

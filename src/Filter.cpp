@@ -32,115 +32,17 @@
 #include "Rainbow.hpp"
 #include "scales/Scales.hpp"
 
+using namespace rainbow;
+
 extern float exp_4096[4096];
 extern float log_4096[4096];
 extern uint32_t twopass_calibration[3380];
-
-using namespace rainbow;
-
-void Filter::configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Q *_q, Tuning *_tuning, Levels *_levels) {
-	rotation	= _rotation;
-	envelope	= _envelope; 
-	q			= _q;
-	tuning		= _tuning;
-	io			= _io;
-	levels		= _levels;
-}
-
-void Filter::process_bank_change(void) {
-	if (io->CHANGED_BANK) {
-		for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-			if (!io->LOCK_ON[i]) {
-				scale_bank[i] = io->NEW_BANK; //Set all unlocked scale_banks to the same value
-			}
-		}
-	}
-}
-
-void Filter::process_user_scale_change() {
-	if (io->USERSCALE_CHANGED) {
-		for (int i = 0; i < NUM_BANKNOTES; i++) {
-			userscale_bank96[i] = io->USERSCALE96[i];
-			userscale_bank48[i] = io->USERSCALE48[i];
- 		}
-	}
-}
-
-void Filter::change_filter_type(FilterTypes newtype) {
-	if (new_filter_type != newtype) {
-		filter_type_changed = true;
-		new_filter_type = newtype;
-	}
-}
-
-void Filter::process_scale_bank(void) {
-	// Determine the coef tables we're using for the active filters (Lo-Q and Hi-Q) for each channel
-	// Also clear the buf[] history if we changed scales or banks, so we don't get artifacts
-	// To-Do: move this somewhere else, so it runs on a timer
-	for (int i = 0; i < NUM_CHANNELS; i++) {
-
-		if (scale_bank[i] >= NUM_SCALEBANKS) {
-			scale_bank[i] = NUM_SCALEBANKS - 1;
-		}
-
-		if (scale[i] >= NUM_SCALES) {
-			scale[i] = NUM_SCALES - 1;
-		}
-
-		if (scale_bank[i] != old_scale_bank[i] || filter_type_changed || io->READCOEFFS ) {
-
-			old_scale_bank[i] = scale_bank[i];
-
-			float *ff = (float *)buf[i];
-			for (int j = 0; j < (NUM_SCALES * NUM_FILTS); j++) {
-				*(ff+j)		= 0.0f;
-				*(ff+j+1)	= 0.0f;
-				*(ff+j+2)	= 0.0f;
-			}
-
-			if (filter_type == MAXQ && filter_mode == TWOPASS) {
-				float *ffa = (float *)buf_a[i];
-				for (int j = 0; j < (NUM_SCALES * NUM_FILTS); j++) {
-					*(ffa+j)        = 0.0f;
-					*(ffa+j+1)      = 0.0f;
-					*(ffa+j+2)      = 0.0f;
-				}
-			}
-
-			if (filter_type == MAXQ) {
-				if (scale_bank[i] == NUM_SCALEBANKS - 1) {
-					if (io->HICPUMODE) {
-						c_hiq[i] = (float *)(userscale_bank96); 
-					} else {
-						c_hiq[i] = (float *)(userscale_bank48); 
-					}
-				} else {
-					if (io->HICPUMODE) {
-						c_hiq[i] = (float *)(scales.presets[scale_bank[i]]->c_maxq96000);
-					} else {
-						c_hiq[i] = (float *)(scales.presets[scale_bank[i]]->c_maxq48000);
-					}
-				}	
-			} else if (filter_mode != TWOPASS && filter_type == BPRE) {
-				if (io->HICPUMODE) {
-					c_hiq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre9600080040);
-					c_loq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre9600022);
-					bpretuning[i]	= (float *)(scales.presets[scale_bank[i]]->c_maxq96000); // Filter tuning, no exact tracking
-				} else {
-					c_hiq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre4800080040);
-					c_loq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre4800022);
-					bpretuning[i]	= (float *)(scales.presets[scale_bank[i]]->c_maxq48000); // Filter tuning, no exact tracking
-				}
-			}
-		}	// new scale bank or filter type changed
-	}	// channels
-}
 
 // CALCULATE FILTER OUTPUTS
 //filter_out[0-5] are the note[]/scale[]/scale_bank[] filters.
 //filter_out[6-11] are the morph destination values
 //filter_out[channel1-6][buffer_sample]
-void Filter::filter_twopass() { 
+void Filter::filter_twopass(FilterBank *fb, float **filter_out) { 
 
 	float filter_out_a[NUM_FILTS][NUM_SAMPLES];	// first filter out for two-pass
 	float filter_out_b[NUM_FILTS][NUM_SAMPLES];	// second filter out for two-pass
@@ -160,13 +62,13 @@ void Filter::filter_twopass() {
 
 	int32_t *ptmp_i32;
 
-	io->INPUT_CLIP = false;
+	fb->io->INPUT_CLIP = false;
 
 	for (channel_num = 0; channel_num < NUM_CHANNELS; channel_num++) {
-		filter_num = note[channel_num];
-		scale_num  = scale[channel_num];
+		filter_num = fb->note[channel_num];
+		scale_num  = fb->scale[channel_num];
 
-		qc[channel_num] = q->qval[channel_num];
+		qc[channel_num] = fb->q->qval[channel_num];
 
 		// QVAL ADJUSTMENTS
 		// first filter max Q at noon on Q knob
@@ -183,7 +85,7 @@ void Filter::filter_twopass() {
 		} // 1000 to 3925
 		
 		// Q/RESONANCE: c0 = 1 - 2/(decay * samplerate), where decay is around 0.01 to 4.0
-		if (io->HICPUMODE) {
+		if (fb->io->HICPUMODE) {
 			c0_a = 1.0f - exp_4096[(uint32_t)(qval_a[channel_num] / 1.4f) + 200] / 10.0f; //exp[200...3125]
 			c0   = 1.0f - exp_4096[(uint32_t)(qval_b[channel_num] / 1.4f) + 200] / 10.0f; //exp[200...3125]
 		} else {
@@ -192,10 +94,10 @@ void Filter::filter_twopass() {
 		}
 
 		// FREQ: c1 = 2 * pi * freq / samplerate
-		c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
-		c1 *= tuning->freq_nudge[channel_num] * tuning->freq_shift[channel_num];
+		c1 = *(fb->c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
+		c1 *= fb->tuning->freq_nudge[channel_num] * fb->tuning->freq_shift[channel_num];
 
-		if (io->HICPUMODE) {
+		if (fb->io->HICPUMODE) {
 			if (c1 > 1.30899581f) {
 				c1 = 1.30899581f; //hard limit at 20k
 			}
@@ -224,13 +126,13 @@ void Filter::filter_twopass() {
 		c2	= (0.003f * c1) - (0.1f * c0)   + 0.102f;
 		c2 *= ratio_b;
 
-		ptmp_i32 = io->in[channel_num];
+		ptmp_i32 = fb->io->in[channel_num];
 
 		int j = channel_num;
 		for (int i = 0; i < NUM_SAMPLES; i++) {
 
 			if (*ptmp_i32 >= INPUT_LED_CLIP_LEVEL) {
-				io->INPUT_CLIP = true;
+				fb->io->INPUT_CLIP = true;
 			} 
 
 			// FIRST PASS (_a)
@@ -252,21 +154,21 @@ void Filter::filter_twopass() {
 		}
 
 		// Set VOCT output
-		envelope->envout_preload_voct[channel_num] = c1;
+		fb->envelope->envout_preload_voct[channel_num] = c1;
 
 		// Calculate the morph destination filter:
 		// Calcuate c1 and c2, which must be updated since the freq changed, and then calculate an entire filter for each channel that's morphing
 		// (Although it makes for poor readability to duplicate the inner loop section above, we save critical CPU time to do it this way)
-		if (rotation->motion_morphpos[channel_num] > 0.0) {
+		if (fb->rotation->motion_morphpos[channel_num] > 0.0) {
 
-			filter_num = rotation->motion_fadeto_note[channel_num];
-			scale_num  = rotation->motion_fadeto_scale[channel_num];
+			filter_num = fb->rotation->motion_fadeto_note[channel_num];
+			scale_num  = fb->rotation->motion_fadeto_scale[channel_num];
 
 			//FREQ: c1 = 2 * pi * freq / samplerate
-			c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
-			c1 *= tuning->freq_nudge[channel_num] * tuning->freq_shift[channel_num];
+			c1 = *(fb->c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
+			c1 *= fb->tuning->freq_nudge[channel_num] * fb->tuning->freq_shift[channel_num];
 
-			if (io->HICPUMODE) {
+			if (fb->io->HICPUMODE) {
 				if (c1 > 1.30899581f) {
 					c1 = 1.30899581f; //hard limit at 20k
 				}
@@ -283,7 +185,7 @@ void Filter::filter_twopass() {
 			c2	= (0.003f * c1) - (0.1f * c0)   + 0.102f;
 			c2 	*= ratio_b;
 
-			ptmp_i32 = io->in[channel_num];
+			ptmp_i32 = fb->io->in[channel_num];
 
 			j = channel_num + 6;
 			for (int i = 0; i < NUM_SAMPLES; i++) {
@@ -305,10 +207,10 @@ void Filter::filter_twopass() {
 			}
 
 			// VOCT output with glissando
-			if (io->GLIDE_SWITCH) {
-				envelope->envout_preload_voct[channel_num] = 
-					(envelope->envout_preload_voct[channel_num] * (1.0f - rotation->motion_morphpos[channel_num])) + 
-					(destvoct[channel_num] * rotation->motion_morphpos[channel_num]);
+			if (fb->io->GLIDE_SWITCH) {
+				fb->envelope->envout_preload_voct[channel_num] = 
+					(fb->envelope->envout_preload_voct[channel_num] * (1.0f - fb->rotation->motion_morphpos[channel_num])) + 
+					(destvoct[channel_num] * fb->rotation->motion_morphpos[channel_num]);
 			}
 		}
 	}
@@ -316,7 +218,7 @@ void Filter::filter_twopass() {
 
 //Calculate filter_out[]
 //filter_out[0-5] are the note[]/scale[]/scale_bank[] filters. filter_out[6-11] are the morph destination values
-void Filter::filter_onepass() { 
+void Filter::filter_onepass(FilterBank *fb, float **filter_out) { 
 
 	uint8_t filter_num;
 	uint8_t channel_num;
@@ -329,7 +231,7 @@ void Filter::filter_onepass() {
 
 	float destvoct[6];
 
-	io->INPUT_CLIP = false;
+	fb->io->INPUT_CLIP = false;
 
 	for (int j = 0; j < NUM_CHANNELS * 2; j++) {
 
@@ -339,16 +241,16 @@ void Filter::filter_onepass() {
 			channel_num = j - NUM_CHANNELS;
 		}
 
-		if (j < NUM_CHANNELS || rotation->motion_morphpos[channel_num] != 0) {
+		if (j < NUM_CHANNELS || fb->rotation->motion_morphpos[channel_num] != 0) {
 
 			// Set filter_num and scale_num to the Morph sources
 			if (j < NUM_CHANNELS) {
-				filter_num = note[channel_num];
-				scale_num  = scale[channel_num];
+				filter_num = fb->note[channel_num];
+				scale_num  = fb->scale[channel_num];
 			} else {
 				// Set filter_num and scale_num to the Morph dests
-				filter_num = rotation->motion_fadeto_note[channel_num];
-				scale_num  = rotation->motion_fadeto_scale[channel_num];
+				filter_num = fb->rotation->motion_fadeto_note[channel_num];
+				scale_num  = fb->rotation->motion_fadeto_scale[channel_num];
 			}
 
 			nudge_filter_num = filter_num + 1;
@@ -357,17 +259,17 @@ void Filter::filter_onepass() {
 			}
 
 			// Q/RESONANCE: c0 = 1 - 2/(decay * samplerate), where decay is around 0.01 to 4.0
-			if (io->HICPUMODE) {
-				c0 = 1.0f - exp_4096[(uint32_t)(q->qval[channel_num] / 1.4f) + 200] / 10.0; //exp[200...3125]
+			if (fb->io->HICPUMODE) {
+				c0 = 1.0f - exp_4096[(uint32_t)(fb->q->qval[channel_num] / 1.4f) + 200] / 10.0; //exp[200...3125]
 			} else {
-				c0 = 1.0f - exp_4096[(uint32_t)(q->qval[channel_num] / 1.4f) + 200] / 5.0; //exp[200...3125]
+				c0 = 1.0f - exp_4096[(uint32_t)(fb->q->qval[channel_num] / 1.4f) + 200] / 5.0; //exp[200...3125]
 			}
 
 			// FREQ: c1 = 2 * pi * freq / samplerate
-			c1 = *(c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
-			c1 *= tuning->freq_nudge[channel_num] * tuning->freq_shift[channel_num];
+			c1 = *(fb->c_hiq[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
+			c1 *= fb->tuning->freq_nudge[channel_num] * fb->tuning->freq_shift[channel_num];
 
-			if (io->HICPUMODE) {
+			if (fb->io->HICPUMODE) {
 				if (c1 > 1.30899581f) {
 					c1 = 1.30899581f; //hard limit at 20k
 				}
@@ -379,21 +281,21 @@ void Filter::filter_onepass() {
 
 			// Set VOCT output
 			if (j < NUM_CHANNELS) { // Starting v/oct for gliss calc comes from first pass
-				envelope->envout_preload_voct[channel_num] = c1;
+				fb->envelope->envout_preload_voct[channel_num] = c1;
 			} else {
 				destvoct[channel_num] = c1;
 			}
 
 			// AMPLITUDE: Boost high freqs and boost low resonance
 			c2  = (0.003f * c1) - (0.1f * c0) + 0.102f;
-			c2 *= ((4096.0f - q->qval[channel_num]) / 1024.0f) + 1.04f;
+			c2 *= ((4096.0f - fb->q->qval[channel_num]) / 1024.0f) + 1.04f;
 
 			for (int i = 0; i < NUM_SAMPLES; i++) {
 
-				tmp = io->in[channel_num][i];
+				tmp = fb->io->in[channel_num][i];
 
 				if (tmp >= INPUT_LED_CLIP_LEVEL) {
-					io->INPUT_CLIP = true;
+					fb->io->INPUT_CLIP = true;
 				}
 
 				buf[channel_num][scale_num][filter_num][2] = (c0 * buf[channel_num][scale_num][filter_num][1] + c1 * buf[channel_num][scale_num][filter_num][0]) - c2 * tmp;
@@ -406,10 +308,10 @@ void Filter::filter_onepass() {
 	
 			// VOCT output with glissando
 			// must run on second set of channels as target V/oct comes from second pass, then interp
-			if (io->GLIDE_SWITCH && (j >= NUM_CHANNELS)) { 
-				envelope->envout_preload_voct[channel_num] = 
-					(envelope->envout_preload_voct[channel_num] * (1.0f - rotation->motion_morphpos[channel_num])) + 
-					(destvoct[channel_num] * rotation->motion_morphpos[channel_num]);
+			if (fb->io->GLIDE_SWITCH && (j >= NUM_CHANNELS)) { 
+				fb->envelope->envout_preload_voct[channel_num] = 
+					(fb->envelope->envout_preload_voct[channel_num] * (1.0f - fb->rotation->motion_morphpos[channel_num])) + 
+					(destvoct[channel_num] * fb->rotation->motion_morphpos[channel_num]);
 			}
 		}
 	}
@@ -417,7 +319,7 @@ void Filter::filter_onepass() {
 
 //Calculate filter_out[]
 //filter_out[0-5] are the note[]/scale[]/scale_bank[] filters. filter_out[6-11] are the morph destination values
-void Filter::filter_bpre() { 
+void Filter::filter_bpre(FilterBank *fb, float **filter_out) { 
 
 	uint8_t filter_num;
 	uint8_t channel_num;
@@ -437,7 +339,7 @@ void Filter::filter_bpre() {
 
 	float destvoct[6];
 
-	io->INPUT_CLIP = false;
+	fb->io->INPUT_CLIP = false;
 
 	for (int j = 0; j < NUM_CHANNELS * 2; j++) {
 
@@ -447,21 +349,21 @@ void Filter::filter_bpre() {
 			channel_num = j - NUM_CHANNELS;
 		}
 
-		if (j < NUM_CHANNELS || rotation->motion_morphpos[channel_num] != 0.0f) {
+		if (j < NUM_CHANNELS || fb->rotation->motion_morphpos[channel_num] != 0.0f) {
 
 			// Set filter_num and scale_num to the Morph sources
 			if (j < NUM_CHANNELS) {
-				filter_num = note[channel_num];
-				scale_num  = scale[channel_num];
+				filter_num = fb->note[channel_num];
+				scale_num  = fb->scale[channel_num];
 
 			// Set filter_num and scale_num to the Morph dests
 			} else {
-				filter_num = rotation->motion_fadeto_note[channel_num];
-				scale_num  = rotation->motion_fadeto_scale[channel_num];
+				filter_num = fb->rotation->motion_fadeto_note[channel_num];
+				scale_num  = fb->rotation->motion_fadeto_scale[channel_num];
 			}
 
 			//Q vector
-			var_f = tuning->freq_nudge[channel_num];
+			var_f = fb->tuning->freq_nudge[channel_num];
 			if (var_f < 0.002f) {
 				var_f = 0.0f;
 			}
@@ -478,27 +380,27 @@ void Filter::filter_bpre() {
 
 			// Set VOCT output
 			if (j < NUM_CHANNELS) {
-				envelope->envout_preload_voct[channel_num] = 
-					*(bpretuning[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
+				fb->envelope->envout_preload_voct[channel_num] = 
+					*(fb->bpretuning[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
 			} else {
 				destvoct[channel_num] = 
-					*(bpretuning[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
+					*(fb->bpretuning[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
 			}
 
-			a0 =* (c_loq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 0)*var_f + *(c_loq[channel_num] + (scale_num*63) + (filter_num*3) + 0)*inv_var_f;
-			a1 =* (c_loq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 1)*var_f + *(c_loq[channel_num] + (scale_num*63) + (filter_num*3) + 1)*inv_var_f;
-			a2 =* (c_loq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 2)*var_f + *(c_loq[channel_num] + (scale_num*63) + (filter_num*3) + 2)*inv_var_f;
+			a0 =* (fb->c_loq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 0)*var_f + *(fb->c_loq[channel_num] + (scale_num*63) + (filter_num*3) + 0)*inv_var_f;
+			a1 =* (fb->c_loq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 1)*var_f + *(fb->c_loq[channel_num] + (scale_num*63) + (filter_num*3) + 1)*inv_var_f;
+			a2 =* (fb->c_loq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 2)*var_f + *(fb->c_loq[channel_num] + (scale_num*63) + (filter_num*3) + 2)*inv_var_f;
 
-			c0 =* (c_hiq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 0)*var_f + *(c_hiq[channel_num] + (scale_num*63) + (filter_num*3) + 0)*inv_var_f;
-			c1 =* (c_hiq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 1)*var_f + *(c_hiq[channel_num] + (scale_num*63) + (filter_num*3) + 1)*inv_var_f;
-			c2 =* (c_hiq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 2)*var_f + *(c_hiq[channel_num] + (scale_num*63) + (filter_num*3) + 2)*inv_var_f;
+			c0 =* (fb->c_hiq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 0)*var_f + *(fb->c_hiq[channel_num] + (scale_num*63) + (filter_num*3) + 0)*inv_var_f;
+			c1 =* (fb->c_hiq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 1)*var_f + *(fb->c_hiq[channel_num] + (scale_num*63) + (filter_num*3) + 1)*inv_var_f;
+			c2 =* (fb->c_hiq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 2)*var_f + *(fb->c_hiq[channel_num] + (scale_num*63) + (filter_num*3) + 2)*inv_var_f;
 
 			//Q vector
-			if (q->qval[channel_num] > 4065) {
+			if (fb->q->qval[channel_num] > 4065) {
 				var_q	 = 1.0f;
 				inv_var_q = 0.0f;
 			} else {
-				var_q	 = log_4096[q->qval[channel_num]];
+				var_q	 = log_4096[fb->q->qval[channel_num]];
 				inv_var_q = 1.0f - var_q;
 			}
 
@@ -514,10 +416,10 @@ void Filter::filter_bpre() {
 				//Odd input (left) goes to odd filters (1/3/5)
 				//Even input (right) goes to even filters (2/4/6)
 
-				int32_t pTmp = io->in[channel_num][i];
+				int32_t pTmp = fb->io->in[channel_num][i];
 
 				if (pTmp >= INPUT_LED_CLIP_LEVEL) {
-					io->INPUT_CLIP = true;
+					fb->io->INPUT_CLIP = true;
 				}
 
 				iir = pTmp * c0;
@@ -534,83 +436,32 @@ void Filter::filter_bpre() {
 
 			// VOCT output with glissando
 			// must run on second set of channels as target V/oct comes from second pass, then interp
-			if (io->GLIDE_SWITCH && (j >= NUM_CHANNELS)) { 
-				envelope->envout_preload_voct[channel_num] = 
-					(envelope->envout_preload_voct[channel_num] * (1.0f - rotation->motion_morphpos[channel_num])) + 
-					(destvoct[channel_num] * rotation->motion_morphpos[channel_num]);
+			if (fb->io->GLIDE_SWITCH && (j >= NUM_CHANNELS)) { 
+				fb->envelope->envout_preload_voct[channel_num] = 
+					(fb->envelope->envout_preload_voct[channel_num] * (1.0f - fb->rotation->motion_morphpos[channel_num])) + 
+					(destvoct[channel_num] * fb->rotation->motion_morphpos[channel_num]);
 			}
 		}
 	}
 }
 
-void Filter::process_audio_block() {
+void Filter::reset_buffer(int i, bool twopass) {
 
-	float f_blended;
-
-	if (filter_type_changed) {
-		filter_type = new_filter_type;
+	float *ff = (float *)buf[i];
+	for (int j = 0; j < (NUM_SCALES * NUM_FILTS); j++) {
+		*(ff+j)		= 0.0f;
+		*(ff+j+1)	= 0.0f;
+		*(ff+j+2)	= 0.0f;
 	}
 
-	// Populate the filter coefficients
-	process_scale_bank();
-
-	// UPDATE QVAL
-	q->update();
-
-	if (filter_mode == TWOPASS) {
-		filter_twopass();
-	} else {
-		if (filter_type == MAXQ) {
-			filter_onepass();
-		} else { 
-			filter_bpre();
-		}
-	} 	// Filter-mode
-
-	rotation->update_morph();
-	// Since process_audio_block is called half as frequently in 48Khz mode as in 96Khz mode
-	// We must call update_morph twice, instead of once, to compensate
-	if (!io->HICPUMODE) { 
-		rotation->update_morph();
-	}
-
-	// MORPHING
-	for (int i = 0; i < NUM_SAMPLES; i++) {
-		
-		for (int j = 0; j < NUM_CHANNELS; j++) {
-		
-			if (rotation->motion_morphpos[j] == 0.0f) {
-				f_blended = filter_out[j][i];
-			} else {
-				f_blended = (filter_out[j][i] * (1.0f - rotation->motion_morphpos[j])) + (filter_out[j + NUM_CHANNELS][i] * rotation->motion_morphpos[j]); // filter blending
-			}
-
-			io->out[j][i] = (f_blended * levels->channel_level[j]);
-
+	if (twopass) {
+		float *ffa = (float *)buf_a[i];
+		for (int j = 0; j < (NUM_SCALES * NUM_FILTS); j++) {
+			*(ffa+j)        = 0.0f;
+			*(ffa+j+1)      = 0.0f;
+			*(ffa+j+2)      = 0.0f;
 		}
 	}
-
-	for (int j = 0; j < NUM_CHANNELS; j++) {
-		f_blended = (filter_out[j][0] * (1.0f - rotation->motion_morphpos[j])) + (filter_out[j + NUM_CHANNELS][0] * rotation->motion_morphpos[j]);
-
-		io->channelLevel[j] = (f_blended * levels->channel_level[j]) / CLIP_LEVEL;
-		
-		if (f_blended > 0.0f) { // Envelope does not take into account channel level
-			envelope->envout_preload[j] = f_blended;
-		} else {
-			envelope->envout_preload[j] = -1.0f * f_blended;
-		}
-	}
-	
-	filter_type_changed = false;
-	io->USERSCALE_CHANGED = false;
-	io->READCOEFFS = false;
 
 }
 
-void Filter::set_default_user_scalebank(void) {
-	for (int j = 0; j < NUM_BANKNOTES; j++) {
-		userscale_bank96[j] = scales.presets[NUM_SCALEBANKS - 1]->c_maxq96000[j];
-		userscale_bank48[j] = scales.presets[NUM_SCALEBANKS - 1]->c_maxq48000[j];
-	}
-}

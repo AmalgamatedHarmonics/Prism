@@ -20,7 +20,7 @@ float Audio::generateNoise() {
 	return nO;
 }
 
-void Audio::ChannelProcess1(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::Filter &filter) {
+void Audio::ChannelProcess1(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::FilterBank &filterbank) {
 
 	int inChannels;
 	float n = 0.0f;
@@ -86,7 +86,7 @@ void Audio::ChannelProcess1(rainbow::IO &io, rack::engine::Input &input, rack::e
 		}
 
 		// Pass to filter
-		filter.process_audio_block();
+		filterbank.process_audio_block();
 
 		// Convert output buffer
 		for (int chan = 0; chan < NUM_CHANNELS; chan++) {
@@ -117,7 +117,7 @@ void Audio::ChannelProcess1(rainbow::IO &io, rack::engine::Input &input, rack::e
 
 }
 
-void Audio::ChannelProcess2(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::Filter &filter) {
+void Audio::ChannelProcess2(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::FilterBank &filterbank) {
 
 	int inChannels;
 	float n = 0.0f;
@@ -183,7 +183,7 @@ void Audio::ChannelProcess2(rainbow::IO &io, rack::engine::Input &input, rack::e
 		}
 
 		// Pass to filter
-		filter.process_audio_block();
+		filterbank.process_audio_block();
 
 		// Convert output buffer
 		for (int chan = 0; chan < NUM_CHANNELS; chan++) {
@@ -221,7 +221,7 @@ void Audio::ChannelProcess2(rainbow::IO &io, rack::engine::Input &input, rack::e
 
 }
 
-void Audio::ChannelProcess6(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::Filter &filter) {
+void Audio::ChannelProcess6(rainbow::IO &io, rack::engine::Input &input, rack::engine::Output &output, rainbow::FilterBank &filterbank) {
 
 	int inChannels;
 	float n = 0.0f;
@@ -287,7 +287,7 @@ void Audio::ChannelProcess6(rainbow::IO &io, rack::engine::Input &input, rack::e
 		}
 
 		// Pass to filter
-		filter.process_audio_block();
+		filterbank.process_audio_block();
 
 		// Convert output buffer
 		for (int chan = 0; chan < NUM_CHANNELS; chan++) {

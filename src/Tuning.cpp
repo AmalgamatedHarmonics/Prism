@@ -34,9 +34,9 @@ using namespace rainbow;
 
 extern float exp_1voct[4096];
 
-void Tuning::configure(IO *_io, Filter * _filter) {
-	filter	= _filter;
-	io		= _io;
+void Tuning::configure(IO *_io, FilterBank * _filterbank) {
+	filterbank	= _filterbank;
+	io			= _io;
 
 	twelveroottwo[12] = 1.0f;
 	for (int i = 1; i <= 12; i++) {
@@ -55,7 +55,7 @@ void Tuning::update(void) {
 	if (tuning_update_ctr++ > TUNING_UPDATE_RATE) {
 		tuning_update_ctr = 0;
 	
-		if (filter->filter_type == MAXQ) {
+		if (filterbank->filter_type == MAXQ) {
 			// Read buffer knob and normalize input: 0-1
 			t_fo = (float)(io->FREQNUDGE1_ADC);
 			t_fe = (float)(io->FREQNUDGE6_ADC);

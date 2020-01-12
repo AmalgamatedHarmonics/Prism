@@ -34,8 +34,8 @@ extern float exp_4096[4096];
 
 using namespace rainbow;
 
-void Rotation::configure(IO *_io, Filter *_filter) {
-	filter		= _filter;
+void Rotation::configure(IO *_io, FilterBank *_filterbank) {
+	filterbank	= _filterbank;
 	io			= _io;
 }
 
@@ -230,10 +230,10 @@ void Rotation::update_motion(void) {
 		for (int chan = 0; chan < NUM_CHANNELS; chan++)	{
 			//if morph has reached the end, shift our present position to the (former) fadeto destination
 			if (motion_morphpos[chan] >= 1.0f) {
-				filter->note[chan]  = motion_fadeto_note[chan];
-				filter->scale[chan] = motion_fadeto_scale[chan];
+				filterbank->note[chan]  = motion_fadeto_note[chan];
+				filterbank->scale[chan] = motion_fadeto_scale[chan];
 
-				if (motion_spread_dest[chan] == filter->note[chan]) {
+				if (motion_spread_dest[chan] == filterbank->note[chan]) {
 					motion_spread_dir[chan] = 0;
 				}
 				motion_morphpos[chan] = 0.0f;
@@ -364,7 +364,7 @@ void Rotation::update_motion(void) {
 				//-change the is_distinct code in fadeto to give priority to channels that are hitting their motion_spread_dest
 				// --or somehow change it so ch0: 18->17, ch3:16->17 bumps ch0 18->16
 
-				if (motion_spread_dest[chan] != filter->note[chan]) {
+				if (motion_spread_dest[chan] != filterbank->note[chan]) {
 
 					// Check if the spread destination is still available
 					if  (io->FREQ_BLOCK[motion_spread_dest[chan]]) {

@@ -155,7 +155,7 @@ struct Rainbow : core::PrismModule {
 	Rotation	rotation;
 	Envelope 	envelope;
 	LEDRing 	ring;
-	Filter 		filter;
+	FilterBank	filterbank;
 	IO 			io;
 	Q 			q;
 	Tuning 		tuning;
@@ -467,14 +467,14 @@ struct Rainbow : core::PrismModule {
 
 		lightDivider.setDivision(256);
 
-		rotation.configure(&io, &filter);
+		rotation.configure(&io, &filterbank);
 		envelope.configure(&io, &levels);
-		ring.configure(&io, &rotation, &envelope, &filter, &q);
-		filter.configure(&io, &rotation, &envelope, &q, &tuning, &levels);
+		ring.configure(&io, &rotation, &envelope, &filterbank, &q);
+		filterbank.configure(&io, &rotation, &envelope, &q, &tuning, &levels);
 		q.configure(&io);
-		tuning.configure(&io, &filter);
+		tuning.configure(&io, &filterbank);
 		levels.configure(&io);
-		input.configure(&io, &rotation, &envelope, &filter, &tuning, &levels);
+		input.configure(&io, &rotation, &envelope, &filterbank, &tuning, &levels);
 
 		initialise();
 
@@ -718,16 +718,16 @@ void Rainbow::process(const ProcessArgs &args) {
 
 	switch(audio.outputChannels) {
 		case 0:
-			audio.ChannelProcess1(io, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT], filter);
+			audio.ChannelProcess1(io, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT], filterbank);
 			break;
 		case 1:
-			audio.ChannelProcess2(io, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT], filter);
+			audio.ChannelProcess2(io, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT], filterbank);
 			break;
 		case 2:
-			audio.ChannelProcess6(io, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT], filter);
+			audio.ChannelProcess6(io, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT], filterbank);
 			break;
 		default:
-			audio.ChannelProcess1(io, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT], filter);
+			audio.ChannelProcess1(io, inputs[POLY_IN_INPUT], outputs[POLY_OUT_OUTPUT], filterbank);
 	}
 
 	// Populate poly outputs
@@ -859,7 +859,7 @@ void Rainbow::initialise(void) {
 
 	set_default_param_values();
 	
-	filter.set_default_user_scalebank();
+	filterbank.set_default_user_scalebank();
 
 	rotation.spread = (io.SPREAD_ADC >> 8) + 1;
 	rotation.update_spread(1);
@@ -887,9 +887,9 @@ void Rainbow::prepare(void) {
 		rotation.update_spread(t_spread);
 	}
 
-	filter.process_bank_change();
+	filterbank.process_bank_change();
 
-	filter.process_user_scale_change();
+	filterbank.process_user_scale_change();
 
 	if (io.ROTUP_TRIGGER || io.ROTUP_BUTTON) {
 		rotation.rotate_up();
@@ -920,14 +920,14 @@ void Rainbow::set_default_param_values(void) {
 	
 	//Set default parameter values
 	for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-		filter.note[i]  					= i + 8;
-		filter.scale[i] 					= 0;
-		rotation.motion_fadeto_scale[i]	= filter.scale[i];
-		rotation.motion_scale_dest[i]		= filter.scale[i];
-		filter.scale_bank[i] 				= 0;
+		filterbank.note[i]  				= i + 8;
+		filterbank.scale[i] 				= 0;
+		rotation.motion_fadeto_scale[i]	= filterbank.scale[i];
+		rotation.motion_scale_dest[i]		= filterbank.scale[i];
+		filterbank.scale_bank[i] 			= 0;
 		rotation.motion_spread_dir[i]		= 0;
-		rotation.motion_spread_dest[i]		= filter.note[i];
-		rotation.motion_fadeto_note[i]		= filter.note[i];
+		rotation.motion_spread_dest[i]		= filterbank.note[i];
+		rotation.motion_fadeto_note[i]		= filterbank.note[i];
 
 		rotation.motion_morphpos[i]			= 0.0f;
 		tuning.freq_shift[i]	 			= 0.0f;
@@ -937,8 +937,8 @@ void Rainbow::set_default_param_values(void) {
 	rotation.motion_notejump	= 0;
 	rotation.motion_rotate		= 0;
 
-	filter.filter_type = MAXQ;
-	filter.filter_mode = TWOPASS;
+	filterbank.filter_type = MAXQ;
+	filterbank.filter_mode = TWOPASS;
 
 	state.initialised = true;
 
@@ -950,23 +950,23 @@ void Rainbow::load_from_state(void) {
 
 		//Set default parameter values
 		for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-			filter.note[i]						= state.note[i];
-			filter.scale[i]					= state.scale[i];
-			rotation.motion_fadeto_scale[i]	= filter.scale[i];
-			rotation.motion_scale_dest[i]		= filter.scale[i];
-			filter.scale_bank[i]				= state.scale_bank[i];
+			filterbank.note[i]					= state.note[i];
+			filterbank.scale[i]					= state.scale[i];
+			rotation.motion_fadeto_scale[i]		= filterbank.scale[i];
+			rotation.motion_scale_dest[i]		= filterbank.scale[i];
+			filterbank.scale_bank[i]			= state.scale_bank[i];
 			rotation.motion_spread_dir[i]		= 0;
-			rotation.motion_spread_dest[i]		= filter.note[i];
-			rotation.motion_fadeto_note[i]		= filter.note[i];
+			rotation.motion_spread_dest[i]		= filterbank.note[i];
+			rotation.motion_fadeto_note[i]		= filterbank.note[i];
 
-			rotation.motion_morphpos[i]		= 0.0f;
+			rotation.motion_morphpos[i]			= 0.0f;
 			tuning.freq_shift[i]				= 0.0f;
-			rotation.motion_scalecv_overage[i] = 0;
+			rotation.motion_scalecv_overage[i] 	= 0;
 		}
 
 		for (int i = 0; i < NUM_BANKNOTES; i++) {
-			filter.userscale_bank96[i] = state.userscale96[i];
-			filter.userscale_bank48[i] = state.userscale48[i];
+			filterbank.userscale_bank96[i] = state.userscale96[i];
+			filterbank.userscale_bank48[i] = state.userscale48[i];
 		}
 
 		rotation.motion_notejump	= 0;
@@ -982,15 +982,15 @@ void Rainbow::populate_state(void) {
 
 	if(state.initialised) {
 		for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
-			state.note[i]			= filter.note[i];
-			state.scale[i]			= filter.scale[i];
-			state.scale_bank[i]	= filter.scale_bank[i];
+			state.note[i]		= filterbank.note[i];
+			state.scale[i]		= filterbank.scale[i];
+			state.scale_bank[i]	= filterbank.scale_bank[i];
 		}
 	}
 
 	for (int i = 0; i < NUM_BANKNOTES; i++) {
-		state.userscale96[i] = filter.userscale_bank96[i]; 
-		state.userscale48[i] = filter.userscale_bank48[i]; 
+		state.userscale96[i] = filterbank.userscale_bank96[i]; 
+		state.userscale48[i] = filterbank.userscale_bank48[i]; 
 	}
 
 }
