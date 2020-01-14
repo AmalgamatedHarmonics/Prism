@@ -42,7 +42,7 @@ void FilterBank::configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Q 
 	io			= _io;
 	levels		= _levels;
 
-	filter_out = new float *[NUM_FILTS];
+	filter_out = new float *[NUM_FILTS]; // FIXME should be NUM_CHANNELS * 2
 	for (int i = 0; i < NUM_FILTS; i++) {
 	    filter_out[i] = new float[NUM_SAMPLES];
 	}
@@ -58,7 +58,7 @@ FilterBank::~FilterBank() {
 }
 
 void FilterBank::set_default_user_scalebank(void) {
-	for (int j = 0; j < NUM_BANKNOTES; j++) {
+	for (uint8_t j = 0; j < NUM_BANKNOTES; j++) {
 		userscale_bank96[j] = scales.presets[NUM_SCALEBANKS - 1]->c_maxq96000[j];
 		userscale_bank48[j] = scales.presets[NUM_SCALEBANKS - 1]->c_maxq48000[j];
 	}
@@ -76,17 +76,20 @@ void FilterBank::process_bank_change(void) {
 
 void FilterBank::process_user_scale_change() {
 	if (io->USERSCALE_CHANGED) {
-		for (int i = 0; i < NUM_BANKNOTES; i++) {
+		for (uint8_t i = 0; i < NUM_BANKNOTES; i++) {
 			userscale_bank96[i] = io->USERSCALE96[i];
 			userscale_bank48[i] = io->USERSCALE48[i];
  		}
 	}
 }
 
-void FilterBank::change_filter_type(FilterTypes newtype) {
-	if (new_filter_type != newtype) {
-		filter_type_changed = true;
-		new_filter_type = newtype;
+void FilterBank::change_filter(FilterTypes type, FilterModes mode) {
+
+	filter_mode = mode;
+
+	if (new_filter_type != type) {
+		filter_changed = true;
+		new_filter_type = type;
 	}
 }
 
@@ -104,13 +107,14 @@ void FilterBank::process_scale_bank(void) {
 			scale[i] = NUM_SCALES - 1;
 		}
 
-		if (scale_bank[i] != old_scale_bank[i] || filter_type_changed || io->READCOEFFS ) {
+		if (scale_bank[i] != old_scale_bank[i] || filter_changed || io->READCOEFFS ) {
 
 			old_scale_bank[i] = scale_bank[i];
 
-			filter.reset_buffer(i, filter_type == MAXQ && filter_mode == TWOPASS);
-
 			if (filter_type == MAXQ) {
+
+				maxq[i].reset(this);
+
 				if (scale_bank[i] == NUM_SCALEBANKS - 1) {
 					if (io->HICPUMODE) {
 						c_hiq[i] = (float *)(userscale_bank96); 
@@ -124,7 +128,11 @@ void FilterBank::process_scale_bank(void) {
 						c_hiq[i] = (float *)(scales.presets[scale_bank[i]]->c_maxq48000);
 					}
 				}	
-			} else if (filter_mode != TWOPASS && filter_type == BPRE) {
+
+			} else {
+
+				bpre[i].reset(this);
+
 				if (io->HICPUMODE) {
 					c_hiq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre9600080040);
 					c_loq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre9600022);
@@ -143,7 +151,7 @@ void FilterBank::process_audio_block() {
 
 	float f_blended;
 
-	if (filter_type_changed) {
+	if (filter_changed) {
 		filter_type = new_filter_type;
 	}
 
@@ -153,15 +161,20 @@ void FilterBank::process_audio_block() {
 	// UPDATE QVAL
 	q->update();
 
-	if (filter_mode == TWOPASS) {
-		filter.filter_twopass(this, filter_out);
-	} else {
-		if (filter_type == MAXQ) {
-			filter.filter_onepass(this, filter_out);
-		} else { 
-			filter.filter_bpre(this, filter_out);
+	for (uint8_t chan = 0; chan < NUM_CHANNELS; chan++) {
+
+		for (uint8_t sample = 0; sample < NUM_SAMPLES; sample++) {
+			filter_out[chan][sample] = 0.0f;
+			filter_out[chan * 2][sample] = 0.0f;
 		}
-	} 	// Filter-mode
+
+		if (filter_type == MAXQ) {
+			maxq[chan].filter(this, chan, filter_out);
+		} else {
+			bpre[chan].filter(this, chan, filter_out);
+		}
+
+	}
 
 	rotation->update_morph();
 	// Since process_audio_block is called half as frequently in 48Khz mode as in 96Khz mode
@@ -198,7 +211,8 @@ void FilterBank::process_audio_block() {
 		}
 	}
 	
-	filter_type_changed = false;
+	// Completed pass, so reset flags
+	filter_changed = false;
 	io->USERSCALE_CHANGED = false;
 	io->READCOEFFS = false;
 

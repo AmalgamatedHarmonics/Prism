@@ -67,16 +67,13 @@ void Inputs::param_read_switches(void) {
 
 	switch (io->FILTER_SWITCH) {	
 		case OnePass:
-			filterbank->filter_mode = ONEPASS;
-			filterbank->change_filter_type(MAXQ);
+			filterbank->change_filter(MAXQ, ONEPASS);
 			break;
 		case TwoPass:
-			filterbank->filter_mode = TWOPASS;
-			filterbank->change_filter_type(MAXQ);
+			filterbank->change_filter(MAXQ, TWOPASS);
 			break;
 		case Bpre:
-			filterbank->filter_mode = ONEPASS;
-			filterbank->change_filter_type(BPRE);
+			filterbank->change_filter(BPRE, ONEPASS);
 			break;
 	}
 

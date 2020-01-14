@@ -27,7 +27,6 @@
 // LPF
 #define MAX_FIR_LPF_SIZE 40
 
-// User scales - come back to this later
 #define COEF_COEF (2.0 * 3.14159265358979323846 / 96000.0)
 #define TWELFTHROOTTWO 1.05946309436
 #define ROOT 13.75
@@ -91,6 +90,10 @@ struct RainbowScaleExpanderMessage {
 };
 
 namespace rainbow {
+
+struct TFilter;
+struct MaxQFilter;
+struct BpreFilter;
 
 struct Audio;
 struct Envelope;
@@ -190,6 +193,55 @@ struct Envelope {
 
 };
 
+struct TFilter {
+
+	virtual void reset(FilterBank *fb) = 0;
+	virtual void filter(FilterBank *fb, int channel_num, float **filter_out) = 0;
+
+	float CROSSFADE_POINT = 4095.0f * 2.0f / 3.0f;
+	float CROSSFADE_WIDTH = 1800.0f;
+	float CROSSFADE_MIN = CROSSFADE_POINT - CROSSFADE_WIDTH / 2.0f;
+	float CROSSFADE_MAX = CROSSFADE_POINT + CROSSFADE_WIDTH / 2.0f;
+	int32_t INPUT_LED_CLIP_LEVEL = 0xFFFFFF;
+
+};
+
+struct MaxQFilter : TFilter {
+
+	// filter buffer
+	float buf[NUM_SCALES][NUM_FILTS][3]; 
+
+	// buffer for first filter of two-pass
+	float buf_a[NUM_SCALES][NUM_FILTS][3]; 
+
+   	// Filter parameters
+	float qval_b = 0.0f;	
+	float qval_a = 0.0f; 	
+	float qc = 0.0f;
+
+	void reset(FilterBank *fb) override;
+	void filter(FilterBank *fb, int channel_num, float **filter_out) override;
+
+	void onepass(FilterBank *fb, int channel_num, float **filter_out);
+	void twopass(FilterBank *fb, int channel_num, float **filter_out);
+
+};
+
+struct BpreFilter : TFilter {
+
+	// filter buffer
+	float buf[NUM_SCALES][NUM_FILTS][3]; 
+
+   	// Filter parameters
+	float qval_b = 0.0f;	
+	float qval_a = 0.0f; 	
+	float qc = 0.0f;
+
+	void reset(FilterBank *fb) override;
+	void filter(FilterBank *fb, int channel_num, float **filter_out) override;
+
+};
+
 struct Filter {
 
 	// filter buffer
@@ -226,13 +278,15 @@ struct FilterBank {
 	IO *			io;
 	Levels *		levels;
 
-	Filter		filter;
+	// Filter		filter;
+	std::array<MaxQFilter, NUM_CHANNELS> maxq;
+	std::array<MaxQFilter, NUM_CHANNELS> bpre;
 
 	FilterTypes filter_type = MAXQ;
 	FilterModes filter_mode = TWOPASS;
-	FilterTypes new_filter_type;
 
-	bool filter_type_changed = false;
+	FilterTypes new_filter_type;
+	bool filter_changed = false;
 
 	ScaleSet scales;
 
@@ -260,7 +314,7 @@ struct FilterBank {
 	void process_scale_bank(void);
 	void process_bank_change(void);
 	void process_user_scale_change(void);
-	void change_filter_type(FilterTypes newtype);
+	void change_filter(FilterTypes type, FilterModes mode);
 
 	void process_audio_block();
 
