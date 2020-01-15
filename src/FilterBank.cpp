@@ -83,20 +83,32 @@ void FilterBank::process_user_scale_change() {
 	}
 }
 
-void FilterBank::change_filter(FilterTypes type, FilterModes mode) {
+void FilterBank::change_filter(FilterTypes new_type, FilterModes new_mode) {
 
-	filter_mode = mode;
+	if (filter_mode != new_mode) {
+		filter_mode_changed = true;
+		new_filter_mode = new_mode;
+	}
 
-	if (new_filter_type != type) {
-		filter_changed = true;
-		new_filter_type = type;
+	if (filter_type != new_type) {
+		filter_type_changed = true;
+		new_filter_type = new_type;
 	}
 }
 
-void FilterBank::process_scale_bank(void) {
+void FilterBank::prepare_scale_bank(void) {
 	// Determine the coef tables we're using for the active filters (Lo-Q and Hi-Q) for each channel
 	// Also clear the buf[] history if we changed scales or banks, so we don't get artifacts
 	// To-Do: move this somewhere else, so it runs on a timer
+
+	if (filter_type_changed) {
+		filter_type = new_filter_type;
+	}
+
+	if (filter_mode_changed) {
+		filter_mode = new_filter_mode;
+	}
+
 	for (int i = 0; i < NUM_CHANNELS; i++) {
 
 		if (scale_bank[i] >= NUM_SCALEBANKS) {
@@ -107,7 +119,7 @@ void FilterBank::process_scale_bank(void) {
 			scale[i] = NUM_SCALES - 1;
 		}
 
-		if (scale_bank[i] != old_scale_bank[i] || filter_changed || io->READCOEFFS ) {
+		if (scale_bank[i] != old_scale_bank[i] || io->READCOEFFS || io->USERSCALE_CHANGED ) {
 
 			old_scale_bank[i] = scale_bank[i];
 
@@ -151,32 +163,29 @@ void FilterBank::process_audio_block() {
 
 	float f_blended;
 
-	if (filter_changed) {
-		filter_type = new_filter_type;
-	}
-
 	// Populate the filter coefficients
-	process_scale_bank();
+	prepare_scale_bank();
 
 	// UPDATE QVAL
 	q->update();
 
-	for (uint8_t chan = 0; chan < NUM_CHANNELS; chan++) {
-
+	// Reset filter_out
+	for (uint8_t filter = 0; filter < NUM_FILTS; filter++) {
 		for (uint8_t sample = 0; sample < NUM_SAMPLES; sample++) {
-			filter_out[chan][sample] = 0.0f;
-			filter_out[chan * 2][sample] = 0.0f;
+			filter_out[filter][sample] = 0.0f;
 		}
+	}
 
+	for (uint8_t chan = 0; chan < NUM_CHANNELS; chan++) {
 		if (filter_type == MAXQ) {
 			maxq[chan].filter(this, chan, filter_out);
 		} else {
 			bpre[chan].filter(this, chan, filter_out);
 		}
-
 	}
 
 	rotation->update_morph();
+
 	// Since process_audio_block is called half as frequently in 48Khz mode as in 96Khz mode
 	// We must call update_morph twice, instead of once, to compensate
 	if (!io->HICPUMODE) { 
@@ -210,11 +219,12 @@ void FilterBank::process_audio_block() {
 			envelope->envout_preload[j] = -1.0f * f_blended;
 		}
 	}
-	
+
 	// Completed pass, so reset flags
-	filter_changed = false;
+	filter_type_changed = false;
+	filter_mode_changed = false;
 	io->USERSCALE_CHANGED = false;
 	io->READCOEFFS = false;
-
+	
 }
 

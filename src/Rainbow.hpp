@@ -286,7 +286,9 @@ struct FilterBank {
 	FilterModes filter_mode = TWOPASS;
 
 	FilterTypes new_filter_type;
-	bool filter_changed = false;
+	FilterModes new_filter_mode;
+	bool filter_type_changed = false;
+	bool filter_mode_changed = false;
 
 	ScaleSet scales;
 
@@ -311,7 +313,7 @@ struct FilterBank {
 	void configure(IO *_io, Rotation *_rotation, Envelope *_envelope, Q *_q, Tuning *_tuning, Levels *_levels);
 	~FilterBank();
 
-	void process_scale_bank(void);
+	void prepare_scale_bank(void);
 	void process_bank_change(void);
 	void process_user_scale_change(void);
 	void change_filter(FilterTypes type, FilterModes mode);
@@ -502,7 +504,7 @@ struct LPF {
 
 	//Filter window buffer and index
 	float	 			fir_lpf[MAX_FIR_LPF_SIZE];
-	uint32_t 			fir_lpf_i;
+	uint32_t 			fir_lpf_i = 0;
 
 	void setup_fir_filter();
 	void apply_fir_lpf();
