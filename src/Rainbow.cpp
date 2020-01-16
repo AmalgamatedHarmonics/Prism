@@ -689,7 +689,7 @@ void Rainbow::process(const ProcessArgs &args) {
 
 	main.prepare();
 
-	audio.inputChannels = inputs[POLY_IN_INPUT].getChannels();
+	audio.inputChannels = std::min(inputs[POLY_IN_INPUT].getChannels(), 6);
 	audio.outputChannels = params[OUTCHAN_PARAM].getValue(); 
 	audio.noiseSelected = noiseSelected;
 	audio.sampleRate = args.sampleRate;
