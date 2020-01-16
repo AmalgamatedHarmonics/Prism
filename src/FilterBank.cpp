@@ -124,9 +124,12 @@ void FilterBank::prepare_scale_bank(void) {
 			old_scale_bank[i] = scale_bank[i];
 
 			if (filter_type == MAXQ) {
-
 				maxq[i].reset(this);
+			} else {
+				bpre[i].reset(this);
+			}
 
+			if (filter_type == MAXQ) {
 				if (scale_bank[i] == NUM_SCALEBANKS - 1) {
 					if (io->HICPUMODE) {
 						c_hiq[i] = (float *)(userscale_bank96); 
@@ -140,11 +143,7 @@ void FilterBank::prepare_scale_bank(void) {
 						c_hiq[i] = (float *)(scales.presets[scale_bank[i]]->c_maxq48000);
 					}
 				}	
-
 			} else {
-
-				bpre[i].reset(this);
-
 				if (io->HICPUMODE) {
 					c_hiq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre9600080040);
 					c_loq[i] 		= (float *)(scales.presets[scale_bank[i]]->c_bpre9600022);

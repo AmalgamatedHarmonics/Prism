@@ -830,13 +830,13 @@ void BpreFilter::filter(FilterBank *fb, int channel_num, float **filter_out) {
 				destvoct = *(fb->bpretuning[channel_num] + (scale_num * NUM_SCALENOTES) + filter_num);
 			}
 
-			a0 =* (fb->c_loq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 0)*var_f + *(fb->c_loq[channel_num] + (scale_num*63) + (filter_num*3) + 0)*inv_var_f;
-			a1 =* (fb->c_loq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 1)*var_f + *(fb->c_loq[channel_num] + (scale_num*63) + (filter_num*3) + 1)*inv_var_f;
-			a2 =* (fb->c_loq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 2)*var_f + *(fb->c_loq[channel_num] + (scale_num*63) + (filter_num*3) + 2)*inv_var_f;
+			a0 = *(fb->c_loq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 0)*var_f + *(fb->c_loq[channel_num] + (scale_num*63) + (filter_num*3) + 0)*inv_var_f;
+			a1 = *(fb->c_loq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 1)*var_f + *(fb->c_loq[channel_num] + (scale_num*63) + (filter_num*3) + 1)*inv_var_f;
+			a2 = *(fb->c_loq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 2)*var_f + *(fb->c_loq[channel_num] + (scale_num*63) + (filter_num*3) + 2)*inv_var_f;
 
-			c0 =* (fb->c_hiq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 0)*var_f + *(fb->c_hiq[channel_num] + (scale_num*63) + (filter_num*3) + 0)*inv_var_f;
-			c1 =* (fb->c_hiq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 1)*var_f + *(fb->c_hiq[channel_num] + (scale_num*63) + (filter_num*3) + 1)*inv_var_f;
-			c2 =* (fb->c_hiq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 2)*var_f + *(fb->c_hiq[channel_num] + (scale_num*63) + (filter_num*3) + 2)*inv_var_f;
+			c0 = *(fb->c_hiq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 0)*var_f + *(fb->c_hiq[channel_num] + (scale_num*63) + (filter_num*3) + 0)*inv_var_f;
+			c1 = *(fb->c_hiq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 1)*var_f + *(fb->c_hiq[channel_num] + (scale_num*63) + (filter_num*3) + 1)*inv_var_f;
+			c2 = *(fb->c_hiq[channel_num] + (scale_num*63) + (nudge_filter_num*3) + 2)*var_f + *(fb->c_hiq[channel_num] + (scale_num*63) + (filter_num*3) + 2)*inv_var_f;
 
 			//Q vector
 			if (fb->q->qval[channel_num] > 4065) {
@@ -866,7 +866,6 @@ void BpreFilter::filter(FilterBank *fb, int channel_num, float **filter_out) {
 				}
 
 				iir = pTmp * c0;
-
 				iir -= c1 * tmp;
 				fir = -tmp;
 				iir -= c2 * buf[scale_num][filter_num][0];

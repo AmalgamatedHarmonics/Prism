@@ -280,7 +280,7 @@ struct FilterBank {
 
 	// Filter		filter;
 	std::array<MaxQFilter, NUM_CHANNELS> maxq;
-	std::array<MaxQFilter, NUM_CHANNELS> bpre;
+	std::array<BpreFilter, NUM_CHANNELS> bpre;
 
 	FilterTypes filter_type = MAXQ;
 	FilterModes filter_mode = TWOPASS;
@@ -427,7 +427,6 @@ struct LEDRing {
 	FilterBank *	filterbank;
 	Q *				q;
 
-
 	const float sqrt2over2			= sqrt(2.0f) / 2.0f;
 	const float sqrt2				= sqrt(2.0f);
 	const float maxNudge			= 1.0f + 4095.0f / 55000.0f;
@@ -446,7 +445,7 @@ struct LEDRing {
 		{100.0f/255.0f,	 255.0f/255.0f,  255.0f/255.0f}, // Cyan	  
 		{100.0f/255.0f,	 100.0f/255.0f,  255.0f/255.0f}, // Blue
 		{255.0f/255.0f,	 100.0f/255.0f,  255.0f/255.0f}, // Magenta
-		};
+	};
 
 	void configure(IO *_io, Rotation *_rotation, Envelope *_envelope, FilterBank *_filter, Q *_q);
 
