@@ -83,6 +83,8 @@ void Droplet::process(const ProcessArgs &args) {
 
 	io.Q_LEVEL		= (int16_t)clamp(inputs[Q_INPUT].getVoltage() * 409.5f, 0.0f, 4095.0f);
 	io.Q_CONTROL	= (int16_t)params[Q_PARAM].getValue() * 409.5f;
+	io.FREQ = clamp(inputs[FREQ_INPUT].getVoltage() + params[FREQ_PARAM].getValue(), -10.0f, 10.0f);
+	io.FREQ = dsp::FREQ_C4 * pow(2.0f, io.FREQ); 
 
 	io.ENV_SWITCH	= (EnvelopeMode)params[ENV_PARAM].getValue();
 
@@ -112,9 +114,11 @@ struct DropletWidget : ModuleWidget {
 
 		addParam(createParamCentered<gui::PrismLargeKnobNoSnap>(Vec(29.000 + 17.0, 380.0f - 80.000 - 17.000), module, Droplet::Q_PARAM));
 		addParam(createParamCentered<gui::PrismKnobSnap>(Vec(75.000 + 11.0, 380.0f - 56.000 - 11.0), module, Droplet::FILTER_PARAM));
+		addParam(createParamCentered<gui::PrismLargeKnobNoSnap>(Vec(29.000 + 77.0, 380.0f - 80.000 - 17.000), module, Droplet::FREQ_PARAM));
 
 		addInput(createInputCentered<gui::PrismPort>(Vec(35.000 + 11.0, 380.0f - 240.000 - 11.0), module, Droplet::IN_INPUT));
 		addInput(createInputCentered<gui::PrismPort>(Vec(35.000 + 11.0, 380.0f - 26.000 - 11.0), module, Droplet::Q_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(Vec(35.000 + 71.0, 380.0f - 26.000 - 11.0), module, Droplet::FREQ_INPUT));
 
 		addOutput(createOutputCentered<gui::PrismPort>(Vec(35.000 + 11.0, 380.0f - 318.000 - 11.0), module, Droplet::OUT_OUTPUT));
 		addOutput(createOutputCentered<gui::PrismPort>(Vec(355.000 + 11.0, 380.0f - 240.000 - 11.0), module, Droplet::ENV_OUTPUT));

@@ -201,7 +201,7 @@ void Filter::onepass() {
 
 	// FREQ: c1 = 2 * pi * freq / samplerate
 	
-	c1 = dsp::FREQ_C4 * cCoeff;
+	c1 = cCoeff * io->FREQ;
 	if (c1 > 1.30899581f) {
 		c1 = 1.30899581f; //hard limit at 20k
 	}
@@ -254,7 +254,7 @@ void Filter::twopass() {
 	c0   = 1.0f - exp_4096[(uint32_t)(qval_b / 1.4f) + 200] / 10.0f; //exp[200...3125]
 
 	// FREQ: c1 = 2 * pi * freq / samplerate
-	c1 = (dsp::FREQ_C4 * 2.0f * prism::core::PI) / 96000;
+	c1 = cCoeff * io->FREQ;
 	if (c1 > 1.30899581f) {
 		c1 = 1.30899581f; //hard limit at 20k
 	}
