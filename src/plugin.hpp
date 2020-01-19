@@ -14,3 +14,5 @@ extern Plugin *pluginInstance;
 
 extern Model *modelRainbow;
 extern Model *modelRainbowScaleExpander;
+
+extern Model *modelDroplet;
