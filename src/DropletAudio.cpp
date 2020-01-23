@@ -2,24 +2,6 @@
 
 using namespace droplet;
 
-float Audio::generateNoise() {
-	float nO;
-	switch (noiseSelected) {
-		case 0:
-			nO = brown.next() * 10.0f - 5.0f;
-			break;
-		case 1:
-			nO = pink.next() * 10.0f - 5.0f;
-			break;
-		case 2:
-			nO = white.next() * 10.0f - 5.0f;
-			break;
-		default:
-			nO = pink.next() * 10.0f - 5.0f;
-	}
-	return nO;
-}
-
 void Audio::ChannelProcess(droplet::IO &io, rack::engine::Input &input, rack::engine::Output &output, droplet::Filter &filter) {
 
 	dsp::Frame<1> iFrame = {};
@@ -32,7 +14,22 @@ void Audio::ChannelProcess(droplet::IO &io, rack::engine::Input &input, rack::en
 	int outLen2 = 0;
 
 	if (!input.isConnected()) {
-		sample = generateNoise() / 5.0f;
+		float nO;
+		switch (noiseSelected) {
+			case 0:
+				nO = brown.next() * 10.0f - 5.0f;
+				break;
+			case 1:
+				nO = pink.next() * 10.0f - 5.0f;
+				break;
+			case 2:
+				nO = white.next() * 10.0f - 5.0f;
+				break;
+			default:
+				nO = pink.next() * 10.0f - 5.0f;
+		}
+
+		sample = nO / 5.0f;
 	} else {
 		sample = input.getVoltage(0) / 5.0f;
 	}

@@ -57,7 +57,6 @@ struct Audio {
 	dsp::SampleRateConverter<1> outputSrc;
 	dsp::DoubleRingBuffer<dsp::Frame<1>, 256> outputBuffer;
 
-   	float generateNoise();
 	void ChannelProcess(droplet::IO &io, rack::engine::Input &input, rack::engine::Output &output, droplet::Filter &filter);
 
 };
