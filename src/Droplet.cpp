@@ -109,22 +109,24 @@ struct DropletWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/prism_Droplet.svg")));
 
-		addParam(createParam<gui::PrismSSwitch3>(Vec(79.5f, 380.0f - 272.504f - 35.0f), module, Droplet::NOISE_PARAM));
-		addParam(createParam<gui::PrismSSwitch3>(Vec(79.5f, 380.0f - 205.5f - 33.0f), module, Droplet::ENV_PARAM));
+		addParam(createParamCentered<gui::PrismSSwitch3>(Vec(117.72, 380.0 - 276.00 - 14.005), module, Droplet::NOISE_PARAM));
+		addParam(createParamCentered<gui::PrismSSwitch3>(Vec(117.72, 380.0f - 150.0f - 40.0f), module, Droplet::ENV_PARAM));
+		addParam(createParamCentered<gui::PrismSSwitch>(Vec(37.72, 380.0 - 276.00 - 14.005), module, Droplet::FILTER_PARAM));
 
-		addParam(createParamCentered<gui::PrismLargeKnobNoSnap>(Vec(29.000 + 17.0, 380.0f - 80.000 - 17.000), module, Droplet::Q_PARAM));
-		addParam(createParamCentered<gui::PrismKnobSnap>(Vec(75.000 + 11.0, 380.0f - 56.000 - 11.0), module, Droplet::FILTER_PARAM));
-		addParam(createParamCentered<gui::PrismLargeKnobNoSnap>(Vec(29.000 + 77.0, 380.0f - 80.000 - 17.000), module, Droplet::FREQ_PARAM));
+		addParam(createParamCentered<gui::PrismLargeKnobNoSnap>(Vec(77.500 - 30.000, 380.0f - 80.000 - 17.000), module, Droplet::Q_PARAM));
+		addParam(createParamCentered<gui::PrismLargeKnobNoSnap>(Vec(77.500 + 30.000, 380.0f - 80.000 - 17.000), module, Droplet::FREQ_PARAM));
 
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(Vec(29.000 + 37.0, 380.0f - 80.000 - 17.000), module, Droplet::Q_ATTN_PARAM));
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(Vec(29.000 + 107.0, 380.0f - 80.000 - 17.000), module, Droplet::FREQ_ATTN_PARAM));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(Vec(20.346,         380.0f - 50.000 - 17.000), module, Droplet::Q_ATTN_PARAM));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(Vec(155.0 - 20.346, 380.0f - 50.000 - 17.000), module, Droplet::FREQ_ATTN_PARAM));
 
-		addInput(createInputCentered<gui::PrismPort>(Vec(35.000 + 11.0, 380.0f - 240.000 - 11.0), module, Droplet::IN_INPUT));
-		addInput(createInputCentered<gui::PrismPort>(Vec(35.000 + 11.0, 380.0f - 26.000 - 11.0), module, Droplet::Q_INPUT));
-		addInput(createInputCentered<gui::PrismPort>(Vec(35.000 + 71.0, 380.0f - 26.000 - 11.0), module, Droplet::FREQ_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(Vec(77.500 - 30.000, 380.0f - 26.000 - 11.0), module, Droplet::Q_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(Vec(77.500 + 30.000, 380.0f - 26.000 - 11.0), module, Droplet::FREQ_INPUT));
 
-		addOutput(createOutputCentered<gui::PrismPort>(Vec(35.000 + 11.0, 380.0f - 318.000 - 11.0), module, Droplet::OUT_OUTPUT));
-		addOutput(createOutputCentered<gui::PrismPort>(Vec(355.000 + 11.0, 380.0f - 240.000 - 11.0), module, Droplet::ENV_OUTPUT));
+		addInput(createInputCentered<gui::PrismPort>(Vec(77.500, 380.0f - 240.000 - 11.0), module, Droplet::IN_INPUT));
+		addOutput(createOutputCentered<gui::PrismPort>(Vec(77.500, 380.0f - 318.000 - 11.0), module, Droplet::OUT_OUTPUT));
+
+
+		addOutput(createOutputCentered<gui::PrismPort>(Vec(77.500, 380.0f - 150.000 - 9.000), module, Droplet::ENV_OUTPUT));
 
 
 	}

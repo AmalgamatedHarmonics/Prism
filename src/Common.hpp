@@ -107,8 +107,8 @@ struct PrismTrimpotNoSnap : RoundKnob {
 
 struct PrismSSwitch : app::SvgSwitch {
 	PrismSSwitch() {
-		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_Switch3_2-11.svg")));
-		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_Switch2_1.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_Switch3_2-08.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_Switch3_1.svg")));
 	}
 };
 
