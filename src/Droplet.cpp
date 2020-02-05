@@ -94,6 +94,7 @@ void Droplet::process(const ProcessArgs &args) {
 
 	audio.noiseSelected 	= params[NOISE_PARAM].getValue();;
 	audio.sampleRate 		= args.sampleRate;
+	
 	audio.ChannelProcess(io, inputs[IN_INPUT], outputs[OUT_OUTPUT], filter);
 
 	// Populate poly outputs

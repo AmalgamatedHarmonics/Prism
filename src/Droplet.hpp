@@ -12,7 +12,6 @@
 // Audio buffer sizing
 #define NUM_SAMPLES 32
 
-#define COEF_COEF (2.0 * 3.14159265358979323846 / 96000.0)
 #define TWELFTHROOTTWO 1.05946309436
 #define ROOT 13.75
 #define SLIDEREDITNOTE_LPF 0.980
@@ -42,7 +41,9 @@ struct Audio {
 	const float MIN_12BIT = -16777216.0f;
 	const float MAX_12BIT = 16777215.0f;
 
-	const int SAMPLE_RATE = 96000;
+	const int	MAX_SAMPLE_RATE	= 96000;
+	int			SAMPLE_RATE		= 32000;
+	float		SAMPLE_C		= (float)MAX_SAMPLE_RATE / (float)SAMPLE_RATE;
 
 	int noiseSelected;
 	int sampleRate;
@@ -67,15 +68,14 @@ struct Filter {
 
 	// Q
 	uint32_t	qval;
-	float		qval_goal = 0.0;
-	float		prev_qval = 0.0;
-	float		global_lpf;
+	float		qval_goal 	= 0.0f;
+	float		prev_qval 	= 0.0f;
+	float		global_lpf	= 0.0f;
 
-	uint32_t q_update_ctr			= UINT32_MAX; // Initialise to always fire on first pass 
-   	uint32_t Q_UPDATE_RATE			= 50; 
-	uint32_t QPOT_MIN_CHANGE		= 100;
-	float Q_LPF						= 0.95f;
-	float cCoeff 					= 2.0 * 3.14159265358979323846 / 96000.0f;
+	uint32_t 	q_update_ctr	= UINT32_MAX; // Initialise to always fire on first pass 
+   	uint32_t	Q_UPDATE_RATE	= 50; 
+	uint32_t	QPOT_MIN_CHANGE	= 100;
+	float		Q_LPF			= 0.90f; // UPDATE - does this need to be some fraction of 0.95@96Khz
 
 	// Envelope
 	const float ENV_SCALE = 4.0e+7;
@@ -95,22 +95,21 @@ struct Filter {
 	float			envspeed_attack;
 	float			envspeed_decay;
 
-
 	// Filter
-	FilterSetting filter_mode = TwoPass;
-
-	// filter coefficients
-	float c_hiq = 0.006414010322505164;
-
-	float filter_out[NUM_SAMPLES];
+	FilterSetting 	filter_mode 	= TwoPass;
+	float 			SAMPLE_RATE		= 32000.0f;
+	float 			factor			= 10.0 * (SAMPLE_RATE / 96000.0);
+	float 			cCoeff 			= 2.0 * 3.14159265358979323846 / SAMPLE_RATE; 
 
 	void configure(IO *_io);
 
-	float CROSSFADE_POINT = 4095.0f * 2.0f / 3.0f;
-	float CROSSFADE_WIDTH = 1800.0f;
-	float CROSSFADE_MIN = CROSSFADE_POINT - CROSSFADE_WIDTH / 2.0f;
-	float CROSSFADE_MAX = CROSSFADE_POINT + CROSSFADE_WIDTH / 2.0f;
-	int32_t INPUT_LED_CLIP_LEVEL = 0xFFFFFF;
+	float CROSSFADE_POINT 	= 4095.0f * 2.0f / 3.0f;
+	float CROSSFADE_WIDTH 	= 1800.0f;
+	float CROSSFADE_MIN 	= CROSSFADE_POINT - CROSSFADE_WIDTH / 2.0f;
+	float CROSSFADE_MAX 	= CROSSFADE_POINT + CROSSFADE_WIDTH / 2.0f;
+
+	// filter output
+	float filter_out[NUM_SAMPLES];
 
 	// filter buffer
 	float buf[3]; 
@@ -119,9 +118,9 @@ struct Filter {
 	float buf_a[3]; 
 
    	// Filter parameters
-	float qval_b = 0.0f;	
-	float qval_a = 0.0f; 	
-	float qc = 0.0f;
+	float qval_b	= 0.0f;	
+	float qval_a	= 0.0f; 	
+	float qc		= 0.0f;
 
 	void update_env();
 	void update_q();

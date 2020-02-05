@@ -73,7 +73,7 @@ void Audio::ChannelProcess(droplet::IO &io, rack::engine::Input &input, rack::en
 	if (!outputBuffer.empty()) {
 		oFrame = outputBuffer.shift();
 		output.setChannels(1);
-		output.setVoltage(oFrame.samples[0] * 5.0f);
+		output.setVoltage(oFrame.samples[0] * 5.0f * SAMPLE_C);
 	}
 
 }

@@ -197,13 +197,12 @@ void Filter::onepass() {
 	float c0, c1, c2;
 	float iir;
 
-	c0 = 1.0f - exp_4096[(uint32_t)(qval / 1.4f) + 200] / 10.0; //exp[200...3125]
+	c0 = 1.0f - exp_4096[(uint32_t)(qval / 1.4f) + 200] / factor; // exp[200...3125] 
 
 	// FREQ: c1 = 2 * pi * freq / samplerate
-	
 	c1 = cCoeff * io->FREQ;
-	if (c1 > 1.30899581f) {
-		c1 = 1.30899581f; //hard limit at 20k
+	if (c1 > 1.9f) {
+		c1 = 1.9f; //hard limit at 20k
 	}
 
 	// AMPLITUDE: Boost high freqs and boost low resonance
@@ -250,13 +249,13 @@ void Filter::twopass() {
 	} // 1000 to 3925
 	
 	// Q/RESONANCE: c0 = 1 - 2/(decay * samplerate), where decay is around 0.01 to 4.0
-	c0_a = 1.0f - exp_4096[(uint32_t)(qval_a / 1.4f) + 200] / 10.0f; //exp[200...3125]
-	c0   = 1.0f - exp_4096[(uint32_t)(qval_b / 1.4f) + 200] / 10.0f; //exp[200...3125]
+	c0_a = 1.0f - exp_4096[(uint32_t)(qval_a / 1.4f) + 200] / factor; // exp[200...3125]
+	c0   = 1.0f - exp_4096[(uint32_t)(qval_b / 1.4f) + 200] / factor; // exp[200...3125]
 
 	// FREQ: c1 = 2 * pi * freq / samplerate
 	c1 = cCoeff * io->FREQ;
-	if (c1 > 1.30899581f) {
-		c1 = 1.30899581f; //hard limit at 20k
+	if (c1 > 1.9f) {
+		c1 = 1.9f; // hard limit at 20k
 	}
 
 	// CROSSFADE between the two filters
