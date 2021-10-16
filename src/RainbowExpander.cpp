@@ -587,9 +587,9 @@ struct RainbowScaleExpander : core::PrismModule {
 		configParam(BANK_PARAM, 0, 21, 0, "Bank presets"); 
 		configParam(BANKLOAD_PARAM, 0, 1, 0, "Load preset"); 
 
-		configParam(PAGE_PARAM, 0, NUM_PAGES - 1, 1, "Select page: Frequency, ET, JI"); 
-		configParam(CALC_PARAM, 0, 1, 0, "Set Single note/in page"); 
-		configParam(STACKMODE_PARAM, 0, 1, 0, "Calculate interval per octave or stack intervals"); 
+		configSwitch(PAGE_PARAM, 0, NUM_PAGES - 1, 1, "Select page", {"Frequency", "ET", "JI"}); 
+		configSwitch(CALC_PARAM, 0, 1, 0, "Calculate", {"Single note", "All"}); 
+		configSwitch(STACKMODE_PARAM, 0, 1, 0, "Calculate interval", {"per octave", "stack intervals"}); 
 		configParam(EXECUTE_PARAM, 0, 1, 0, "Set frequencies in scale"); 
 
 		for (int i = 0; i < NUM_PARAMETERS; i++) {
@@ -1118,10 +1118,10 @@ struct RainbowScaleExpander : core::PrismModule {
 struct FrequencyDisplay : TransparentWidget {
 	
 	RainbowScaleExpander *module;
-	std::shared_ptr<Font> font;
+	std::string fontPath;
 	
 	FrequencyDisplay() {
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf"));
+		fontPath = asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf");
 	}
 
 	void draw(const DrawArgs &ctx) override {
@@ -1134,6 +1134,8 @@ struct FrequencyDisplay : TransparentWidget {
 			return;
 		}
 
+		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+		nvgGlobalTint(ctx.vg, color::WHITE);
 		nvgFontSize(ctx.vg, 14);
 		nvgFontFaceId(ctx.vg, font->handle);
 		nvgTextLetterSpacing(ctx.vg, -1);
@@ -1206,10 +1208,10 @@ struct FrequencyDisplay : TransparentWidget {
 
 struct ExpanderBankWidget : Widget {
 
-	std::shared_ptr<Font> font;
+	std::string fontPath;
 
 	ExpanderBankWidget() {
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf"));
+		fontPath = asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf");
 	}
 
     ScaleSet scales;
@@ -1258,6 +1260,8 @@ struct ExpanderBankWidget : Widget {
 			return;
 	    }
 
+		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+		nvgGlobalTint(ctx.vg, color::WHITE);
 		nvgFontSize(ctx.vg, 17.0f);
 		nvgFontFaceId(ctx.vg, font->handle);
 
@@ -1318,7 +1322,7 @@ struct RainbowScaleExpanderWidget : ModuleWidget {
 	RainbowScaleExpanderWidget(RainbowScaleExpander *module) {
 
 		setModule(module);
-		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/RainbowScaleExpander.svg")));
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/RainbowScaleExpander.svg")));
 
 		gui::PrismReadoutParam *p0 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 9.268)), module, RainbowScaleExpander::PARAMETER_PARAM+0);
 		gui::PrismReadoutParam *p1 = createParam<gui::FloatReadout>(mm2px(Vec(95.69, 24.268)), module, RainbowScaleExpander::PARAMETER_PARAM+1);

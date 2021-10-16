@@ -40,6 +40,7 @@ struct LED : Widget {
 	}
 
 	void draw(const DrawArgs &args) override {
+		nvgGlobalTint(args.vg, color::WHITE);
 		nvgFillColor(args.vg, color);
 		nvgStrokeColor(args.vg, colorBorder);
 		nvgStrokeWidth(args.vg, ledStrokeWidth);
@@ -424,22 +425,21 @@ struct Rainbow : core::PrismModule {
 		configParam(GLOBAL_LEVEL_PARAM, 0, 8191, 4095, "Global Level");
 		configParam(SPREAD_PARAM, 0, 4095, 0, "Spread");
 		configParam(MORPH_PARAM, 0, 4095, 0, "Morph");
-
 		configParam(SLEW_PARAM, 0, 4095, 0, "Channel slew speed"); // 0% slew
-		configParam(FILTER_PARAM, 0, 2, 0, "Filter type: 2-pass, 1-pass, bpre"); // two/one/bpre
-		configParam(VOCTGLIDE_PARAM, 0, 1, 0, "V/Oct glide on/off"); // on/off
-		configParam(SCALEROT_PARAM, 0, 1, 0, "Scale rotation on/off"); // on/off
-		configParam(PREPOST_PARAM, 0, 1, 0, "Envelope: post/pre"); //pre/post
-		configParam(ENV_PARAM, 0, 2, 0, "Envelope: fast/slow/trigger"); // fast/slow/trigger
-		configParam(NOISE_PARAM, 0, 2, 0, "Noise: brown/pink/white"); // brown/pink/white
-		configParam(OUTCHAN_PARAM, 0, 2, 0, "Output channels"); // mono/stereo/6
+		configSwitch(FILTER_PARAM, 0, 2, 0, "Filter type", {"2-pass", "1-pass", "bpre"});
+		configButton(VOCTGLIDE_PARAM, "V/Oct glide");
+		configButton(SCALEROT_PARAM, "Scale rotation");
+		configButton(PREPOST_PARAM, "Envelope");
+		configSwitch(ENV_PARAM, 0, 2, 0, "Envelope", {"fast", "slow", "trigger"});
+		configSwitch(NOISE_PARAM, 0, 2, 0, "Noise", {"brown", "pink", "white"});
+		configSwitch(OUTCHAN_PARAM, 0, 2, 0, "Output channels", {"mono", "stereo", "6"});
 
 		configParam(COMPRESS_PARAM, 0, 1, 0, "Compress: off/on"); 
 
 		configParam(FREQNUDGE1_PARAM, -4095, 4095, 0, "Freq Nudge odds");
 		configParam(FREQNUDGE6_PARAM, -4095, 4095, 0, "Freq Nudge evens");
-		configParam(MOD135_PARAM, 0, 1, 0, "Mod 1/135"); // 1/135
-		configParam(MOD246_PARAM, 0, 1, 0, "Mod 2/246"); // 6/246
+		configSwitch(MOD135_PARAM, 0, 1, 0, "Mod", {"1", "135"});
+		configSwitch(MOD246_PARAM, 0, 1, 0, "Mod", {"6", "246"});
 
 		configParam(BANK_PARAM, 0, 19, 0, "Bank"); 
 		configParam(SWITCHBANK_PARAM, 0, 1, 0, "Switch bank"); 
@@ -1007,7 +1007,7 @@ void LED::onButton(const event::Button &e) {
 
 struct BankWidget : Widget {
 
-	std::shared_ptr<Font> font;
+	std::string fontPath;
 	Rainbow *module = NULL;
 	ScaleSet scales;
 	NVGcolor colors[NUM_SCALEBANKS] = {
@@ -1044,7 +1044,7 @@ struct BankWidget : Widget {
 	};
 
 	BankWidget() {
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf"));
+		fontPath = asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf");
 	}
 
 	void draw(const DrawArgs &ctx) override {
@@ -1052,7 +1052,9 @@ struct BankWidget : Widget {
 		if (module == NULL) {
 			return;
 		}
-
+		
+		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+		nvgGlobalTint(ctx.vg, color::WHITE);
 		nvgFontSize(ctx.vg, 12.0f);
 		nvgFontFaceId(ctx.vg, font->handle);
 
@@ -1077,7 +1079,7 @@ struct RainbowWidget : ModuleWidget {
 	RainbowWidget(Rainbow *module) {
 
 		setModule(module);
-		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/prism_Rainbow.svg")));
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/prism_Rainbow.svg")));
 
 		addParam(createParamCentered<gui::PrismButton>(Vec(119.0f + 7.000, 380.0f - 352.000 - 7.000), module, Rainbow::LOCKON_PARAM+0));
 		addParam(createParamCentered<gui::PrismButton>(Vec(159.0f + 7.000, 380.0f - 352.000 - 7.000), module, Rainbow::LOCKON_PARAM+1));

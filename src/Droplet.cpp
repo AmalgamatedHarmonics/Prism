@@ -41,31 +41,30 @@ struct Droplet : core::PrismModule {
 	Audio 		audio;
 
 	json_t *dataToJson() override {
-
 		json_t *rootJ = json_object();
-
 		return rootJ;
 	}
 
-	void dataFromJson(json_t *rootJ) override {
-
-	}
+	void dataFromJson(json_t *rootJ) override {}
 
 	Droplet() : core::PrismModule(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) { 
-
 		configParam(Q_PARAM, 0.0, 10.0, 5.0, "Q");
 		configParam(FREQ_PARAM, -10.0, 10.0, 0, "Filter frequency");
-		configParam(FILTER_PARAM, 0, 1, 0, "Filter type: 2-pass, 1-pass"); // two/one
-		configParam(ENV_PARAM, 0, 2, 0, "Envelope: fast/slow/trigger"); // fast/slow/trigger
-		configParam(NOISE_PARAM, 0, 2, 0, "Noise: brown/pink/white"); // brown/pink/white
-
 		configParam(Q_ATTN_PARAM, 0.0, 1.0, 1.0, "Q input attenuation");
 		configParam(FREQ_ATTN_PARAM, 0.0, 1.0, 1.0, "Frequency input attenuation");
 
+		configSwitch(FILTER_PARAM, 0, 1, 0, "Filter type", {"2-pass", "1-pass"});
+		configSwitch(ENV_PARAM, 0, 2, 0, "Envelope", {"fast", "slow", "trigger"});
+		configSwitch(NOISE_PARAM, 0, 2, 0, "Noise", {"brown", "pink", "white"});
+
+		configInput(Q_INPUT, "Q");
+		configInput(FREQ_INPUT, "Frequency");
+		configInput(IN_INPUT, "Audio");
+		configOutput(OUT_OUTPUT, "Audio");
+		configOutput(ENV_OUTPUT, "Envelope");
+
 		filter.configure(&io);
-
 		filter.initialise();
-
 	}
 
 	void onReset() override {
@@ -73,7 +72,6 @@ struct Droplet : core::PrismModule {
 	}
 
 	void process(const ProcessArgs &args) override;
-
 };
 
 void Droplet::process(const ProcessArgs &args) {
@@ -108,7 +106,7 @@ struct DropletWidget : ModuleWidget {
 	DropletWidget(Droplet *module) {
 
 		setModule(module);
-		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/prism_Droplet.svg")));
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/prism_Droplet.svg")));
 
 		addParam(createParamCentered<gui::PrismSSwitch3>(Vec(107.72, 380.0 - 276.00 - 14.005), module, Droplet::NOISE_PARAM));
 		addParam(createParamCentered<gui::PrismSSwitch3>(Vec(107.72, 380.0f - 150.0f - 40.0f), module, Droplet::ENV_PARAM));
@@ -127,10 +125,7 @@ struct DropletWidget : ModuleWidget {
 		addOutput(createOutputCentered<gui::PrismPort>(Vec(67.500, 380.0f - 318.000 - 11.0), module, Droplet::OUT_OUTPUT));
 
 		addOutput(createOutputCentered<gui::PrismPort>(Vec(67.500, 380.0f - 150.000 - 9.000), module, Droplet::ENV_OUTPUT));
-
-
 	}
-
 };
 
 Model *modelDroplet = createModel<Droplet, DropletWidget>("Droplet");
