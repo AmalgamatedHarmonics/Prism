@@ -75,29 +75,31 @@ struct Droplet : core::PrismModule {
 };
 
 void Droplet::process(const ProcessArgs &args) {
+	if (inputs[IN_INPUT].isConnected()) {
 
-	PrismModule::step();
+		PrismModule::step();
 
-	io.FILTER_SWITCH	= (FilterSetting)params[FILTER_PARAM].getValue();
+		io.FILTER_SWITCH	= (FilterSetting)params[FILTER_PARAM].getValue();
 
-	float q 			= inputs[Q_INPUT].getVoltage() * params[Q_ATTN_PARAM].getValue();
-	io.Q_LEVEL			= (int16_t)clamp(q * 409.5f, 0.0f, 4095.0f);
+		float q 			= inputs[Q_INPUT].getVoltage() * params[Q_ATTN_PARAM].getValue();
+		io.Q_LEVEL			= (int16_t)clamp(q * 409.5f, 0.0f, 4095.0f);
 
-	io.Q_CONTROL		= (int16_t)params[Q_PARAM].getValue() * 409.5f;
+		io.Q_CONTROL		= (int16_t)params[Q_PARAM].getValue() * 409.5f;
 
-	float f 			= inputs[FREQ_INPUT].getVoltage() * params[FREQ_ATTN_PARAM].getValue();
-	io.FREQ 			= dsp::FREQ_C4 * pow(2.0f, clamp(f + params[FREQ_PARAM].getValue(), -10.0f, 10.0f));
+		float f 			= inputs[FREQ_INPUT].getVoltage() * params[FREQ_ATTN_PARAM].getValue();
+		io.FREQ 			= dsp::FREQ_C4 * pow(2.0f, clamp(f + params[FREQ_PARAM].getValue(), -10.0f, 10.0f));
 
-	io.ENV_SWITCH		= (EnvelopeMode)params[ENV_PARAM].getValue();
+		io.ENV_SWITCH		= (EnvelopeMode)params[ENV_PARAM].getValue();
 
-	audio.noiseSelected 	= params[NOISE_PARAM].getValue();;
-	audio.sampleRate 		= args.sampleRate;
-	
-	audio.ChannelProcess(io, inputs[IN_INPUT], outputs[OUT_OUTPUT], filter);
+		audio.noiseSelected 	= params[NOISE_PARAM].getValue();;
+		audio.sampleRate 		= args.sampleRate;
+		
+		audio.ChannelProcess(io, inputs[IN_INPUT], outputs[OUT_OUTPUT], filter);
 
-	// Populate poly outputs
-	outputs[ENV_OUTPUT].setChannels(1);
-	outputs[ENV_OUTPUT].setVoltage(clamp(io.env_out * 100.0f, 0.0f, 10.0f));
+		// Populate poly outputs
+		outputs[ENV_OUTPUT].setChannels(1);
+		outputs[ENV_OUTPUT].setVoltage(clamp(io.env_out * 100.0f, 0.0f, 10.0f));
+	}
 
 }
 
