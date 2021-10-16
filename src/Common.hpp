@@ -45,7 +45,7 @@ struct PrismModule : rack::Module {
 namespace gui {
 
 // Not going to monitor buttons
-struct PrismButton : SVGSwitch {
+struct PrismButton : SvgSwitch {
 	PrismButton() {
 		momentary = true;
 		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_button_0.svg")));
@@ -53,7 +53,7 @@ struct PrismButton : SVGSwitch {
 	}	
 };
 
-struct PrismLargeButton : SVGSwitch {
+struct PrismLargeButton : SvgSwitch {
 	PrismLargeButton() {
 		momentary = true;
 		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismLargeButton_0.svg")));
