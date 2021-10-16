@@ -39,7 +39,7 @@ struct LED : Widget {
 		yCenter = ctr.y / SVG_DPI;
 	}
 
-	void draw(const DrawArgs &args) override {
+	void draw(const DrawArgs& args) override {
 		nvgGlobalTint(args.vg, color::WHITE);
 		nvgFillColor(args.vg, color);
 		nvgStrokeColor(args.vg, colorBorder);
@@ -1047,29 +1047,30 @@ struct BankWidget : Widget {
 		fontPath = asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf");
 	}
 
-	void draw(const DrawArgs &ctx) override {
+	void draw(const DrawArgs& ctx) override {
 
 		if (module == NULL) {
 			return;
 		}
 		
 		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
-		nvgGlobalTint(ctx.vg, color::WHITE);
-		nvgFontSize(ctx.vg, 12.0f);
-		nvgFontFaceId(ctx.vg, font->handle);
+		if (font) {
+			nvgGlobalTint(ctx.vg, color::WHITE);
+			nvgFontSize(ctx.vg, 12.0f);
+			nvgFontFaceId(ctx.vg, font->handle);
 
-		char text[128];
+			char text[128];
 
-		if (module->currBank == module->nextBank) {
-			nvgFillColor(ctx.vg, colors[module->currBank]);
-			snprintf(text, sizeof(text), "%s", scales.presets[module->currBank]->name.c_str());
-		} else {
-			nvgFillColor(ctx.vg, colors[module->nextBank]);
-			snprintf(text, sizeof(text), "%s*", scales.presets[module->nextBank]->name.c_str());
+			if (module->currBank == module->nextBank) {
+				nvgFillColor(ctx.vg, colors[module->currBank]);
+				snprintf(text, sizeof(text), "%s", scales.presets[module->currBank]->name.c_str());
+			} else {
+				nvgFillColor(ctx.vg, colors[module->nextBank]);
+				snprintf(text, sizeof(text), "%s*", scales.presets[module->nextBank]->name.c_str());
+			}
+
+			nvgText(ctx.vg, 5, 13, text, NULL);
 		}
-
-		nvgText(ctx.vg, 5, 13, text, NULL);
-
 	}
 
 };
