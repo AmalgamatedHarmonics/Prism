@@ -1,6 +1,9 @@
 #pragma once
 
 #include <random>
+#ifdef ARCH_WIN
+#include <ctime>
+#endif
 
 namespace bogaudio {
 	namespace dsp {
@@ -29,8 +32,12 @@ namespace bogaudio {
 			std::mt19937 _generator;
 			
 			Seeds() {
+			#ifdef ARCH_WIN
+				_generator.seed(time(0));
+			#else				
 				std::random_device rd;
 				_generator.seed(rd());
+			#endif
 			}
 
 			unsigned int _next() {

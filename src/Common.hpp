@@ -137,8 +137,8 @@ struct PrismSSwitch3R : app::SvgSwitch {
 
 struct PrismLEDSlider : LEDSlider {
 	PrismLEDSlider() {
-		maxHandlePos = app::mm2px(math::Vec(-1.85f, 0.0f).plus(math::Vec(1.0f, 0.0f)));
-		minHandlePos = app::mm2px(math::Vec(-1.85f, 21.078f).plus(math::Vec(1.0f, 0.0f)));
+		maxHandlePos = mm2px(math::Vec(-1.85f, 0.0f).plus(math::Vec(1.0f, 0.0f)));
+		minHandlePos = mm2px(math::Vec(-1.85f, 21.078f).plus(math::Vec(1.0f, 0.0f)));
 		setBackgroundSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_fader.svg")));
 		setHandleSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_button_0.svg")));
 	}
@@ -146,8 +146,8 @@ struct PrismLEDSlider : LEDSlider {
 
 struct PrismLEDIndicator : LEDSlider {
 	PrismLEDIndicator() {
-		maxHandlePos = app::mm2px(math::Vec(0.0f, -0.7f).plus(math::Vec(1.0f, 0.0f)));
-		minHandlePos = app::mm2px(math::Vec(0.0f, 21.078f).plus(math::Vec(1.0f, 0.0f)));
+		maxHandlePos = mm2px(math::Vec(0.0f, -0.7f).plus(math::Vec(1.0f, 0.0f)));
+		minHandlePos = mm2px(math::Vec(0.0f, 21.078f).plus(math::Vec(1.0f, 0.0f)));
 		setBackgroundSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/PrismSliderNop.svg")));
 		setHandleSvg(APP->window->loadSvg(asset::plugin(pluginInstance,"res/ComponentLibrary/prism_triangle.svg")));
 	}
@@ -186,6 +186,7 @@ struct PrismReadoutParam : app::ParamWidget {
 	}
 
 	void onChange(const event::Change &e) override {
+        ParamQuantity* paramQuantity = getParamQuantity();		
 		if (paramQuantity) {
 			fb->dirty = true;
 		}
@@ -208,13 +209,15 @@ struct PrismReadoutParam : app::ParamWidget {
 		}
 	}
 
-	void reset() override {
+	void reset() {
+        ParamQuantity* paramQuantity = getParamQuantity();		
 		if (paramQuantity && paramQuantity->isBounded()) {
 			paramQuantity->reset();
 		}
 	}
 
-	void randomize() override {
+	void randomize() {
+        ParamQuantity* paramQuantity = getParamQuantity();		
 		if (paramQuantity && paramQuantity->isBounded()) {
 			float value = math::rescale(random::uniform(), 0.f, 1.f, paramQuantity->getMinValue(), paramQuantity->getMaxValue());
 			paramQuantity->setValue(value);
@@ -222,7 +225,7 @@ struct PrismReadoutParam : app::ParamWidget {
 	}
 
 	void draw(const DrawArgs &ctx) override {
-
+        ParamQuantity* paramQuantity = getParamQuantity();
 		ParamWidget::draw(ctx);
 
 		if (paramQuantity) {
@@ -255,7 +258,7 @@ struct FloatReadout : PrismReadoutParam {
 	}
 
 	void draw(const DrawArgs &ctx) override {
-
+        ParamQuantity* paramQuantity = getParamQuantity();
 		ParamWidget::draw(ctx);
 
 		if (paramQuantity) {
@@ -292,7 +295,7 @@ struct IntegerReadout : PrismReadoutParam {
 	}
 
 	void draw(const DrawArgs &ctx) override {
-
+        ParamQuantity* paramQuantity = getParamQuantity();
 		ParamWidget::draw(ctx);
 
 		if (paramQuantity) {

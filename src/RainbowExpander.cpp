@@ -610,8 +610,8 @@ struct RainbowScaleExpander : core::PrismModule {
 				widgetRef[i]->isActive 	= parameterActive[currPage][i];
 				widgetRef[i]->title 	= parameterLabels[currPage][i];
 			}
-			paramQuantities[PARAMETER_PARAM + i]->label = parameterLabels[currPage][i];
-			paramQuantities[PARAMETER_PARAM + i]->description = parameterDescriptions[currPage][i];
+			paramQuantities[PARAMETER_PARAM + i]->getLabel() = parameterLabels[currPage][i];
+			paramQuantities[PARAMETER_PARAM + i]->getDescription() = parameterDescriptions[currPage][i];
 		}
 	}
 
@@ -1003,7 +1003,7 @@ struct RainbowScaleExpander : core::PrismModule {
 			notedesc[currPosinBank] = note->description;
 
 			int scale = currPosinBank / 21;
-		 	scalename[scale] = string::filename(path) + ", Page " + std::to_string(scale + 1);
+		 	scalename[scale] = system::getFilename(path) + ", Page " + std::to_string(scale + 1);
 
 			currPosinBank++;
 
@@ -1281,8 +1281,8 @@ static void loadFile(RainbowScaleExpander *module) {
 	std::string dir;
 	std::string filename;
 	if (module->path != "") {
-		dir = string::directory(module->path);
-		filename = string::filename(module->path);
+		dir = system::getDirectory(module->path);
+		filename = system::getFilename(module->path);
 	}
 	else {
 		dir = asset::user("");
