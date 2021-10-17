@@ -1125,7 +1125,6 @@ struct FrequencyDisplay : TransparentWidget {
 	}
 
 	void draw(const DrawArgs &ctx) override {
-
 		if (module == NULL) {
 			return;		
 		}
@@ -1135,75 +1134,73 @@ struct FrequencyDisplay : TransparentWidget {
 		}
 
 		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
-		nvgGlobalTint(ctx.vg, color::WHITE);
-		nvgFontSize(ctx.vg, 14);
-		nvgFontFaceId(ctx.vg, font->handle);
-		nvgTextLetterSpacing(ctx.vg, -1);
+		if (font) {		
+			nvgGlobalTint(ctx.vg, color::WHITE);
+			nvgFontSize(ctx.vg, 14);
+			nvgFontFaceId(ctx.vg, font->handle);
+			nvgTextLetterSpacing(ctx.vg, -1);
 
-		char text[128];
+			char text[128];
 
-		snprintf(text, sizeof(text), "Bank: %s", module->name.c_str());
-		nvgText(ctx.vg, box.pos.x + 7, box.pos.y + 0, text, NULL);
+			snprintf(text, sizeof(text), "Bank: %s", module->name.c_str());
+			nvgText(ctx.vg, box.pos.x + 7, box.pos.y + 0, text, NULL);
 
-		switch(module->currPage) {
-			case 0:
-				snprintf(text, sizeof(text), "Mode: Frequency");
-				break;
-			case 1:
-				snprintf(text, sizeof(text), "Mode: Equal Tem.");
-				break;
-			case 2:
-				snprintf(text, sizeof(text), "Mode: Just Inton.");
-				break;
-
-		}
-		nvgText(ctx.vg, box.pos.x + 120, box.pos.y + 0, text, NULL);
-
-		snprintf(text, sizeof(text), "Scale: %s", module->scalename[module->currScale].c_str());
-		nvgText(ctx.vg, box.pos.x + 7, box.pos.y + 15, text, NULL);
-
-		for (int i = 0; i < NUM_SCALENOTES; i++) {
-			int index = i + module->currScale * NUM_SCALENOTES;
-
-			switch(module->currState[index]) {
-				case RainbowScaleExpander::LOADED:
-					nvgFillColor(ctx.vg, nvgRGBA(0x80, 0xFF, 0x80, 0xFF));
+			switch(module->currPage) {
+				case 0:
+					snprintf(text, sizeof(text), "Mode: Frequency");
 					break;
-				case RainbowScaleExpander::EDITED:
-					nvgFillColor(ctx.vg, nvgRGBA(0x80, 0x80, 0xFF, 0xFF));
+				case 1:
+					snprintf(text, sizeof(text), "Mode: Equal Tem.");
 					break;
-				case RainbowScaleExpander::FRESH:
-					nvgFillColor(ctx.vg, nvgRGBA(0x80, 0xFF, 0xFF, 0xFF));
+				case 2:
+					snprintf(text, sizeof(text), "Mode: Just Inton.");
 					break;
-				default:
-					nvgFillColor(ctx.vg, nvgRGBA(0xFF, 0x80, 0x80, 0xFF));
 			}
+			nvgText(ctx.vg, box.pos.x + 120, box.pos.y + 0, text, NULL);
+			snprintf(text, sizeof(text), "Scale: %s", module->scalename[module->currScale].c_str());
+			nvgText(ctx.vg, box.pos.x + 7, box.pos.y + 15, text, NULL);
 
-			if (module->currNote == i) {
-				snprintf(text, sizeof(text), ">");
-				nvgText(ctx.vg, box.pos.x + 2, (box.pos.y + 30) + (i * 15), text, NULL);
+			for (int i = 0; i < NUM_SCALENOTES; i++) {
+				int index = i + module->currScale * NUM_SCALENOTES;
+
+				switch(module->currState[index]) {
+					case RainbowScaleExpander::LOADED:
+						nvgFillColor(ctx.vg, nvgRGBA(0x80, 0xFF, 0x80, 0xFF));
+						break;
+					case RainbowScaleExpander::EDITED:
+						nvgFillColor(ctx.vg, nvgRGBA(0x80, 0x80, 0xFF, 0xFF));
+						break;
+					case RainbowScaleExpander::FRESH:
+						nvgFillColor(ctx.vg, nvgRGBA(0x80, 0xFF, 0xFF, 0xFF));
+						break;
+					default:
+						nvgFillColor(ctx.vg, nvgRGBA(0xFF, 0x80, 0x80, 0xFF));
+				}
+
+				if (module->currNote == i) {
+					snprintf(text, sizeof(text), ">");
+					nvgText(ctx.vg, box.pos.x + 2, (box.pos.y + 30) + (i * 15), text, NULL);
+				}
+
+				snprintf(text, sizeof(text), "%02d", i+1);
+				nvgText(ctx.vg, box.pos.x + 9, (box.pos.y + 30) + (i * 15), text, NULL);
+
+				if (module->currFreqs[index] > 100000.0f) {
+					snprintf(text, sizeof(text), "%e", module->currFreqs[index]);
+				} else {
+					snprintf(text, sizeof(text), "%.3f", module->currFreqs[index]);
+				}
+				nvgText(ctx.vg, box.pos.x + 26, (box.pos.y + 30) + (i * 15), text, NULL);
+
+				if (module->notedesc[index].length() > 25) {
+					snprintf(text, 25, "%s...", module->notedesc[index].substr(0, 20).c_str());
+				} else {
+					snprintf(text, 25, "%s", module->notedesc[index].c_str());
+				}
+				nvgText(ctx.vg, box.pos.x + 90, (box.pos.y + 30) + (i * 15), text, NULL);
 			}
-
-			snprintf(text, sizeof(text), "%02d", i+1);
-			nvgText(ctx.vg, box.pos.x + 9, (box.pos.y + 30) + (i * 15), text, NULL);
-
-			if (module->currFreqs[index] > 100000.0f) {
-				snprintf(text, sizeof(text), "%e", module->currFreqs[index]);
-			} else {
-				snprintf(text, sizeof(text), "%.3f", module->currFreqs[index]);
-			}
-			nvgText(ctx.vg, box.pos.x + 26, (box.pos.y + 30) + (i * 15), text, NULL);
-
-			if (module->notedesc[index].length() > 25) {
-				snprintf(text, 25, "%s...", module->notedesc[index].substr(0, 20).c_str());
-			} else {
-				snprintf(text, 25, "%s", module->notedesc[index].c_str());
-			}
-			nvgText(ctx.vg, box.pos.x + 90, (box.pos.y + 30) + (i * 15), text, NULL);
-
 		}
 	}
-	
 };
 
 struct ExpanderBankWidget : Widget {
@@ -1261,21 +1258,22 @@ struct ExpanderBankWidget : Widget {
 	    }
 
 		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
-		nvgGlobalTint(ctx.vg, color::WHITE);
-		nvgFontSize(ctx.vg, 17.0f);
-		nvgFontFaceId(ctx.vg, font->handle);
+		if (font) {
+			nvgGlobalTint(ctx.vg, color::WHITE);
+			nvgFontSize(ctx.vg, 17.0f);
+			nvgFontFaceId(ctx.vg, font->handle);
 
-		char text[128];
-		int index = module->currBank;
-		if (index < NUM_SCALEBANKS) {
-			nvgFillColor(ctx.vg, colors[index]);
-		} else {
-			nvgFillColor(ctx.vg, extraColour);
+			char text[128];
+			int index = module->currBank;
+			if (index < NUM_SCALEBANKS) {
+				nvgFillColor(ctx.vg, colors[index]);
+			} else {
+				nvgFillColor(ctx.vg, extraColour);
+			}
+
+			snprintf(text, sizeof(text), "%s", scales.full[index]->name.c_str());
+			nvgText(ctx.vg, box.pos.x, box.pos.y + 15, text, NULL);
 		}
-
-		snprintf(text, sizeof(text), "%s", scales.full[index]->name.c_str());
-		nvgText(ctx.vg, box.pos.x, box.pos.y + 15, text, NULL);
-
 	}
 
 };
