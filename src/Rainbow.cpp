@@ -39,7 +39,10 @@ struct LED : Widget {
 		yCenter = ctr.y / SVG_DPI;
 	}
 
-	void draw(const DrawArgs& args) override {
+	// void draw(const DrawArgs& args) override {
+	void drawLayer(const DrawArgs& args, int layer) override {
+		if (layer != 1) return;
+
 		nvgGlobalTint(args.vg, color::WHITE);
 		nvgFillColor(args.vg, color);
 		nvgStrokeColor(args.vg, colorBorder);
@@ -49,6 +52,8 @@ struct LED : Widget {
 		nvgCircle(args.vg, xCenter, yCenter, ledRadius);
 		nvgFill(args.vg);
 		nvgStroke(args.vg);
+
+		Widget::drawLayer(args, layer);
 	}
 
 	void onButton(const event::Button &e) override;
@@ -1047,11 +1052,10 @@ struct BankWidget : Widget {
 		fontPath = asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf");
 	}
 
-	void draw(const DrawArgs& ctx) override {
-
-		if (module == NULL) {
-			return;
-		}
+	// void draw(const DrawArgs& ctx) override {
+	void drawLayer(const DrawArgs& ctx, int layer) override {
+		if (layer != 1) return;
+		if (module == NULL) return;
 		
 		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
 		if (font) {
@@ -1071,6 +1075,7 @@ struct BankWidget : Widget {
 
 			nvgText(ctx.vg, 5, 13, text, NULL);
 		}
+		Widget::drawLayer(ctx, layer);
 	}
 
 };

@@ -1124,14 +1124,11 @@ struct FrequencyDisplay : TransparentWidget {
 		fontPath = asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf");
 	}
 
-	void draw(const DrawArgs &ctx) override {
-		if (module == NULL) {
-			return;		
-		}
-
-		if (!module->stepX % 60 != 0) {
-			return;
-		}
+	// void draw(const DrawArgs &ctx) override {
+	void drawLayer(const DrawArgs& ctx, int layer) override {
+		if (layer != 1) return;
+		if (module == NULL) return;		
+		if (!module->stepX % 60 != 0) return;
 
 		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
 		if (font) {		
@@ -1200,6 +1197,7 @@ struct FrequencyDisplay : TransparentWidget {
 				nvgText(ctx.vg, box.pos.x + 90, (box.pos.y + 30) + (i * 15), text, NULL);
 			}
 		}
+		Widget::drawLayer(ctx, layer);
 	}
 };
 
