@@ -467,7 +467,6 @@ struct Rainbow : core::PrismModule {
 
 			vuMeters[n].mode = dsp::VuMeter2::RMS;
 			channelClipCnt[n] = 0;
-
 		}
 
 		lightDivider.setDivision(256);
@@ -1221,9 +1220,9 @@ struct RainbowWidget : ModuleWidget {
 		addChild(createLightCentered<TinyLight<RedLight>>(Vec((256.5 + 5.0) + 6 * 40.0, 380.0 - 77.500 - 4.5), module, Rainbow::POLYCV1IN_LIGHT));
 		addChild(createLightCentered<TinyLight<RedLight>>(Vec((256.5 + 5.0) + 6 * 40.0, 380.0 - 77.500 - 4.5 + 30.0), module, Rainbow::POLYCV6IN_LIGHT));
 
-		addChild(createLightCentered<SmallLight<RedLight>>(Vec(5.500f, 380.0f - 272.500f - 30.500f), module, Rainbow::MONOIN_LIGHT));
-		addChild(createLightCentered<SmallLight<GreenRedLight>>(Vec(5.500f, 380.0f - 272.500f - 18.400f), module, Rainbow::OEIN_LIGHT));
-		addChild(createLightCentered<SmallLight<RedLight>>(Vec(5.500f, 380.0f - 272.500f - 6.300f), module, Rainbow::POLYIN_LIGHT));
+		addChild(createLightCentered<SmallLight<RedLight>>(Vec(61, 380.0f - 272.500f - 30.500f), module, Rainbow::MONOIN_LIGHT));
+		addChild(createLightCentered<SmallLight<GreenRedLight>>(Vec(61, 380.0f - 272.500f - 18.400f), module, Rainbow::OEIN_LIGHT));
+		addChild(createLightCentered<SmallLight<RedLight>>(Vec(61, 380.0f - 272.500f - 6.300f), module, Rainbow::POLYIN_LIGHT));
 
 		addChild(createLightCentered<SmallLight<RedLight>>(Vec(5.500f, 5.500f), module, Rainbow::CPUMODE_LIGHT));
 
