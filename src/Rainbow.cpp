@@ -41,23 +41,20 @@ struct LED : Widget {
 
 	// void draw(const DrawArgs& args) override {
 	void drawLayer(const DrawArgs& args, int layer) override {
-		if (layer != 1) return;
-
-		nvgGlobalTint(args.vg, color::WHITE);
-		nvgFillColor(args.vg, color);
-		nvgStrokeColor(args.vg, colorBorder);
-		nvgStrokeWidth(args.vg, ledStrokeWidth);
-		nvgBeginPath(args.vg);
-		nvgMoveTo(args.vg, 0.0f, 0.0f);
-		nvgCircle(args.vg, xCenter, yCenter, ledRadius);
-		nvgFill(args.vg);
-		nvgStroke(args.vg);
-
+		if (layer == 1) {
+			nvgFillColor(args.vg, color);
+			nvgStrokeColor(args.vg, colorBorder);
+			nvgStrokeWidth(args.vg, ledStrokeWidth);
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, 0.0f, 0.0f);
+			nvgCircle(args.vg, xCenter, yCenter, ledRadius);
+			nvgFill(args.vg);
+			nvgStroke(args.vg);
+		}
 		Widget::drawLayer(args, layer);
 	}
 
 	void onButton(const event::Button &e) override;
-
 };
 
 struct Rainbow : core::PrismModule {
