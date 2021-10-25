@@ -114,14 +114,14 @@ struct DropletWidget : ModuleWidget {
 		addParam(createParamCentered<gui::PrismSSwitch3>(Vec(107.72, 380.0f - 150.0f - 40.0f), module, Droplet::ENV_PARAM));
 		addParam(createParamCentered<gui::PrismSSwitch>(Vec(27.72, 380.0 - 276.00 - 14.005), module, Droplet::FILTER_PARAM));
 
-		addParam(createParamCentered<gui::PrismLargeKnobNoSnap>(Vec(67.500 - 30.000, 380.0f - 80.000 - 17.000), module, Droplet::Q_PARAM));
-		addParam(createParamCentered<gui::PrismLargeKnobNoSnap>(Vec(67.500 + 30.000, 380.0f - 80.000 - 17.000), module, Droplet::FREQ_PARAM));
+		addParam(createParamCentered<gui::PrismLargeKnobNoSnap>(Vec(44.500, 380.0f - 80.000 - 17.000), module, Droplet::Q_PARAM));
+		addParam(createParamCentered<gui::PrismLargeKnobNoSnap>(Vec(90.500, 380.0f - 80.000 - 17.000), module, Droplet::FREQ_PARAM));
 
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(Vec(12.0,         380.0f - 50.000 - 17.000), module, Droplet::Q_ATTN_PARAM));
-		addParam(createParamCentered<gui::PrismKnobNoSnap>(Vec(135.0 - 12.0, 380.0f - 50.000 - 17.000), module, Droplet::FREQ_ATTN_PARAM));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(Vec(19.0, 380.0f - 50.000 - 17.000), module, Droplet::Q_ATTN_PARAM));
+		addParam(createParamCentered<gui::PrismKnobNoSnap>(Vec(116.2, 380.0f - 50.000 - 17.000), module, Droplet::FREQ_ATTN_PARAM));
 
-		addInput(createInputCentered<gui::PrismPort>(Vec(67.500 - 30.000, 380.0f - 26.000 - 11.0), module, Droplet::Q_INPUT));
-		addInput(createInputCentered<gui::PrismPort>(Vec(67.500 + 30.000, 380.0f - 26.000 - 11.0), module, Droplet::FREQ_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(Vec(44.500, 380.0f - 26.000 - 11.0), module, Droplet::Q_INPUT));
+		addInput(createInputCentered<gui::PrismPort>(Vec(90.500, 380.0f - 26.000 - 11.0), module, Droplet::FREQ_INPUT));
 
 		addInput(createInputCentered<gui::PrismPort>(Vec(67.500, 380.0f - 240.000 - 11.0), module, Droplet::IN_INPUT));
 		addOutput(createOutputCentered<gui::PrismPort>(Vec(67.500, 380.0f - 318.000 - 11.0), module, Droplet::OUT_OUTPUT));
