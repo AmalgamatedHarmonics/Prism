@@ -610,8 +610,8 @@ struct RainbowScaleExpander : core::PrismModule {
 				widgetRef[i]->isActive 	= parameterActive[currPage][i];
 				widgetRef[i]->title 	= parameterLabels[currPage][i];
 			}
-			paramQuantities[PARAMETER_PARAM + i]->getLabel() = parameterLabels[currPage][i];
-			paramQuantities[PARAMETER_PARAM + i]->getDescription() = parameterDescriptions[currPage][i];
+			paramQuantities[PARAMETER_PARAM + i]->name = parameterLabels[currPage][i];
+			paramQuantities[PARAMETER_PARAM + i]->description = parameterDescriptions[currPage][i];
 		}
 	}
 
