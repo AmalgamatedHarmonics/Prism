@@ -175,8 +175,6 @@ struct PrismReadoutParam : app::ParamWidget {
 
 		sw = new widget::SvgWidget;
 		fb->addChild(sw);
-
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf"));
 	}
 
 	void setSvg(std::shared_ptr<Svg> svg) {
@@ -226,9 +224,10 @@ struct PrismReadoutParam : app::ParamWidget {
 
 	void draw(const DrawArgs &ctx) override {
         ParamQuantity* paramQuantity = getParamQuantity();
+		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf"));        
 		ParamWidget::draw(ctx);
 
-		if (paramQuantity) {
+		if (paramQuantity && font) {
 
 			Vec pos = Vec(5, 15);
 
@@ -259,9 +258,10 @@ struct FloatReadout : PrismReadoutParam {
 
 	void draw(const DrawArgs &ctx) override {
         ParamQuantity* paramQuantity = getParamQuantity();
+		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf"));        
 		ParamWidget::draw(ctx);
 
-		if (paramQuantity) {
+		if (paramQuantity && font) {
 
 			Vec pos = Vec(5, 15);
 
@@ -296,9 +296,10 @@ struct IntegerReadout : PrismReadoutParam {
 
 	void draw(const DrawArgs &ctx) override {
         ParamQuantity* paramQuantity = getParamQuantity();
+		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/RobotoCondensed-Regular.ttf"));        
 		ParamWidget::draw(ctx);
 
-		if (paramQuantity) {
+		if (paramQuantity && font) {
 
 			Vec pos = Vec(5, 15);
 
