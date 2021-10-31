@@ -1131,8 +1131,7 @@ struct FrequencyDisplay : TransparentWidget {
 		if (!module->stepX % 60 != 0) return;
 
 		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
-		if (font) {		
-			nvgGlobalTint(ctx.vg, color::WHITE);
+		if (font && font->handle >= 0) {		
 			nvgFontSize(ctx.vg, 14);
 			nvgFontFaceId(ctx.vg, font->handle);
 			nvgTextLetterSpacing(ctx.vg, -1);
@@ -1249,15 +1248,11 @@ struct ExpanderBankWidget : Widget {
 	// Gamma
 	NVGcolor extraColour = nvgRGBf(245.0f/255.0f,  245.0f/255.0f, 090.0f/255.0f );
 
-	void draw(const DrawArgs &ctx) override {
-
-		if (module == NULL) {
-			return;
-	    }
+	void drawLayer(const DrawArgs& ctx, int layer) override {
+		if (module == NULL) return;
 
 		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
-		if (font) {
-			nvgGlobalTint(ctx.vg, color::WHITE);
+		if (font && font->handle >= 0) {
 			nvgFontSize(ctx.vg, 17.0f);
 			nvgFontFaceId(ctx.vg, font->handle);
 
@@ -1272,8 +1267,8 @@ struct ExpanderBankWidget : Widget {
 			snprintf(text, sizeof(text), "%s", scales.full[index]->name.c_str());
 			nvgText(ctx.vg, box.pos.x, box.pos.y + 15, text, NULL);
 		}
+		Widget::drawLayer(ctx, layer);
 	}
-
 };
 
 static void loadFile(RainbowScaleExpander *module) {

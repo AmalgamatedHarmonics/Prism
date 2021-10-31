@@ -50,7 +50,6 @@ struct LED : Widget {
 			nvgCircle(args.vg, xCenter, yCenter, ledRadius);
 			nvgFill(args.vg);
 			nvgStroke(args.vg);
-			// nvgGlobalTint(args.vg, color::WHITE);					
 		// }
 		// Widget::drawLayer(args, layer);
 	}
